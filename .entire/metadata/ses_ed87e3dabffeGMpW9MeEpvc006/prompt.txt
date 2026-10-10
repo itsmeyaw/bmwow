@@ -1,0 +1,1 @@
+Tidy up this project. There are two components, frontend and backend. The main frontend and backend will be both implemented in typescript nextjs but the backend logic is done by my teammates that can only do python, which later will be translated into typescript. This also includes tidying up the agentic documents such as AGENTS.md etc.
