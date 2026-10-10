@@ -5,6 +5,9 @@ import json
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator
+from pydantic import ValidationError
+
 from bmwow.ontology.tools import (
     OntologyQuery,
     RequirementProposal,
@@ -18,8 +21,6 @@ from bmwow.ontology.tools import (
     validate_proposal,
 )
 from bmwow.ontology.validation import validate_bundle
-from jsonschema import Draft202012Validator
-from pydantic import ValidationError
 
 FIXTURE = Path(__file__).resolve().parents[3] / "contracts/ontology/examples/synthetic.json"
 REQUIREMENT = "requirement:fixture-parking"

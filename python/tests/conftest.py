@@ -4,8 +4,8 @@ import pytest
 
 from bmwow.agent import llm, service
 from bmwow.agent.config import get_settings
-from bmwow.agent.tools import knowledge, web_search
 from bmwow.agent.models.evidence import AnalysisRequest
+from bmwow.agent.tools import knowledge, web_search
 from tests.fakes.data import REF_CODE
 from tests.fakes.knowledge import FakeKnowledge
 from tests.fakes.llm import fake_models
@@ -22,7 +22,8 @@ def fake_env(tmp_path, monkeypatch):
     knowledge.set_backend(FakeKnowledge())
     provider = FakePageProvider()
     web_search.set_search_backend(
-        web_search.CachedSearchBackend(provider, get_settings().web_cache_dir, offline=False))
+        web_search.CachedSearchBackend(provider, get_settings().web_cache_dir, offline=False)
+    )
     strong, cheap, emb, analyst = fake_models()
     llm.set_overrides(strong=strong, cheap=cheap, embeddings=emb)
     yield {"provider": provider, "analyst": analyst, "tmp": tmp_path}

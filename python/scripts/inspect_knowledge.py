@@ -7,11 +7,10 @@ import asyncio
 import json
 from pathlib import Path
 
+from bmwow.agent.knowledge_bridge import configure_service, ontology, sql_client
+from bmwow.agent.tools.knowledge import ModuleBackend
 from bmwow.knowledge import FeedbackFilter, create_synthetic_service
 from bmwow.ontology import GraphBundle
-
-from bmwow.agent.tools.knowledge import ModuleBackend
-from bmwow.agent.knowledge_bridge import configure_service, ontology, sql_client
 
 
 async def inspect() -> dict:

@@ -34,7 +34,7 @@ class Taxonomy:
         """Map an LLM-proposed attribute to a taxonomy key or `unmapped:<snake_case>`."""
         raw = name.strip()
         if raw.startswith("unmapped:"):
-            raw = raw[len("unmapped:"):]
+            raw = raw[len("unmapped:") :]
         key = re.sub(r"[^a-z0-9]+", "_", raw.lower()).strip("_")
         if key in self.area_of:
             return key

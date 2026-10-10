@@ -4,10 +4,10 @@ import pytest
 
 from bmwow.agent import router
 from bmwow.agent.config import get_settings
+from bmwow.agent.models.evidence import EXCERPT_MAX_CHARS, SearchLocale
 from bmwow.agent.sources import Budget, SourceRegistry, canonical_url, web_source_id
 from bmwow.agent.tools import graph_rag, sql_rag, web_search
 from bmwow.agent.tools.web_search import CachedSearchBackend, OfflineCacheMiss
-from bmwow.agent.models.evidence import EXCERPT_MAX_CHARS, SearchLocale
 from tests.fakes.data import REF_CODE, REFERENCE, SEGMENT
 from tests.fakes.web import FakePageProvider, NoNetworkProvider
 
@@ -18,8 +18,10 @@ LOCALES = {"EU": SearchLocale(country="de", lang="en"), "CN": SearchLocale(count
 async def test_graph_rag_returns_ontology_sources():
     got = await graph_rag.search_documents("charging", ["study"], ["EU"], 3)
     assert got.data and len(got.sources) == len(got.data)
-    for chunk, src in zip(got.data, got.sources):
-        assert src.id == f"kg:{chunk.node_id}" and src.kind == "ontology" and src.ref == chunk.node_id
+    for chunk, src in zip(got.data, got.sources, strict=True):
+        assert (
+            src.id == f"kg:{chunk.node_id}" and src.kind == "ontology" and src.ref == chunk.node_id
+        )
         assert src.excerpt and len(src.excerpt) <= EXCERPT_MAX_CHARS
 
 

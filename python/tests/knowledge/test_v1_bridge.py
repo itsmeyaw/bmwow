@@ -1,9 +1,10 @@
 from types import SimpleNamespace
 
 import pytest
-from bmwow.knowledge import AttributeValue, FeedbackFilter
-from bmwow.ontology import validate_bundle
 
+from bmwow.agent.knowledge_bridge import configure_service, get_service
+from bmwow.agent.models import knowledge as legacy_records
+from bmwow.agent.models.evidence import AGENT_NAMES, AnalysisRequest, SituationAnalysis
 from bmwow.agent.nodes import baseline, competition
 from bmwow.agent.nodes.common import AgentContext
 from bmwow.agent.resolve import resolve_request, tag_regions
@@ -13,9 +14,8 @@ from bmwow.agent.taxonomy import Taxonomy
 from bmwow.agent.tools import graph_rag, sql_rag
 from bmwow.agent.tools.feedback_stats import analyze_feedback, exact_dedupe
 from bmwow.agent.tools.knowledge import ModuleBackend
-from bmwow.agent.knowledge_bridge import configure_service, get_service
-from bmwow.agent.models import knowledge as legacy_records
-from bmwow.agent.models.evidence import AGENT_NAMES, AnalysisRequest, SituationAnalysis
+from bmwow.knowledge import AttributeValue, FeedbackFilter
+from bmwow.ontology import validate_bundle
 from tests.fakes.llm import HashEmbeddings
 
 

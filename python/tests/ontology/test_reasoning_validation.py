@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from bmwow.ontology import validate_bundle
 
 FIXTURE = Path(__file__).resolve().parents[3] / "contracts/ontology/examples/synthetic.json"

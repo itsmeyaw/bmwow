@@ -10,9 +10,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
+from pydantic import BaseModel, Field
+
 from bmwow.knowledge.records import FeedbackClassification, QualifiedRecord
 from bmwow.ontology.models import Measurement
-from pydantic import BaseModel, Field
 
 from .knowledge import ModelNode
 

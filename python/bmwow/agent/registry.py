@@ -41,17 +41,23 @@ class Registry:
         code = request.model_code.strip().upper()
         model = self.models.get(code)
         if model is None:
-            raise ResolveError(f"unknown model code {request.model_code!r}; valid codes: {', '.join(self.models)}")
+            raise ResolveError(
+                f"unknown model code {request.model_code!r}; valid codes: {', '.join(self.models)}"
+            )
         if not request.regions:  # no regions given = all regions the model has data for
             return code, [r for r in model.regions if r in self.regions]
         regions = list(dict.fromkeys(r.strip().upper() for r in request.regions))
         unknown = [r for r in regions if r not in self.regions]
         if unknown:
-            raise ResolveError(f"unknown region(s) {', '.join(unknown)}; valid regions: {', '.join(self.regions)}")
+            raise ResolveError(
+                f"unknown region(s) {', '.join(unknown)}; valid regions: {', '.join(self.regions)}"
+            )
         unsupported = [r for r in regions if r not in model.regions]
         if unsupported:
-            raise ResolveError(f"{code} ({model.name}) has no data for region(s) {', '.join(unsupported)}; "
-                               f"it supports: {', '.join(model.regions)}")
+            raise ResolveError(
+                f"{code} ({model.name}) has no data for region(s) {', '.join(unsupported)}; "
+                f"it supports: {', '.join(model.regions)}"
+            )
         return code, regions
 
 
@@ -68,7 +74,10 @@ def _models(raw: Any) -> dict[str, SupportedModel]:
 
 
 def _regions(raw: dict[str, Any]) -> dict[str, Region]:
-    return {code.upper(): Region.model_validate({"code": code.upper(), **entry}) for code, entry in raw.items()}
+    return {
+        code.upper(): Region.model_validate({"code": code.upper(), **entry})
+        for code, entry in raw.items()
+    }
 
 
 async def load_registry() -> Registry:

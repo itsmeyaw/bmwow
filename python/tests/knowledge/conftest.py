@@ -1,12 +1,12 @@
 from pathlib import Path
 
 import pytest
-from bmwow.knowledge import create_synthetic_service
-from bmwow.ontology import GraphBundle
 
 from bmwow.agent.config import get_settings
-from bmwow.agent.tools.knowledge import get_backend, set_backend
 from bmwow.agent.knowledge_bridge import configure_service
+from bmwow.agent.tools.knowledge import get_backend, set_backend
+from bmwow.knowledge import create_synthetic_service
+from bmwow.ontology import GraphBundle
 
 
 @pytest.fixture

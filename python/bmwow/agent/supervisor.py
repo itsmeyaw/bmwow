@@ -11,7 +11,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
@@ -61,11 +62,22 @@ async def collect(state: AnalysisState) -> dict[str, Any]:
     for agent in AGENT_NAMES:
         report = reports.get(agent)
         if report is None:
-            report = AgentReport(agent=agent, status="failed", findings=[], sources=[],
-                                 summary=f"{agent} agent produced no report.", errors=["no report produced"])
+            report = AgentReport(
+                agent=agent,
+                status="failed",
+                findings=[],
+                sources=[],
+                summary=f"{agent} agent produced no report.",
+                errors=["no report produced"],
+            )
         final[agent] = validate_report(report)
-    analysis = SituationAnalysis(run_id=state["run_id"], request=state["request"], brief=state["brief"],
-                                 reports=final, created_at=utcnow())
+    analysis = SituationAnalysis(
+        run_id=state["run_id"],
+        request=state["request"],
+        brief=state["brief"],
+        reports=final,
+        created_at=utcnow(),
+    )
     await persist(analysis)
     return {"analysis": analysis}
 
@@ -87,7 +99,9 @@ def build_builder(agents: Mapping[AgentName, AgentRun] | None = None) -> StateGr
     builder = StateGraph(AnalysisState)
     builder.add_node("resolve_request", resolve)
     builder.add_edge(START, "resolve_request")
-    builder.add_conditional_edges("resolve_request", after_resolve, [*AGENT_NODE_NAMES.values(), END])
+    builder.add_conditional_edges(
+        "resolve_request", after_resolve, [*AGENT_NODE_NAMES.values(), END]
+    )
     for agent in AGENT_NAMES:
         builder.add_node(AGENT_NODE_NAMES[agent], agent_node(agent, runs[agent]))
     builder.add_node("collect", collect)
@@ -96,8 +110,9 @@ def build_builder(agents: Mapping[AgentName, AgentRun] | None = None) -> StateGr
     return builder
 
 
-def build_graph(checkpointer: Checkpointer = None,
-                agents: Mapping[AgentName, AgentRun] | None = None) -> CompiledStateGraph:
+def build_graph(
+    checkpointer: Checkpointer = None, agents: Mapping[AgentName, AgentRun] | None = None
+) -> CompiledStateGraph:
     return build_builder(agents).compile(checkpointer=checkpointer, name="situation_analysis")
 
 

@@ -5,14 +5,23 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Literal
+from typing import Any, Literal
 
 import numpy as np
 from pydantic import BaseModel, Field
 
-from bmwow.agent.models.evidence import (AGENT_NAMES, AgentName, AnalysisRequest, Finding, ProductBrief, SituationAnalysis,
-                                 Source, SupportedModel)
+from bmwow.agent.models.evidence import (
+    AGENT_NAMES,
+    AgentName,
+    AnalysisRequest,
+    Finding,
+    ProductBrief,
+    SituationAnalysis,
+    Source,
+    SupportedModel,
+)
 
 from .config import get_settings
 from .llm import get_chat_model, get_embeddings
@@ -36,7 +45,9 @@ class RunStatus(BaseModel):
     state: Literal["running", "done", "failed"]
     agents: dict[AgentName, AgentRunState]
     analysis: SituationAnalysis | None = None
-    error: str | None = None  # optional addition: why the run failed (e.g. the request did not resolve)
+    error: str | None = (
+        None  # optional addition: why the run failed (e.g. the request did not resolve)
+    )
     brief: ProductBrief | None = None  # optional addition: the resolved brief, as soon as it exists
 
 
@@ -52,7 +63,9 @@ class Explanation(BaseModel):
 class _Run:
     run_id: str
     state: Literal["running", "done", "failed"] = "running"
-    agents: dict[AgentName, AgentRunState] = field(default_factory=lambda: {a: "pending" for a in AGENT_NAMES})
+    agents: dict[AgentName, AgentRunState] = field(
+        default_factory=lambda: {a: "pending" for a in AGENT_NAMES}
+    )
     analysis: SituationAnalysis | None = None
     error: str | None = None
     brief: ProductBrief | None = None
@@ -66,8 +79,14 @@ class _Run:
             self.changed.notify_all()
 
     def status(self) -> RunStatus:
-        return RunStatus(run_id=self.run_id, state=self.state, agents=dict(self.agents),
-                         analysis=self.analysis, error=self.error, brief=self.brief)
+        return RunStatus(
+            run_id=self.run_id,
+            state=self.state,
+            agents=dict(self.agents),
+            analysis=self.analysis,
+            error=self.error,
+            brief=self.brief,
+        )
 
 
 _runs: dict[str, _Run] = {}
@@ -118,7 +137,9 @@ async def resolve(request: AnalysisRequest) -> ProductBrief:
     return await resolve_request(request)
 
 
-async def start_analysis(request: AnalysisRequest, brief_override: ProductBrief | None = None) -> str:
+async def start_analysis(
+    request: AnalysisRequest, brief_override: ProductBrief | None = None
+) -> str:
     """Create a run id, launch the graph in the background and return immediately.
 
     `brief_override` = the PM-corrected brief from `resolve()`, used instead of re-resolving. Registry
@@ -131,7 +152,9 @@ async def start_analysis(request: AnalysisRequest, brief_override: ProductBrief 
     run_id = uuid.uuid4().hex[:12]
     run = _Run(run_id=run_id, brief=brief_override)
     _runs[run_id] = run
-    run.task = asyncio.create_task(_execute(run, request, brief_override), name=f"analysis-{run_id}")
+    run.task = asyncio.create_task(
+        _execute(run, request, brief_override), name=f"analysis-{run_id}"
+    )
     return run_id
 
 
@@ -172,7 +195,9 @@ async def _on_task(run: _Run, task: dict[str, Any]) -> None:
     elif task.get("error"):
         if agent:
             run.agents[agent] = "failed"
-        await run.emit({"event": "node_error", "node": node, "agent": agent, "error": str(task["error"])})
+        await run.emit(
+            {"event": "node_error", "node": node, "agent": agent, "error": str(task["error"])}
+        )
 
 
 async def _on_update(run: _Run, update: dict[str, Any]) -> None:
@@ -183,7 +208,9 @@ async def _on_update(run: _Run, update: dict[str, Any]) -> None:
         if agent and agent in (values.get("reports") or {}):
             report = values["reports"][agent]
             run.agents[agent] = report.status
-            event.update(status=report.status, n_findings=len(report.findings), summary=report.summary)
+            event.update(
+                status=report.status, n_findings=len(report.findings), summary=report.summary
+            )
         if values.get("brief") is not None:
             run.brief = values["brief"]
             event["brief"] = run.brief.model_dump(mode="json")
@@ -202,8 +229,13 @@ async def get_analysis(run_id: str) -> RunStatus:
     analysis = _load_persisted(run_id)  # survives restarts
     if analysis is None:
         raise KeyError(f"unknown run_id {run_id}")
-    return RunStatus(run_id=run_id, state="done", agents={a: r.status for a, r in analysis.reports.items()},
-                     analysis=analysis, brief=analysis.brief)
+    return RunStatus(
+        run_id=run_id,
+        state="done",
+        agents={a: r.status for a, r in analysis.reports.items()},
+        analysis=analysis,
+        brief=analysis.brief,
+    )
 
 
 async def stream_analysis(run_id: str) -> AsyncIterator[dict[str, Any]]:
@@ -248,7 +280,9 @@ async def _load_analysis(run_id: str) -> SituationAnalysis:
 
 class ExplainSentence(BaseModel):
     text: str
-    cited_ids: list[str] = Field(description="finding ids (F-...) and/or source ids from the evidence")
+    cited_ids: list[str] = Field(
+        description="finding ids (F-...) and/or source ids from the evidence"
+    )
 
 
 class ExplainOutput(BaseModel):
@@ -260,11 +294,17 @@ class ExplainOutput(BaseModel):
 def _render_finding(f: Finding) -> str:
     q = ""
     if f.quantity:
-        value = f"{f.quantity.value:.1%}" if f.quantity.unit == "share" else f"{f.quantity.value:g} {f.quantity.unit}"
+        value = (
+            f"{f.quantity.value:.1%}"
+            if f.quantity.unit == "share"
+            else f"{f.quantity.value:g} {f.quantity.unit}"
+        )
         q = f" | quantity: {value} {f.quantity.qualifier}".rstrip()
     w = f" | weight: {f.weight:.1%}" if f.weight != 1.0 else ""
-    return (f"[{f.id}] agent={f.agent} attribute={f.attribute} subject={f.subject} polarity={f.polarity} "
-            f"confidence={f.confidence}{q}{w} sources={', '.join(f.source_ids)}\n  claim: {f.claim}")
+    return (
+        f"[{f.id}] agent={f.agent} attribute={f.attribute} subject={f.subject} polarity={f.polarity} "
+        f"confidence={f.confidence}{q}{w} sources={', '.join(f.source_ids)}\n  claim: {f.claim}"
+    )
 
 
 async def _retrieve(question: str, findings: list[Finding], k: int) -> list[Finding]:
@@ -293,16 +333,26 @@ async def explain(run_id: str, question: str, finding_id: str | None = None) -> 
     else:
         targets = await _retrieve(question, findings, EXPLAIN_TOP_K)
     if not targets:
-        return Explanation(answer="The stored analysis has no findings to answer from.", cited_ids=[])
+        return Explanation(
+            answer="The stored analysis has no findings to answer from.", cited_ids=[]
+        )
 
     cited_sources = [sources[sid] for f in targets for sid in f.source_ids if sid in sources]
     cited_sources = list({s.id: s for s in cited_sources}.values())
-    context = "\n".join(_render_finding(f) for f in targets) + "\n\nSources:\n" + "\n".join(
-        f"[{s.id}] ({s.kind}) {s.title}\n  excerpt: {s.excerpt}" for s in cited_sources)
+    context = (
+        "\n".join(_render_finding(f) for f in targets)
+        + "\n\nSources:\n"
+        + "\n".join(f"[{s.id}] ({s.kind}) {s.title}\n  excerpt: {s.excerpt}" for s in cited_sources)
+    )
     allowed = {f.id for f in targets} | {s.id for s in cited_sources}
 
-    prompt = render_prompt("explain_answer", brief=analysis.brief, taxonomy=await load_taxonomy(),
-                           question=question, context=context)
+    prompt = render_prompt(
+        "explain_answer",
+        brief=analysis.brief,
+        taxonomy=await load_taxonomy(),
+        question=question,
+        context=context,
+    )
     out = await get_chat_model("strong").with_structured_output(ExplainOutput).ainvoke(prompt)
     if isinstance(out, dict):
         out = ExplainOutput.model_validate(out)
@@ -310,7 +360,10 @@ async def explain(run_id: str, question: str, finding_id: str | None = None) -> 
     kept = [s for s in out.sentences if sentence_supported(s.text, s.cited_ids, allowed, context)]
     if not out.supported or not kept:
         missing = out.missing.strip() or "evidence that directly addresses the question"
-        return Explanation(answer=f"The stored evidence does not support an answer. Missing: {missing}", cited_ids=[])
+        return Explanation(
+            answer=f"The stored evidence does not support an answer. Missing: {missing}",
+            cited_ids=[],
+        )
     answer = " ".join(f"{s.text.strip()} [{', '.join(s.cited_ids)}]" for s in kept)
     cited = list(dict.fromkeys(cid for s in kept for cid in s.cited_ids))
     return Explanation(answer=answer, cited_ids=cited)

@@ -8,11 +8,12 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator, FormatChecker
+from pydantic import ValidationError
+
 from bmwow.ontology import GraphBundle, validate_bundle
 from bmwow.ontology.models import SourceDocument
 from bmwow.ontology.schema import build_schema, render_contracts
-from jsonschema import Draft202012Validator, FormatChecker
-from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parents[3]
 

@@ -52,14 +52,22 @@ async def run(ctx: AgentContext) -> None:
         for chunk in got.data:
             if chunk.node_id not in candidates and len(candidates) < MAX_CANDIDATES:
                 candidates[chunk.node_id] = chunk
-                ctx.add_source(next(s for s in got.sources if s.ref == chunk.node_id), full_text=chunk.text)
+                ctx.add_source(
+                    next(s for s in got.sources if s.ref == chunk.node_id), full_text=chunk.text
+                )
 
     # 2. Bounded tool loop.
     calls = ctx.budget.max_tool_calls
-    tools = (make_graph_tools(ctx.registry, ctx.budget, ctx.brief.regions)
-             + make_web_tools(ctx.registry, ctx.budget, ctx.errors, ctx.brief.search_locale))
-    prompt = render_prompt("trends_research", brief=ctx.brief, taxonomy=ctx.taxonomy,
-                           candidates=render_chunks(list(candidates.values())), max_tool_calls=calls)
+    tools = make_graph_tools(ctx.registry, ctx.budget, ctx.brief.regions) + make_web_tools(
+        ctx.registry, ctx.budget, ctx.errors, ctx.brief.search_locale
+    )
+    prompt = render_prompt(
+        "trends_research",
+        brief=ctx.brief,
+        taxonomy=ctx.taxonomy,
+        candidates=render_chunks(list(candidates.values())),
+        max_tool_calls=calls,
+    )
     out = await run_tool_loop(get_chat_model("strong"), tools, prompt, TrendsOutput, calls)
 
     # 3. Trends → findings on taxonomy attributes, horizon in the qualifier or the claim.
@@ -69,6 +77,10 @@ async def run(ctx: AgentContext) -> None:
             if draft.value is not None and draft.unit:
                 ctx.add_draft(draft, qualifier_suffix=f"horizon {draft.horizon}")
             else:
-                ctx.add_draft(draft, claim_suffix=f"(trend: {trend.name}; horizon: {draft.horizon})")
+                ctx.add_draft(
+                    draft, claim_suffix=f"(trend: {trend.name}; horizon: {draft.horizon})"
+                )
 
-    ctx.stats.update(n_trends=len(trends), n_pages_scraped=ctx.budget.pages, n_tool_calls=ctx.budget.tool_calls)
+    ctx.stats.update(
+        n_trends=len(trends), n_pages_scraped=ctx.budget.pages, n_tool_calls=ctx.budget.tool_calls
+    )

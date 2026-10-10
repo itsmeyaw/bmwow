@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
+
 from bmwow.ontology import RequirementDossier, get_requirement_context
 
 ROOT = Path(__file__).resolve().parents[3]

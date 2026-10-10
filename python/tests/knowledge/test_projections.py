@@ -1,6 +1,7 @@
 from datetime import date
 
 import pytest
+
 from bmwow.knowledge import (
     FeedbackFilter,
     InMemoryRepository,
