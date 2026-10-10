@@ -4,6 +4,10 @@ This implements the first runnable milestone from [issue #12](https://github.com
 one read service for a curated ontology snapshot and read-only Neon feedback.
 The ontology remains v0.2.0 and the existing v1 record contracts remain unchanged.
 Python modules have typed boundaries and keep I/O at the edges for the TypeScript port.
+This completes the knowledge foundation, not the full requirement/review workflow
+defined in [the project plan](project-plan.md#first-complete-milestone). Read
+[the ontology guide](ontology.md) for object meanings and
+[the data-layer handoff](data-layer.md) for consumer qualifications.
 
 ## Implementation sequence
 
@@ -105,14 +109,35 @@ See [Neon's connection disruption guidance](https://neon.com/docs/manage/endpoin
 
 The analysis CLI accepts `--snapshot`, `--knowledge-config`, and `--env-file`.
 Add `--resolve-only` to inspect the brief without running interpretation agents.
+
+```sh
+PYTHON_DOTENV_DISABLED=1 uv run python -m scripts.run_analysis scripts/example_request.json \
+  --snapshot ../data/knowledge/snapshot.json \
+  --knowledge-config ../data/knowledge/snapshot.config.json \
+  --env-file ../.env --resolve-only
+```
+
 Provider-enabled analysis remains subject to the BMW data boundary in the project
 plan. Startup code may call `create_knowledge_service(...)` and then
 `configure_service(...)`; no orchestration module changes are needed.
+The factory requires a live SQL feedback connection (or an explicit test repository)
+and captures coverage at construction; rebuild the service when that registry changes.
+Its snapshot contains graph data only, while SQL feedback citations resolve the
+current import through read projections.
+
+The aggregate inspector requests sales/studies by source region explicitly.
+The v1 baseline still queries sales with `brief.markets`. When these are feedback
+countries, they cannot select a source Europe total with unknown country membership.
+Routing that additional regional context into analysis is still orchestration work.
+Typed study reads are available, but no complete deterministic study-analysis agent
+is supplied by this milestone.
 
 `FileCandidateStore.accept(candidate, expected_fingerprint=...)` is a local backend
 write primitive, not an authentication boundary and not a `store_findings` adapter.
 The orchestration owner must translate validated findings into candidates before
 connecting that optional hook. It cannot submit Requirements or human Decisions.
+It also rejects candidate relationships touching existing Requirements/Decisions;
+authenticated review and requirement proposal persistence need separate operations.
 Snapshots and matching configs should be published together while readers are
 stopped; candidate writes only update the snapshot and preserve config identities.
 
@@ -128,3 +153,6 @@ Run all Python checks from `AGENTS.md`. Real import checks run locally and emit
 aggregate summaries. Do not put private snapshots or reports into GitHub or CI.
 `openpyxl` is an XLSX reader dependency; SheetJS is a TypeScript counterpart for
 the eventual port. The parsers' mapping rules and synthetic fixtures define parity.
+Neo4j has no driver, schema, or deployment in this implementation. Evaluate it later
+against the same read/validation boundaries once the first complete case demonstrates
+the graph persistence and traversal requirements.

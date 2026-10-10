@@ -10,11 +10,15 @@ Ontology v0.2.0 supplies the common contract. It is not the finished application
 Keep that contract stable while building the first complete workflow; extend it
 when an actual source mapping or product question exposes a gap.
 
-Situation-analysis orchestration v1 is now present in `python/bmwow/agent/`. The first
-knowledge slice connects it to validated synthetic snapshots and read-only private
-Neon feedback through `bmwow.knowledge`; see [the integration handoff](data-layer.md).
-Other dataset reads, graph ingestion, candidate writes, requirement synthesis, and
-the complete review workflow remain pending.
+Situation-analysis orchestration v1 is present in `python/bmwow/agent/`. The knowledge
+foundation now includes validated snapshots, read-only private Neon feedback,
+combined reads, sales/study workbook import, reviewed mapping configuration, and
+atomic local candidate acceptance. See [the integration handoff](data-layer.md) and
+[the ingestion guide](knowledge-ingestion.md). These are implemented backend
+primitives, not completion of the full product workflow. Segment/Feature curation,
+full catalog extraction, analysis-to-graph acceptance, requirement synthesis,
+authenticated review/frontend integration, TypeScript porting, and Neo4j persistence
+remain pending.
 
 ## BMW data boundary
 
@@ -25,7 +29,8 @@ real excerpts, database contents/dumps, derived datasets, embeddings, cached
 research packs containing BMW content, generated requirements based on private
 records, screenshots of records, and data-bearing logs/transcripts out of GitHub.
 
-Use the existing ignored `raw_data/` for local private input and derived snapshots.
+Use ignored `raw_data/` for private originals and `data/` or `raw_data/` for private
+curation, reports, and derived snapshots.
 Local database files are ignored too. Teammates obtain originals through BMW's
 permitted sharing channel or use an access-controlled server database. Commit
 import scripts and migrations, but not the database contents. CI and shared
@@ -52,11 +57,13 @@ web research queries use public topics and do not contain original private BMW t
 
 ## Shared database: Neon
 
-Neon is the chosen storage provider. The shared database now has feedback and
-aspect tables with a read-only Python adapter. Application startup explicitly
-injects that service; the local inspection command validates a bounded selection
-and its citations without provider calls. Other datasets and graph persistence
-remain pending. This status does not approve additional imports or migrations.
+Neon is the chosen shared SQL storage provider. Feedback and aspect tables have
+a read-only Python adapter. Application startup can inject the feedback-only service
+or combine it with a private JSON graph snapshot. Sales/study imports currently
+populate that file snapshot, not additional SQL tables. Aggregate inspection resolves
+a brief, reads connected datasets, and checks citations without provider calls.
+Local candidate acceptance is implemented; shared graph persistence and requirement/
+review services remain pending. This status does not approve additional imports or migrations.
 
 - Use one team project and designate one shared dataset as the canonical source
   for integration and the demo. Agree its project, branch, and database identity
@@ -67,10 +74,11 @@ remain pending. This status does not approve additional imports or migrations.
 - Raw tables may retain the supplied spreadsheet layout. A Python adapter maps
   those rows and verified PDF passages into the existing ontology contract. Keep
   original PDFs/workbooks in BMW-permitted file storage and preserve their locators.
-- Agents and frontend consumers use backend operations for validated proposals
-  and human decisions. The service checks complete merged snapshots and commits
-  accepted changes atomically. Keep database credentials on the server; the browser
-  receives authorized application payloads.
+- Agents and frontend consumers must use backend operations for validated proposals
+  and human decisions. The local candidate store already validates complete merges
+  and atomically accepts non-Requirement candidates; authenticated requirement/
+  decision operations are still to be connected. Keep database credentials on the
+  server; the browser receives authorized application payloads.
 - Use `DATABASE_URL` for pooled application connections and
   `DATABASE_URL_UNPOOLED` for direct migration connections. Keep values in ignored
   local environment files or deployment secrets, never committed configuration or
@@ -108,23 +116,28 @@ The milestone is complete when the app can:
 4. Show that dossier in the frontend and record a product manager's decision.
 5. Revise the proposal without carrying approval forward to the new revision.
 
-A small validated file snapshot can support the complete milestone while other
-SQL datasets and graph writes are integrated. The current Neon slice establishes
-traceable feedback retrieval only. The shareable demo and CI remain runnable with
-synthetic content.
+A small validated file snapshot can support this workflow while shared persistence
+is integrated. The current foundation establishes traceable combined retrieval,
+workbook evidence, reviewed study mappings, and local candidate acceptance. It
+does not yet generate, persist, or display the complete requirement/review case.
+The shareable demo and CI remain runnable with synthetic content.
 
 ## Implementation sequence
 
-1. **Private ingestion and data adapter.** Preserve raw SQL/CSV column layouts as
-   needed. Map records into SourceDocument and Evidence with source versions,
-   original locators, classifications and scope. Deduplicate feedback by original
-   record identity. Preserve survey means versus shares and combined-model future
-   sales. Start PDF mapping with a few visually verified relevant pages and footnotes.
-   Validate the complete resulting snapshot and report unresolved mappings.
+1. **Private ingestion and data adapter — foundation implemented.** Sales/study
+   workbook ingestion preserves versions, cells, questions/categories, explicit
+   zeros, unknown metadata, and combined-model/future sales. The combined read service
+   reconciles canonical model IDs while keeping feedback EU membership separate from
+   source Europe populations. Complete merged snapshots are validated and mapping
+   gaps are reported. Remaining: review segments/Features and exact mappings, curate
+   visually verified catalog claims, and define any SQL-feedback graph ingestion.
 2. **Signals and customer needs.** Use typed extraction outputs to separate original
    records from interpretations. Group findings into needs while retaining opposing
    findings, uncertainty, and explicit scope. Persist candidate Signals, Needs,
    Trends, and Assumptions through a separate validated candidate-ingestion path.
+   The local store and reviewed study-finding rules exist; translating analysis DTOs
+   and wiring the optional write hook are still pending. Connect source-region sales
+   context explicitly: feedback country filters do not establish a source EU population.
 3. **Requirement synthesis and prioritization.** Bind the existing ontology tools
    to LangChain. Requirements reference the existing findings/needs/assumptions;
    `validate_proposal` handles one Requirement and links, not arbitrary ingestion.
@@ -146,6 +159,9 @@ synthetic content.
 
 Web research can run in parallel with the initial workflow. It should enrich an
 already inspectable reasoning chain rather than delay the first functioning case.
+Neo4j is a later storage/traversal evaluation after that case works. The current
+JSON/SQL read boundaries and graph validation remain the contract for any replacement;
+this milestone adds no Neo4j driver, deployment, or migration.
 
 ## Team boundaries
 
@@ -175,5 +191,6 @@ edit changes the recommendation. A large number of agents or a comprehensive
 configuration engine is not an acceptance criterion.
 
 See [ontology guide](ontology.md),
+[knowledge ingestion](knowledge-ingestion.md),
 [source mappings](../contracts/ontology/source-mappings.json), and
 [web research contract](web-research.md).

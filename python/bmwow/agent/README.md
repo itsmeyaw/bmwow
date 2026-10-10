@@ -1,7 +1,9 @@
 # `bmwow/agent/` — situation analysis agents
 
-Implements [SPEC.md](SPEC.md). Four agents run in parallel and hand a validated
-`SituationAnalysis` (schemas in `bmwow/agent/models/evidence.py`) to the downstream `structure_agent`.
+Implements the situation-analysis stage of [SPEC.md](SPEC.md). Four agents run in
+parallel and produce a validated `SituationAnalysis` (schemas in
+`bmwow/agent/models/evidence.py`) for downstream consumers. The proposed
+`structure_agent` and complete requirement/review workflow remain later work.
 
 ```
 service.py        list_models / resolve / start_analysis / get_analysis / stream_analysis / explain / aclose
@@ -39,6 +41,22 @@ Configure a `bmwow.knowledge.KnowledgeService` at startup as described in
 connection is created. A full agent run still needs LLM/search providers or test overrides;
 the inspection script needs neither. `.env` and `data/` live at the repository root.
 
+For private snapshot plus SQL feedback, use `create_knowledge_service(...)` to
+construct `CombinedKnowledgeService`, then inject it through the same bridge.
+The factory needs a feedback connection and explicit curation; it does not import
+source workbooks or activate a fallback backend on its own. Follow
+[the ingestion guide](../../../docs/knowledge-ingestion.md) for workbook import and
+aggregate inspection. After preparing the private snapshot and matching config,
+the existing analysis CLI can resolve a brief without providers:
+
+```sh
+# From python/; .env contains DATABASE_URL for this check.
+PYTHON_DOTENV_DISABLED=1 uv run python -m scripts.run_analysis scripts/example_request.json \
+  --snapshot ../data/knowledge/snapshot.json \
+  --knowledge-config ../data/knowledge/snapshot.config.json \
+  --env-file ../.env --resolve-only
+```
+
 ## Decisions worth knowing
 
 - **Input** is an `AnalysisRequest`: `model_code` (G60, F70, G68) and optional `regions` (EU, CN, US);
@@ -47,6 +65,15 @@ the inspection script needs neither. `.env` and `data/` live at the repository r
 - **Region scoping**: portfolio, competitors and documents are queried with `brief.regions`, sales and
   feedback with `brief.markets`, web searches with the region's `search_locale` (cache key includes it).
   `get_model` / `get_attribute_values` address one model by id and are not region-scoped.
+- **Source-region context**: source Europe sales/study populations stay distinct
+  from feedback EU membership. The combined read service can retrieve their original
+  regional observations explicitly; when the baseline's sales call uses feedback
+  country selectors, it cannot select source EU totals with unknown membership. Connecting
+  that context and typed study reads into analysis remains orchestration work.
+- **Curation and current capabilities**: the private template leaves segments and
+  Feature mappings for review. Only exact reviewed mappings attach Feature keys;
+  original SQL aspect labels remain intact. Attribute reads exclude superseded
+  Signals, while citation resolution and full snapshots preserve their history.
 - **Competitors** use curated `sold_regions` on the new bridge. The old no-region fallback applies only
   to legacy unqualified records; each competitor is researched in its requested sale locales.
 - **Feedback with several regions**: one finding per theme over all items (weights sum to 1 − noise),
@@ -62,6 +89,10 @@ the inspection script needs neither. `.env` and `data/` live at the repository r
   is saved before the hook runs and updated with its outcome. Local save failures still fail the run.
   Older saved analyses without the field load with `None` (unknown), not an assumed write outcome.
   `stored` reports successful completion of the configured hook, not human review or approval.
+  The current read services have no `store_findings` implementation. The separate
+  `FileCandidateStore` validates and atomically accepts non-Requirement candidates;
+  translating analysis outputs and wiring the optional hook remain pending.
+  Requirements, Decisions, and relationships touching them need separate write paths.
 
 - **Feedback shares** are relative to the *deduplicated* corpus, so cluster shares + `noise_share` = 1.
   Traced records deduplicate by evidence identity; identical text from distinct original records

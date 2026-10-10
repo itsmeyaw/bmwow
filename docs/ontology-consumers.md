@@ -4,7 +4,10 @@ This is the integration guide for the frontend and orchestration owners. The
 four product questions are expressible with the current objects and edges. No
 new node type, relationship, payload field, or contract version is needed. Python
 models and graph validation remain authoritative; this guide explains how to use
-their existing distinctions. The raw-data adapter is outside this change.
+their existing distinctions. Private source ingestion and the combined read service
+are described in [the ingestion guide](knowledge-ingestion.md) and
+[the data-layer handoff](data-layer.md); this dossier example still uses only the
+invented fixture.
 
 Run the worked example from `python/`:
 
@@ -17,6 +20,27 @@ The second command emits the existing `RequirementDossier` format from
 `get_requirement_context`, as defined in `contracts/ontology/agent-contracts.json`.
 The first groups its edges for display. That grouping is a consumer example,
 not another ontology or API schema. All example content is invented.
+
+## Connecting private knowledge to a dossier
+
+The combined service exposes snapshot graph reads alongside SQL feedback/aspect
+projections. `service.snapshot()` returns the graph only; live SQL projections are
+not inserted into that GraphBundle. A requirement trace needs materialized original
+SourceDocument/Evidence nodes and derived Signals in a closed, validated graph.
+Do not use an SQL read ID as a dangling graph reference or treat a SituationAnalysis
+finding as an accepted Signal.
+
+Workbook imports already create source-versioned sales/study Evidence. Reviewed
+exact study mappings can add Signals; catalog capability claims enter through
+reviewed staging bundles. Features, model segments, and source populations need
+curation. Operational feedback `EU` membership does not define a sales/study
+Europe population. Keep the original context IDs and source locators in dossier views.
+
+Current attribute reads exclude superseded capability Signals, while the full
+graph retains them. An exact-revision dossier may legitimately cite an earlier
+baseline; preserve that historical identity and make its limitations visible.
+Backend requirement persistence, authenticated review events, and frontend wiring
+remain separate work from this executable synthetic example.
 
 ## What the parking graph actually says
 
@@ -219,6 +243,12 @@ human-set target. Check the service-bound actor and snapshot precondition, run
 the service. `accepted=true` means structural/graph acceptance, not truth,
 product merit, persistence, or human approval.
 
+The implemented `FileCandidateStore` accepts local non-Requirement candidates
+after merged validation and a fingerprint check. It rejects Requirement/Decision
+nodes and relationships touching existing Requirements/Decisions, so it cannot
+persist the RequirementProposal result. That proposal needs its own service write
+operation; the current analysis `store_findings` hook is still unconnected.
+
 A revision is a new Requirement ID with the same entity key, next consecutive
 revision, and `SUPERSEDES` to the latest revision. Re-evaluate which baseline,
 justification, and challenge links still apply; attach new edge IDs to the new
@@ -267,5 +297,5 @@ These are corrections to synthetic demonstration text, not edits to real source
 Evidence or historical Decision events. Such records remain immutable in the app.
 
 See [ontology guide](ontology.md) for full meanings and
-[consumer acceptance tests](../tests/ontology/test_consumer_questions.py) for the
+[consumer acceptance tests](../python/tests/ontology/test_consumer_questions.py) for the
 four-question trace, occurrence preservation, and partial-result behavior.

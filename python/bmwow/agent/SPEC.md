@@ -2,6 +2,14 @@
 
 > **Status:** original build spec for orchestration v1 (Python reference implementation). The API
 > layer will be Next.js route handlers in TypeScript (`src/app/api/`, logic in `src/server/`).
+>
+> The bridge and knowledge read models described below are now implemented.
+> Snapshot, feedback-only Neon, and combined reads are available, together with
+> private workbook import and local candidate acceptance. The original builder
+> instructions and illustrative snippets preserve the initial design brief;
+> use [the current agent guide](README.md), [data-layer handoff](../../../docs/data-layer.md),
+> and [ingestion guide](../../../docs/knowledge-ingestion.md) for current setup,
+> record contracts, source scopes, and remaining write/workflow integration.
 
 > **For Claude (the builder).** This spec covers **only `bmwow/agent/`**: the four situation-analysis agents
 > (`baseline_agent`, `competition_agent`, `feedback_agent`, `trends_agent`), their tools, and the service
@@ -496,8 +504,14 @@ doesn't support an answer, it says so and names what is missing.
 
 **Persistence:** `collect` writes the `SituationAnalysis` JSON to
 `data/processed/analyses/<run_id>.json`. It also calls `knowledge.ontology.store_findings(analysis)` if
-that function exists (optional contract), so findings become nodes linked to their source nodes for the
-traceability map.
+that function exists (optional contract). `ontology_persistence` records `skipped`,
+`stored`, or `failed`, including the error on failure; run status and completion
+events expose the same outcome. `stored` means the configured hook completed,
+not graph acceptance or human approval. The current read bridge returns `False`
+because its services have no `store_findings` implementation. Analysis DTOs still
+need explicit translation into a validated graph candidate. `FileCandidateStore`
+provides separate local acceptance for non-Requirement candidates; requirement and
+human review writes need their own operations.
 
 ---
 
@@ -528,7 +542,8 @@ Models are created via `init_chat_model("openai:<id>")`, so a provider switch is
   reference model with code `TEST01`, 3 portfolio models, 2 regions (`EU`, `CN`) with partly different
   competitor sets (4 competitors total), ~150 feedback items spread over both regions with 5–6 planted
   themes (one present only in `CN`), and 5 study chunks. Names are clearly fake (e.g. `Competitor A`).
-  Agents are built and tested against these until the real `knowledge/` exists.
+  These remain the isolated agent-test backend. Separate knowledge tests exercise
+  snapshot/Neon/combined adapters and the real v1 bridge with synthetic inputs.
 - **`test_agent_tools.py`** (existing file, extend): tool wrappers return the expected `Source` format;
   the web cache hits on the second call; offline mode raises on a cache miss.
 - **Add:**
@@ -548,7 +563,12 @@ Models are created via `init_chat_model("openai:<id>")`, so a provider switch is
 
 ---
 
-## 10. Build order (each step ends runnable)
+## 10. Original build order (each step ends runnable)
+
+The orchestration code and synthetic tests are implemented. This list preserves
+the original sequence; it is not the remaining ontology plan. See
+[the project plan](../../../docs/project-plan.md#implementation-sequence) for the
+current requirement/review milestones and data boundary.
 
 1. Schemas (§3, proposed in `bmwow/agent/models/evidence.py`), `state.py`, `config.py`, `llm.py`, fakes.
 2. `supervisor.py` with `resolve_request`, 4 stub nodes and `collect`, plus
@@ -562,17 +582,25 @@ Models are created via `init_chat_model("openai:<id>")`, so a provider switch is
 
 ---
 
-## 11. Open items (ask the team, don't guess)
+## 11. Current integration decisions and remaining items
 
-- Final data sources and schemas behind §4 (the team is cleaning the data now). Only adapters should
-  change when they land.
-- Whether the taxonomy lives in the ontology or in `taxonomy.yaml`.
-- The real region list and how regions map to the market codes used in sales and feedback data (§4.4).
-- Names and supported regions for G60, F70 and G68 in the model registry (§4.5), confirmed against the
-  data.
-- Whether the data links each competitor to the regions it's sold in, or whether that has to be derived.
+- The §4 read interfaces exist in `bmwow.knowledge`, with v1 reexports and a thin
+  module bridge. Ontology v0.2.0 and the existing v1 read records are unchanged.
+- The combined service reads private sales/study snapshots and Neon feedback/aspects.
+  Catalog staging accepts closed reviewed bundles; full PDF extraction remains pending.
+- Graph taxonomy uses canonical Features and configured feature keys. The YAML
+  fallback applies only when the optional backend contract returns `None`, not an
+  authoritative empty taxonomy. The initial curation template needs Feature review.
+- Feedback `EU` groups member countries; source sales/study Europe retains separate
+  market IDs with unknown country populations. Source-region sales context still
+  needs routing alongside the baseline's existing feedback-country sales selector.
+- F70/G60/G68/G70 identities are explicit. Marketing names, segments, powertrains,
+  sold regions, and exact Feature mappings still need team review. G60/G68 sales
+  remain one combined group and do not establish a variant relationship.
+- Competitor identities, `COMPETES_WITH` links, and curated sale regions need sources;
+  evidence coverage alone cannot establish where a competitor is sold.
+- The analysis write hook is unconnected. Choose the analysis-to-graph conversion
+  before using local candidate acceptance; authenticated requirement/review services
+  and shared graph persistence remain later work.
 - Whether runs without a predecessor (a brand-new model line) are in scope. If yes, `model_code` becomes
   optional and `segment` becomes a required input.
-- Whether `knowledge.ontology.store_findings` will exist for the traceability map.
-- Who owns `bmwow/agent/models/evidence.py`. If the team prefers, the §3 schemas can live in `bmwow/agent/` and be
-  re-exported.

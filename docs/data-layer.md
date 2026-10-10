@@ -1,10 +1,13 @@
 # Knowledge layer and orchestration v1 handoff
 
-`bmwow.knowledge` supplies typed reads from either a validated ontology v0.2.0
-snapshot or the existing private Neon feedback tables. The synthetic demonstration
-uses only the invented fixture; the Neon backend serves feedback and aspects only.
-Other SQL datasets and ontology writes remain pending. The raw-data adapter and
-ontology contracts are unchanged.
+`bmwow.knowledge` supplies typed reads from a validated ontology v0.2.0 snapshot,
+the existing private Neon feedback tables, or both through `CombinedKnowledgeService`.
+The synthetic demonstration uses only the invented fixture. The feedback-only
+service reads SQL feedback/aspects; the combined service adds snapshot-backed
+sales, studies, documents, and curated capabilities through the same v1 interface.
+Workbook ingestion and local candidate acceptance are implemented. Requirement
+persistence, human review services, and the analysis write hook remain pending.
+The raw SQL schema, ontology contract, and v1 read records are unchanged.
 
 ## Run without Neon
 
@@ -20,7 +23,7 @@ uv run pytest
 No database, LLM credentials, web requests, or original BMW files are needed for
 the inspection script. It exercises the same `ModuleBackend` used by orchestration
 v1 and prints capabilities, feedback, study measurements, and combined future
-sales with their original qualifications. Synthetic setup is explicit: the factory
+sales with their original qualifications. Synthetic setup is explicit: `create_synthetic_service`
 rejects any snapshot containing a non-synthetic SourceDocument.
 
 If `import bmwow` fails on macOS, see the troubleshooting note in
@@ -33,7 +36,8 @@ If `import bmwow` fails on macOS, see the troubleshooting note in
 - `python/bmwow/knowledge/records.py` defines **read projections**, not additional
   graph node types. It reuses ontology Context, Locator, Measurement, and NumericRange.
 - `repository.py` defines `SnapshotRepository.load_snapshot() -> GraphBundle`.
-  `InMemoryRepository` validates a complete snapshot and returns isolated copies.
+  `InMemoryRepository` validates a complete snapshot and returns isolated copies;
+  `FileSnapshotRepository` reads and validates a private JSON snapshot.
 - `feedback.py` defines the query-based `FeedbackRepository` port and the partial
   `FeedbackKnowledgeService`. It does not wrap SQL feedback in an invented graph.
 - `neon.py` implements that port with Psycopg 3 against `public.feedback_entries`
@@ -41,14 +45,25 @@ If `import bmwow` fails on macOS, see the troubleshooting note in
 - `service.py` provides deterministic reads over one fixed, validated snapshot.
   Construct and inject a new service when the dataset version changes. Read results
   and configuration are copies; consumers cannot mutate the stored graph.
+- `combined.py` reconciles SQL Derivates with canonical graph model IDs, combines
+  dataset coverage, and routes citations while preserving original feedback fields.
+  SQL registry coverage is captured at construction; construct a new service to
+  refresh it. Feedback record reads and SQL citations still query the current import.
 - `config.py` holds explicit application curation: segment profiles, sale regions,
-  market search locales, feature keys, reviewed VFC mappings, and combined sales
+  market search locales, feature keys, proposed/reviewed VFC/study/aspect mappings, and combined sales
   group labels. It does not guess missing product metadata.
+- `manifest.py` defines the private `CurationManifest`: context nodes, knowledge
+  configuration, feedback identities, source-specific markets, and pending decisions.
+- `workbooks.py` imports original sales/study measurements with source-version
+  identity and cell locators. `ingestion.py` validates merges and implements a
+  separate atomic local candidate store. See [the ingestion guide](knowledge-ingestion.md).
+- `factory.py` exposes `create_knowledge_service`: it requires an explicit feedback
+  repository or `DATABASE_URL`, with no synthetic or feedback-only fallback.
 - `synthetic.py` supplies invented configuration for the tracked fixture only.
 - `bmwow.agent.models.knowledge` reexports the read models for v1 imports.
   `bmwow.agent.knowledge_bridge` is a thin temporary v1 compatibility boundary.
 
-All Python dependencies, including the LangChain/LangGraph, OpenAI, Firecrawl,
+All Python dependencies, including openpyxl, Psycopg, LangChain/LangGraph, OpenAI, Firecrawl,
 SQLite checkpoint, and clustering integrations, are declared and locked in
 `python/pyproject.toml`. Tests use fake LLM/search providers; installing these
 integrations does not call them.
@@ -58,12 +73,26 @@ integrations does not call them.
 The application startup code owns configuration, storage, and injection:
 
 ```python
-from bmwow.knowledge import KnowledgeService
+import os
+from pathlib import Path
+
+from bmwow.knowledge import create_knowledge_service
 from bmwow.agent.knowledge_bridge import configure_service
 
-# repository and config are supplied by the application, not created by the agents.
-configure_service(KnowledgeService(repository, config))
+# Run from python/. Load the private environment in application startup first.
+service = create_knowledge_service(
+    Path("../data/knowledge/snapshot.json"),
+    Path("../data/knowledge/snapshot.config.json"),
+    database_url=os.environ["DATABASE_URL"],
+)
+configure_service(service)
 ```
+
+For snapshot-only reads, inject `KnowledgeService(repository, config)` instead;
+the feedback-only setup is below. The combined factory validates the snapshot
+and queries SQL coverage at construction, so it needs a live feedback connection.
+The [private inspection command](knowledge-ingestion.md#inspect-and-connect) resolves
+a brief and checks bounded feedback, sales/studies, and citations without providers.
 
 With `KNOWLEDGE_BACKEND=real` (v1's default), `ModuleBackend` imports
 `bmwow.agent.knowledge_bridge.ontology` and `.sql_client`; both delegate to that
@@ -84,11 +113,14 @@ resolution. `get_study_scores(models, regions)` is an optional additive bridge
 method; older modules without it return an empty list. It does not mean v1 now
 contains a complete deterministic study-analysis agent.
 
-The Neon backend supplies registry, model metadata from feedback coverage,
+The feedback-only Neon backend supplies registry, model metadata from feedback coverage,
 feedback/aspects, retrieval metadata, and SQL citation resolution. Optional bridge
 methods `get_feedback_page()` and `get_data_availability()` expose the bounded
 selection and connected dataset kinds. Snapshot backends return `None` for these
 optional additions; existing `get_feedback_items() -> list[FeedbackItem]` stays intact.
+The combined service supplies both additions and the graph read methods. Its
+availability flags describe connected source kinds, not completeness for every
+model, region, Feature, or catalog claim.
 
 ## Qualifications agents and frontend must retain
 
@@ -105,6 +137,10 @@ when available. `resolve_citation()` accepts an original ID or `kg:` / `fb:` wra
 and returns the graph object on a snapshot backend; a query hash is not an original graph node. Resolve
 Source.references for the originals behind a query, and use existing ontology
 trace helpers for a capability's chain.
+On the combined service, graph IDs resolve to graph objects and SQL IDs resolve
+to feedback read projections. Feedback contexts use canonical VehicleModel IDs
+when configured; original countries, record IDs, aspect IDs, and locators remain
+intact. Graph and SQL citation namespaces must not overlap.
 
 **Model identity and geography.** Generation queries select the generation object,
 not an arbitrary variant. Variant-only capabilities remain variant-scoped. Unknown
@@ -120,7 +156,18 @@ qualified records, rather than treating empty coverage as worldwide availability
 Snapshot country-to-region mapping uses explicit Market.country_codes. The SQL
 feedback backend uses the explicit EU membership policy described below. A sales
 row retains its original regional grain. Do not add a regional
-total to its constituent country totals.
+total to its constituent country totals. The combined service unions coverage
+without adding sales/study market IDs to SQL feedback contexts. In the curation
+template, `market:sales:EU` and `market:studies:EU` have separate IDs and unknown
+country populations. They are selected by their source code for sales/study reads;
+feedback `EU` remains the EU member-country query policy.
+
+The v1 baseline still asks for sales using `brief.markets`. When these are feedback
+country selectors, they do not select source Europe totals when the source's
+country population is unknown. For grouped source context, call
+`sales_volume(["G60"], ["EU"])` explicitly and retain its original scope. The
+orchestration owner still needs to connect that source-region context to analysis;
+assigning countries to a source group solely to make a query match is not valid.
 
 **Capabilities and ranges.** Availability, conditions, epistemic status, scope,
 measurement, limitations, and locators are retained. Standard and optional claims
@@ -129,6 +176,10 @@ field renders its endpoints as text. No midpoint is invented. A month-only catal
 date does not become a day or establish fresh capability evidence. The competitor
 agent treats a traced claim with unknown `as_of` as needing freshness research.
 Catalog availability does not prove equipment fitted to a feedback author's car.
+`get_attribute_values()` excludes Signals targeted by `SUPERSEDES`. Full snapshots
+and citation resolution retain the earlier revisions for history and exact-revision
+dossiers. A single reported maximum range uses a scalar; a structured interval
+preserves the source's actual lower and upper bounds.
 
 **Feedback.** One item represents one original Evidence record and retains all
 classification locators, original VFC labels, nulls, `no_class_found`, engine type,
@@ -136,6 +187,11 @@ and country/model scope. Proposed mappings remain visible with `attribute=None`;
 only reviewed mappings populate the feature key. The ontology does not currently
 carry a distinct feedback event date, so a `since` filter excludes undated records
 instead of borrowing observation or publication dates. `limit=0` returns none.
+For SQL records, exact reviewed VFC mappings are applied by the combined service.
+`get_aspect_mapping(citation_id)` exposes proposed/reviewed mapping metadata
+separately for original or inferred Aspect Terms; it does not rewrite stored labels
+or accept an aspect as a graph Signal. The initial manifest supplies no Feature
+matches. That helper is a combined-service method, not a new v1 bridge tool.
 
 For traced records, v1 deduplicates by original evidence identity. Independent
 comments with identical or similar wording remain in the denominator and may
@@ -191,7 +247,9 @@ from bmwow.agent.knowledge_bridge import configure_service
 configure_service(create_neon_feedback_service())  # reads DATABASE_URL; lazy connection
 ```
 
-`NeonFeedbackConfig` controls dataset namespace, default/hard limits and timeouts.
+`NeonFeedbackConfig` controls dataset namespace, default/hard limits, timeouts,
+and connection establishment retries. It defaults to two attempts for transient
+connection failures; authentication errors and queries are not replayed.
 The default selection is at most 200 feedbacks; the hard cap is 5,000. `None` is a
 bounded default, not an unbounded export. `FeedbackServiceConfig.model_profiles`
 accepts explicit `ModelProfile` objects keyed by Derivate. A missing profile leaves
@@ -223,7 +281,9 @@ references point back to the original parent feedback and its SQL locator.
 `classifications` contains original **curated VFC labels only**. Its legacy
 `vfc_category`/`vfc_issue` fields mean Aspect Term/Label; the separate aspect fields
 mean coarse buckets. `vfc_combined` remains unknown because SQL does not store it.
-Feature mappings stay unknown; a coarse category is not a canonical Feature ID.
+Feature mappings stay unknown in this feedback-only service; the combined service
+can attach exact reviewed matches from its private configuration. A coarse category
+is not a canonical Feature ID.
 
 An inferred aspect's Quote is `supported` only when it is a nonblank exact substring
 of the imported Verbatim. `missing` and `mismatch` aspects remain visible with a
@@ -252,9 +312,11 @@ The resolver accepts a read ID or its `fb:`/`kg:` wrapper and returns a typed
 FeedbackItem, FeedbackAspect, FeedbackDataset, or feedback-coverage ModelNode. These are read projections,
 not persisted ontology Evidence/SourceDocument/Signal objects. It does not resolve
 a query hash. The virtual `vehicle:feedback:<Derivate>` IDs are likewise read
-identities; reconcile them explicitly with canonical VehicleModel IDs on ingestion.
+identities. The combined service reconciles them through `feedback_models` for
+read contexts and model citation resolution. Persisting SQL records in a closed
+graph is a separate ingestion operation.
 
-The live registry derives Derivates and ISO-country coverage from SQL, then groups
+The feedback-only live registry derives Derivates and ISO-country coverage from SQL, then groups
 EU member countries under `EU` using `python/bmwow/knowledge/geography.py`.
 The policy uses the [27 EU member states](https://european-union.europa.eu/easy-read_en),
 verified on 2026-10-10; it is not a definition of all European markets. GB, NO, CH,
@@ -276,6 +338,12 @@ about Verbatim. Equipment, sale availability, and competitive selection remain u
 Registry errors propagate through the teammate's existing failure-reporting path;
 empty coverage does not activate the YAML fallback.
 
+The combined registry also includes configured source markets. A source-only `EU`
+can therefore be advertised even without EU feedback; its selector remains `EU`
+instead of an empty unrestricted SQL filter. Explicit configured search locales
+take precedence over the feedback-only alphabetical fallback. RoW is not offered
+by the initial manifest until a research locale is chosen; its sales remain readable.
+
 From `python/`, inspect a region with this command (apply the macOS environment
 prefix when needed):
 
@@ -285,16 +353,16 @@ uv run python -m scripts.inspect_neon_feedback --env-file ../.env --region EU --
 
 The existing `--country` option still accepts individual countries or the EU alias.
 
-Sales, studies, capabilities, portfolio, and documents raise
+On the feedback-only service, sales, studies, capabilities, portfolio, and documents raise
 `KnowledgeUnavailableError` when requested. Competitive selection returns an empty
 list for v1 request resolution, with availability metadata marking competitors
 unavailable. Taxonomy returns `None` so v1 can use its configured product-feature
 taxonomy; SQL coarse buckets are not silently substituted for that taxonomy.
 Synthetic data is never mixed into this backend. `store_findings()` stays `False`.
 
-### Later graph ingestion
+### Persisting SQL feedback in the graph
 
-For future ontology storage, hydrate a closed graph with actual source metadata,
+To persist SQL feedback beyond its current read projections, hydrate a closed graph with actual source metadata,
 Evidence, and reviewed interpretations. Preserve source versions, exact original
 locations, scope, dates, groups, ranges, units, conditions, and provenance, then
 run `validate_bundle` on the **complete** merged snapshot. SQL read DTO validation
@@ -302,13 +370,20 @@ does not replace graph validation or authenticate human review. Source revision
 metadata and other datasets require coordination with their owners and a separate
 approved import/migration scope. This slice creates no Neon resources or schema changes.
 
-## Write path and next milestone
+## Candidate acceptance and orchestration handoff
 
 The combined snapshot/Neon read service, workbook import commands, reviewed mapping
 configuration, and separate local candidate store are described in
 [the implementation plan](knowledge-ingestion.md). They preserve the v1 record
 contracts. A private curation manifest supplies source-specific markets and explicit
 Derivate identities; missing mappings and segment decisions remain visible.
+
+`FileCandidateStore.accept(candidate, expected_fingerprint=...)` reads the current
+snapshot under an exclusive local writer lock, rejects stale writes and conflicting
+payloads, validates the complete merge, and replaces the file atomically. Identical
+IDs and payloads are idempotent. It rejects Requirement/Decision nodes and candidate
+relationships touching existing Requirements/Decisions. It is a local persistence
+primitive, not an authenticated API or a `store_findings` implementation.
 
 `store_findings` is intentionally absent from the read service. The v1 optional
 bridge returns `False`: an analysis may be saved to v1's ignored/local analysis
@@ -331,11 +406,13 @@ SituationAnalysis and its Source records are read/analysis DTOs, not persisted
 ontology objects. Requirement proposal validation and revision-specific human
 Decision events remain separate. No source read or LLM finding grants approval.
 
-Feedback reads and local citation inspection are now available. The orchestration
+Combined reads, workbook import, and local citation inspection are now available. The orchestration
 owner should next choose how to use imported aspects and stored embeddings: the
 current feedback agent still embeds the selected Verbatim and interprets clusters.
-This adapter neither uses nor re-creates embeddings. Then connect studies, sales,
-and PDF capabilities, followed by candidate ingestion, synthesis, and the dossier.
+This adapter neither uses nor re-creates embeddings. Sales and studies can already
+be read from the imported snapshot; source-region sales routing and use of typed
+study results remain orchestration work. Curate catalog capabilities and mappings,
+then connect validated agent candidates, synthesis, and the requirement dossier.
 
 For the frontend, group by feedback identity and render its aspects underneath;
 show Quote status and curated/inferred provenance separately. Retain the optional
@@ -362,9 +439,14 @@ preservation, conditional/ranged capabilities, classification grouping, explicit
 country membership, zero and future/group sales, unknown study metadata, partial
 dates, citation resolution, async bridge support, identity-based feedback dedupe,
 and a real LangGraph run with the new backend and controlled reader nodes.
+Additional tests cover workbook layouts/formula caches, exact source versions,
+reviewed/proposed mappings, canonical combined identities, source-only region
+selectors, superseded capability reads, idempotent merges, stale/concurrent writes,
+protected requirement/review paths, and connection retry boundaries.
 The graph test uses the real baseline node; its positioning LLM step and the other
 three interpretation agents are replaced with controlled readers. Existing v1
 tests separately exercise all four agents with fake LLM/search providers.
 
 Run the Python checks from AGENTS.md. They validate integration behavior, not the
-merit of real BMW proposals, actual SQL ingestion, or live provider calls.
+merit of real BMW proposals or live provider calls. Private workbook and live Neon
+checks are separate opt-in inspections; ordinary tests use synthetic sources.

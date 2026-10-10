@@ -4,6 +4,8 @@ Start with `README.md` for the layout and setup. `CONTEXT.md` is the glossary fo
 customer feedback preprocessing: Feedback, Aspect, VFC Category, and so on.
 `docs/ontology.md` explains what the ontology means. `docs/project-plan.md` holds
 the milestones and the BMW data boundary.
+`docs/data-layer.md` describes the read interfaces; `docs/knowledge-ingestion.md`
+covers private workbook import, reviewed mappings, and local candidate acceptance.
 
 ## Architecture
 

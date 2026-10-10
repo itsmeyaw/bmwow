@@ -1,11 +1,19 @@
 # External research contract
 
-One research agent with three research modes is sufficient for the initial prototype. The agent plans queries and interprets retrieved content. A deterministic collection tool handles search, fetching, source capture, and extraction of original excerpts. The existing orchestration agent combines those findings with BMW data and proposes requirements.
+The proposed ontology collector has three research modes. The agent plans queries
+and interprets retrieved content; a deterministic collection tool handles fetching,
+source capture, and original excerpts. Orchestration can then combine accepted
+findings with BMW evidence for the later requirement workflow.
 
 This document is a proposed collection interface for ontology v0.2.0. No scraper
 or live collection service is implemented by the ontology files. Deterministic
 query, trace, comparison, and proposal helpers are available in `bmwow.ontology`;
-the orchestration owner still needs to connect them to LangChain and ingestion.
+the orchestration owner still needs to bind them to the complete requirement workflow.
+Situation-analysis v1 already has bounded Firecrawl search/scrape tools, caching,
+and cited Source/Finding DTOs. Those results do not automatically become ontology
+SourceDocument/Evidence/Signal nodes. The separate local candidate store is implemented;
+collector-to-graph translation and the analysis write hook remain pending. See
+[the ingestion guide](knowledge-ingestion.md) and [the write boundary](data-layer.md#candidate-acceptance-and-orchestration-handoff).
 
 ## Inputs
 
@@ -85,7 +93,7 @@ A Trend synthesizes indicators and cites them through `DERIVED_FROM`. Forecasts 
 
 The research agent supplies a closed ingestion candidate containing context nodes,
 `SourceDocument`, `Evidence`, and `Signal` nodes, plus CatalogItems when extracting
-identified offerings. Its normal output does not contain `Decision` nodes.
+identified offerings. Its normal output contains neither Requirements nor Decisions.
 Validate a candidate against the merged snapshot, so every context, item-condition,
 and source reference is present. Orchestration can later synthesize Trends, Needs,
 Assumptions, and Requirements.
@@ -96,6 +104,14 @@ It does not ingest new sources, Evidence, or CatalogItems. Use the generated
 `agent-contracts.json` for tool schemas and the [ontology guide](ontology.md) for
 query, trace, dossier, comparison, and proposal signatures. Bounded query/trace
 responses are tool results, not necessarily complete graph snapshots.
+
+An application can accept a validated research candidate with
+`FileCandidateStore.accept(candidate, expected_fingerprint=...)`. The local store
+checks conflicts and the current fingerprint under a writer lock, validates the
+complete merged graph, and replaces the snapshot atomically. It also rejects
+relationships touching existing Requirements/Decisions. It supplies neither actor
+authentication nor automatic acceptance of v1 analysis DTOs; a service must own
+that conversion and authorization. Neo4j persistence is not implemented.
 
 A requirement's `BASELINED_ON` link records an applicable BMW capability;
 `JUSTIFIED_BY` records customer or trend reasoning. Improve/retain/remove require
@@ -108,4 +124,6 @@ Schema validation is not a permission boundary. The backend must restrict extrac
 
 Start with a small cached research pack for one model, market, and theme. Use several public opinions, one or two relevant competitor references, and dated trend evidence. Demonstrate a research job adding a new captured source, then inspect how it supports or challenges a proposal. Keep cached originals available so the demo remains reproducible if a live fetch fails.
 
-The shareable `examples/synthetic.json` illustrates the shapes and relationships only. It contains no real internet findings and must never be mixed into a production research pack.
+The shareable [synthetic fixture](../contracts/ontology/examples/synthetic.json)
+illustrates the shapes and relationships only. It contains no real internet findings
+and must never be mixed into a production research pack.

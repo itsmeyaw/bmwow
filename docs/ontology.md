@@ -23,6 +23,8 @@ Foundry, its authorization system, or an OWL/RDF inference engine.
 - [synthetic.json](../contracts/ontology/examples/synthetic.json): invented catalogs, feedback, studies, sales, and web research.
 - [web-research.md](web-research.md): proposed collection interface; no scraper is implemented.
 - [ontology-consumers.md](ontology-consumers.md): four-question parking dossier, Signal kind rules, frontend/orchestration recipes, and rejected distinctions.
+- [data-layer.md](data-layer.md): snapshot, SQL feedback, and combined read interfaces.
+- [knowledge-ingestion.md](knowledge-ingestion.md): private curation/import commands and validated local candidate acceptance.
 
 The Python reference implementation imports `bmwow.ontology`. Run from `python/`:
 
@@ -38,7 +40,34 @@ uv run ruff format --check .
 Edit `python/bmwow/ontology/models.py`, `relationships.py`, and the validator;
 generate contracts with `uv run bmwow-schema`. Do not edit generated contracts by
 hand. Shared fixtures use synthetic content. Real originals and derived examples
-stay in ignored `raw_data/`.
+stay in ignored `raw_data/` or `data/`.
+
+## Current knowledge implementation
+
+`bmwow.knowledge` implements validated file snapshots, read-only Neon feedback,
+and `CombinedKnowledgeService` behind the existing v1 interface. The combined
+service uses explicit Derivate-to-VehicleModel mappings, unions dataset coverage,
+and routes graph and SQL citations to their original backend. SQL feedback/aspects
+remain read projections; combining reads does not persist them as graph Evidence
+or Signals. The ontology and v1 wire contracts are unchanged.
+
+The workbook importer creates source-versioned sales and study Evidence with
+original cell/question/category locators. Reviewed exact study mappings can add
+evidence-backed `study_finding` Signals. Proposed mappings do not establish Feature
+associations. The curation template leaves segments, product metadata, Features,
+and source populations for team review. A closed, reviewed catalog bundle can be
+merged into the snapshot; full PDF extraction remains pending.
+
+`FileCandidateStore` accepts graph candidates under a local writer lock, checks the
+expected fingerprint, validates the complete merge, and replaces the JSON snapshot
+atomically. It excludes Requirement/Decision nodes and relationships touching
+existing Requirements/Decisions. Authentication and the requirement/review write
+services remain application responsibilities. The optional analysis `store_findings`
+hook is still unconnected; producing a finding does not accept it into the graph.
+
+Private import and aggregate inspection commands are in
+[the ingestion guide](knowledge-ingestion.md). The full requirement/review workflow,
+TypeScript port, and Neo4j persistence remain later milestones.
 
 ## Questions this contract answers
 
@@ -109,6 +138,10 @@ identify the existing BMW baseline, not asserted facts about a future model.
 The source sales label `EU` means Europe; the study uses `EU` without exact country
 coverage. Do not silently equate these groups with EU membership or map a feedback
 country into them without a configured mapping.
+The curation manifest keeps `market:sales:EU` and `market:studies:EU` distinct,
+with unknown country populations. Feedback's operational `EU` query selects the
+configured EU member-country group and retains each record's original country.
+Matching short codes do not make those three populations equivalent.
 
 **CustomerNeed** records a customer outcome synthesized from evidenced Signals.
 Positive experiences can motivate retention. Negative experiences can motivate
@@ -199,6 +232,9 @@ A Measurement has exactly one of scalar `value` or `value_range={minimum,maximum
 Keep units, statistic, period, temporal status, scale, sample count, denominator,
 population, comparison basis, test standard, conditions, question, and response
 category separate. Unknown information is explicit `null`, not inferred.
+A single stated maximum driving range is a scalar `value`. The two endpoints of
+`value_range` represent a source-reported interval, such as configuration-dependent
+range; they are not required for every car-range measurement.
 
 A genuine PDF interval is not a list of configuration alternatives. The inspected
 G60 table distinguishes configuration-dependent WLTP range from standard/optional
@@ -264,7 +300,10 @@ schemas and inject graph access/actor identity through runtime context. See
 [structured output](https://docs.langchain.com/oss/python/langchain/structured-output).
 Trusted service parameters provide actor binding and an optional expected
 fingerprint. Authentication, authorization, atomic persistence, and concurrent-write
-control belong to that service; this package does not implement them.
+control belong to the service rather than these domain helpers. The knowledge
+layer's local candidate store implements atomic acceptance and stale-write checks
+for non-Requirement candidates. It cannot persist the RequirementProposal result
+or authenticate a human Decision; those integrations remain separate.
 
 The former `bmwow.ontology.agent` module is now `bmwow.ontology.tools` to distinguish
 these domain operations from actual AI agents. Public `from bmwow.ontology import ...`
@@ -299,8 +338,11 @@ product review remain necessary.
 
 Provenance also draws on [W3C PROV-O](https://www.w3.org/TR/prov-o/), without claiming
 conformance. A directed multigraph or SQL object/link tables can store the contract.
-The initial implementation does not add a database, scraper, frontend integration,
-or a LangChain orchestrator.
+The current knowledge implementation uses local JSON snapshots alongside the
+existing Neon feedback tables. Storage does not redefine the ontology: Neo4j is
+a later persistence/traversal evaluation, with no driver or graph database migration
+implemented yet. Situation-analysis v1 uses the read bridge; the complete requirement
+synthesis, review API, and frontend dossier integration remain pending.
 
 ## Migrating v0.1.0 consumers and local samples
 
