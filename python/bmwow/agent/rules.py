@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from functools import cache
 from pathlib import Path
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -62,6 +63,12 @@ class GapFillRules(_Rules):
     min_customer_ci_low: float
 
 
+class CandidateRules(_Rules):
+    assessments: list[str]
+    default_target: dict[str, Literal["competitor_median", "best_in_class", "ours"]]
+    max_customer_facts: int
+
+
 class Rules(_Rules):
     thin: ThinRules
     feedback: FeedbackRules
@@ -69,6 +76,7 @@ class Rules(_Rules):
     structure: StructureRules
     competition: CompetitionRules
     gap_fill: GapFillRules
+    candidates: CandidateRules
 
 
 @cache

@@ -10,7 +10,9 @@ from bmwow.agent.models.evidence import (
     AnalysisRequest,
     EvidencePackage,
     FeatureAssessment,
+    GateEvent,
     ProductBrief,
+    RequirementCandidate,
     SituationAnalysis,
 )
 
@@ -31,4 +33,8 @@ class AnalysisState(TypedDict, total=False):
     feature_assessments: list[FeatureAssessment]
     gap_requests: list[str]  # features to research once more before the judgment
     gap_round: int  # 0 before gap_fill, 1 after (one round at most)
+    requirement_candidates: list[RequirementCandidate]  # candidate_agent, updated at the PM gate
+    pending_constraints: list[dict]  # parsed from PM free text, waiting for confirm/cancel
+    gate_log: list[GateEvent]
+    gate_done: bool
     analysis: SituationAnalysis

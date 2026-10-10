@@ -3,9 +3,13 @@ reports, structure the evidence per feature, then build and persist the hand-off
 
                             ┌─> baseline_agent ────┐
                             ├─> competition_agent ─┤
-    START ─> resolve_request┼─> feedback_agent ────┼─> validate ─> structure_agent ─> collect ─> END
-                  │         └─> trends_agent ──────┘                   ⇅ (max 1 round)
-                  └─(resolve_error)─> END                            gap_fill
+    START ─> resolve_request┼─> feedback_agent ────┼─> validate ─> structure_agent ─> candidate_agent ─┐
+                  │         └─> trends_agent ──────┘                   ⇅ (max 1 round)                │
+                  └─(resolve_error)─> END                            gap_fill                          │
+                                                                                                       │
+                       END <─ collect <─(done)─ gate_requirements ⟲ (PM actions, if pm_gate) <─────────┘
+
+Without `pm_gate`, candidate_agent goes straight to collect (the candidates stay "proposed").
 """
 
 from __future__ import annotations
@@ -17,6 +21,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any
 
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Checkpointer
@@ -25,13 +30,22 @@ from bmwow.agent.models.evidence import (
     AGENT_NAMES,
     AgentName,
     AgentReport,
+    AnalysisRequest,
+    EvidencePackage,
+    FeatureAssessment,
+    GateEvent,
     OntologyPersistence,
+    ProductBrief,
+    RequirementCandidate,
     SituationAnalysis,
 )
 
+from .candidates import build_candidates
 from .config import get_settings
 from .nodes import AGENT_RUNS, competition
+from .nodes.candidate import word_all
 from .nodes.common import AgentContext, AgentRun, agent_node
+from .nodes.gate import after_gate, gate_requirements
 from .nodes.structure import judge
 from .registry import ResolveError
 from .resolve import check_brief, resolve_request
@@ -104,7 +118,19 @@ async def structure_agent(state: AnalysisState) -> dict[str, Any]:
 
 
 def after_structure(state: AnalysisState) -> str:
-    return "gap_fill" if state.get("gap_requests") and not state.get("gap_round") else "collect"
+    if state.get("gap_requests") and not state.get("gap_round"):
+        return "gap_fill"
+    return "candidate_agent"
+
+
+async def candidate_agent(state: AnalysisState) -> dict[str, Any]:
+    """Requirement candidates from the judged features: built by code, worded by an LLM if allowed."""
+    packages = state.get("evidence_packages") or []
+    candidates = build_candidates(
+        packages, state.get("feature_assessments") or [], state["brief"], load_rules()
+    )
+    worded = await word_all(state["brief"], await load_taxonomy(), candidates, packages)
+    return {"requirement_candidates": worded}
 
 
 async def gap_fill(state: AnalysisState) -> dict[str, Any]:
@@ -148,6 +174,8 @@ async def collect(state: AnalysisState) -> dict[str, Any]:
         created_at=utcnow(),
         evidence_packages=state.get("evidence_packages") or [],
         feature_assessments=state.get("feature_assessments") or [],
+        requirement_candidates=state.get("requirement_candidates") or [],
+        gate_log=state.get("gate_log") or [],
     )
     analysis = await persist(analysis)
     return {"analysis": analysis}
@@ -180,8 +208,28 @@ async def persist(analysis: SituationAnalysis) -> SituationAnalysis:
     return persisted
 
 
-def build_builder(agents: Mapping[AgentName, AgentRun] | None = None) -> StateGraph:
-    """`agents` overrides individual agent runs (tests, demos)."""
+def checkpoint_serde() -> JsonPlusSerializer:
+    """Checkpoint serializer that may only rebuild the graph's own state types (the PM gate resumes
+    runs from checkpoints; LangGraph will block unregistered types)."""
+    return JsonPlusSerializer(
+        allowed_msgpack_modules=[
+            AnalysisRequest,
+            ProductBrief,
+            AgentReport,
+            EvidencePackage,
+            FeatureAssessment,
+            RequirementCandidate,
+            GateEvent,
+            SituationAnalysis,
+        ]
+    )
+
+
+def build_builder(
+    agents: Mapping[AgentName, AgentRun] | None = None, pm_gate: bool = False
+) -> StateGraph:
+    """`agents` overrides individual agent runs (tests, demos). `pm_gate` adds the interactive
+    gate_requirements node, which needs a checkpointer to pause and resume."""
     runs = {**AGENT_RUNS, **(agents or {})}
     builder = StateGraph(AnalysisState)
     builder.add_node("resolve_request", resolve)
@@ -197,16 +245,31 @@ def build_builder(agents: Mapping[AgentName, AgentRun] | None = None) -> StateGr
     builder.add_edge(list(AGENT_NODE_NAMES.values()), "validate")  # waits for all four
     builder.add_node("gap_fill", gap_fill)
     builder.add_edge("validate", "structure_agent")
-    builder.add_conditional_edges("structure_agent", after_structure, ["gap_fill", "collect"])
+    builder.add_node("candidate_agent", candidate_agent)
+    builder.add_conditional_edges(
+        "structure_agent", after_structure, ["gap_fill", "candidate_agent"]
+    )
     builder.add_edge("gap_fill", "structure_agent")
+    if pm_gate:
+        builder.add_node("gate_requirements", gate_requirements)
+        builder.add_edge("candidate_agent", "gate_requirements")
+        builder.add_conditional_edges(
+            "gate_requirements", after_gate, ["gate_requirements", "collect"]
+        )
+    else:
+        builder.add_edge("candidate_agent", "collect")
     builder.add_edge("collect", END)
     return builder
 
 
 def build_graph(
-    checkpointer: Checkpointer = None, agents: Mapping[AgentName, AgentRun] | None = None
+    checkpointer: Checkpointer = None,
+    agents: Mapping[AgentName, AgentRun] | None = None,
+    pm_gate: bool = False,
 ) -> CompiledStateGraph:
-    return build_builder(agents).compile(checkpointer=checkpointer, name="situation_analysis")
+    return build_builder(agents, pm_gate).compile(
+        checkpointer=checkpointer, name="situation_analysis"
+    )
 
 
 def build_subgraph() -> CompiledStateGraph:

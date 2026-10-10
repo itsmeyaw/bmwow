@@ -304,6 +304,92 @@ class FeatureAssessment(BaseModel):
     note: str = ""  # why the feature was not assessed, if so
 
 
+# ---------------------------------------------------------------- candidate_agent + PM gate
+# Fields mirror the ontology's Requirement / Criterion (bmwow.ontology.models), so a candidate can later
+# become a RequirementProposal without reshaping.
+
+
+class TargetOption(BaseModel):
+    label: Literal["ours", "competitor_median", "best_in_class"]
+    value: float
+    unit: str
+    condition: str  # test standard / condition, e.g. "wltp"
+    finding_ids: list[str] = Field(default_factory=list)
+
+
+class Target(BaseModel):
+    operator: Literal[">=", "<=", "="]
+    value: float
+    unit: str
+    condition: str
+    basis: Literal["proposed_target", "evidence_supported_target", "human_set_target"]
+    rule: str  # why this value, e.g. "competitor median (gap)" or "PM cap"
+
+
+class Constraint(BaseModel):
+    """A PM restriction on one feature's suggestion."""
+
+    kind: Literal["freeze", "cap", "floor", "set", "deprioritize"]
+    value: float | None = None  # cap / floor / set
+    reason: str = ""
+    source_text: str = ""  # the PM's own words when parsed from free text
+
+
+class AcceptanceCriterion(BaseModel):
+    description: str
+    metric: str | None = None
+    operator: Literal[">=", "<=", "=", ">", "<"] | None = None
+    target: float | None = None
+    unit: str | None = None
+    basis: Literal["proposed_target", "evidence_supported_target", "human_set_target"]
+    verification_method: Literal[
+        "user_study", "benchmark_test", "inspection", "analysis", "to_be_defined"
+    ]
+    test_conditions: list[str] = Field(default_factory=list)
+    supporting_evidence_ids: list[str] = Field(default_factory=list)
+
+
+class RequirementCandidate(BaseModel):
+    """A proposed requirement for the successor, built from one judged feature. Numbers come from code;
+    the wording may come from an LLM and is guarded. The PM decides at gate_requirements."""
+
+    id: str  # "REQ-<n>", in importance order
+    attribute: str
+    title: str
+    sub_theme: str | None = None
+    assessment: Assessment
+    change_intent: Literal["introduce", "improve", "retain", "remove"]
+    baseline_status: Literal["known_present", "known_absent", "unknown"]
+    baseline_rationale: str
+    statement: str  # quantitative: states the target or, without one, the customer share
+    customer_value: str
+    proposed_target: Target | None = None  # the system's proposal, before PM constraints
+    target: Target | None = None  # after constraints; None: no comparable number, the PM sets it
+    lower_is_better: bool = False
+    options: list[TargetOption] = Field(default_factory=list)
+    customer_facts: list[str] = Field(default_factory=list)  # computed shares that motivate it
+    criterion: AcceptanceCriterion
+    evidence_ids: list[str] = Field(default_factory=list)
+    open_points: list[str] = Field(default_factory=list)
+    regions: list[str] = Field(default_factory=list)
+    priority: Literal["normal", "low"] = "normal"
+    constraints: list[Constraint] = Field(default_factory=list)
+    status: Literal["proposed", "approved", "rejected"] = "proposed"
+    decision_reason: str = ""
+    wording: Literal["llm", "template"] = "template"
+    guard: list[GuardCheck] = Field(default_factory=list)
+
+
+class GateEvent(BaseModel):
+    """One PM action at gate_requirements and the system's response."""
+
+    action: str
+    candidate_id: str | None = None
+    detail: str = ""
+    response: str = ""
+    cited_ids: list[str] = Field(default_factory=list)
+
+
 class OntologyPersistence(BaseModel):
     """Optional ontology write outcome, independent of analysis completion and human review."""
 
@@ -322,3 +408,6 @@ class SituationAnalysis(BaseModel):  # the hand-off object
     # Optional additions from structure_agent: one evidence package and one assessment per feature.
     evidence_packages: list[EvidencePackage] = Field(default_factory=list)
     feature_assessments: list[FeatureAssessment] = Field(default_factory=list)
+    # Optional additions from candidate_agent and the PM gate.
+    requirement_candidates: list[RequirementCandidate] = Field(default_factory=list)
+    gate_log: list[GateEvent] = Field(default_factory=list)

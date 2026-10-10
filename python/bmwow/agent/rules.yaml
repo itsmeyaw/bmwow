@@ -106,3 +106,15 @@ competition:
 gap_fill:
   max_features: 3          # one targeted round for the most important features missing a competitor view
   min_customer_ci_low: 0.01
+
+candidates:
+  # Assessments that become requirement candidates (unclear / not_assessed / flagged never do).
+  assessments: [gap, demand, hygiene_factor, strength]
+  # Default target per assessment: competitor_median (parity, evidence-backed), best_in_class, or ours
+  # (keep at least today's value). The PM sees all options and decides at gate_requirements.
+  default_target:
+    gap: competitor_median
+    demand: competitor_median
+    hygiene_factor: ours
+    strength: ours
+  max_customer_facts: 2

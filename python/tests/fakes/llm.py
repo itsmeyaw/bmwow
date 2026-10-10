@@ -233,6 +233,10 @@ class FakeAnalyst:
             return self._judge(prompt)
         if "ExtractionOutput" in tools:
             return self._extract(prompt)
+        if "CandidateWording" in tools:
+            return self._wording(prompt)
+        if "ParsedConstraints" in tools:
+            return self._constraints(prompt)
         if "ExplainOutput" in tools:
             return self._explain(prompt)
         if "DraftFindings" in tools:
@@ -255,6 +259,68 @@ class FakeAnalyst:
             for key, name in keys[1:3]
         ]
         return _call("PositioningOutput", {"findings": findings})
+
+    def _wording(self, prompt: str) -> AIMessage:
+        """First answer omits the target and invents a number; the revision states the target."""
+        facts = prompt.split("# Candidate facts", 1)[1].split("Draft wording", 1)[0]
+        target = re.search(r"^target (\S+) (\S+) (\S+)$", facts, flags=re.M)
+        fact = next((ln for ln in facts.splitlines() if "% of feedback items" in ln), "")
+        if "Guard violations" not in prompt:
+            return _call(
+                "CandidateWording",
+                {
+                    "statement": "The successor should be much better, like 42 times better.",
+                    "customer_value": "Customers care.",
+                },
+            )
+        if target:
+            op, value, unit = target.groups()
+            statement = f"The successor should reach {op} {value} {unit}, matching the evidence."
+        else:
+            statement = f"The successor should address this: {fact}."
+        return _call(
+            "CandidateWording",
+            {
+                "statement": statement,
+                "customer_value": fact or "Customers raise it.",
+            },
+        )
+
+    def _constraints(self, prompt: str) -> AIMessage:
+        """Reads 'freeze REQ-n', 'cap REQ-n 520', 'REQ-n not important'; plants a value the PM did not
+        write and an unknown candidate, both of which code must drop."""
+        text = prompt.split("# PM instruction (verbatim)", 1)[1].split("# Task", 1)[0].lower()
+        out = []
+        for cid, rest in re.findall(r"(req-\d+)([^;]*)", text):
+            cid = cid.upper()
+            number = re.search(r"(\d+(?:\.\d+)?)", rest)
+            if "freeze" in rest or "don't change" in rest or "do not change" in rest:
+                out.append(
+                    {"candidate_id": cid, "kind": "freeze", "value": None, "reason": rest.strip()}
+                )
+            elif "not important" in rest:
+                out.append(
+                    {
+                        "candidate_id": cid,
+                        "kind": "deprioritize",
+                        "value": None,
+                        "reason": rest.strip(),
+                    }
+                )
+            elif ("max" in rest or "up to" in rest) and number:
+                out.append(
+                    {
+                        "candidate_id": cid,
+                        "kind": "cap",
+                        "value": float(number.group(1)),
+                        "reason": "",
+                    }
+                )
+        out.append({"candidate_id": "REQ-1", "kind": "set", "value": 12345.0, "reason": "planted"})
+        out.append(
+            {"candidate_id": "REQ-999", "kind": "freeze", "value": None, "reason": "planted"}
+        )
+        return _call("ParsedConstraints", {"constraints": out})
 
     def _extract(self, prompt: str) -> AIMessage:
         """Copy values from the page like a careful model, plus two planted mistakes that code must

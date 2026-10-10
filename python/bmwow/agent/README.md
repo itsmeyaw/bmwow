@@ -8,7 +8,8 @@ guarded judgment, and the `SituationAnalysis` (schemas in `bmwow/agent/models/ev
 ## Pipeline v2
 
 ```
-resolve ─▶ [baseline ∥ competition ∥ feedback ∥ trends] ─▶ validate ─▶ structure_agent ⇄ gap_fill ─▶ collect
+resolve ─▶ [baseline ∥ competition ∥ feedback ∥ trends] ─▶ validate ─▶ structure_agent ⇄ gap_fill
+        ─▶ candidate_agent ─▶ (gate_requirements ⟲ PM actions, if pm_gate) ─▶ collect
 ```
 
 Division of labor: the knowledge adapter fetches, **code computes every number**, the LLM only reads
@@ -25,12 +26,22 @@ judgment. Missing data is reported per source in `AgentReport.availability`, nev
 | validate | 4 reports | citation and number checks, missing reports filled | validated reports |
 | structure_agent | validated reports | assemble packages (code) → rubric judgment (LLM, cites package ids) → guard (code), one revision then flagged | `evidence_packages`, `feature_assessments` |
 | gap_fill | important features without competitor evidence | one targeted competition round, merged into the competition report | more competitor evidence |
+| candidate_agent | packages + assessments | code: candidates for gap / demand / hygiene_factor / strength (never unclear, not assessed or flagged), change intent and baseline status (ontology rules), target options (ours / competitor median / best in class) and the default target from `rules.yaml`; LLM words the quantitative statement, guarded (states the target, no foreign numbers), else template | `requirement_candidates` (fields mirror the ontology `Requirement`) |
+| gate_requirements | candidates | PM actions, one per step: approve / reject, constrain (freeze, cap, floor, set, deprioritize; code recomputes the target), free-text constraints (LLM parses, PM confirms; values the PM did not write are dropped), why (answer from the candidate's evidence only), done | decided candidates, `gate_log` |
 | collect | everything | build + persist the hand-off, optional `store_findings` | `SituationAnalysis` |
 
 **BMW data and LLMs.** Steps that would send BMW data to an LLM (feedback sub-themes from texts, the
 structure_agent judgment) run only with `ALLOW_LLM_ON_INTERNAL_DATA=true`. With the default `false`,
 they are skipped and reported (`availability`, `FeatureAssessment.note`); everything computed by code
 still runs. Tests enable it against synthetic data only.
+
+**PM gate.** `build_graph(pm_gate=True)` (needs a checkpointer; `checkpoint_serde()` registers the
+state types) or `service.start_analysis(request, pm_gate=True)`: the run pauses in state
+`waiting_for_pm` with `RunStatus.gate` (candidates, pending constraints, last response); each
+`service.gate_action(run_id, action)` resumes one step. Try it without keys or BMW data:
+`uv run python -m scripts.review_requirements scripts/example_request.json --demo`. Decisions stay in the run state and the saved analysis for now; they
+map to ontology `Decision` objects later. Without `ALLOW_LLM_ON_INTERNAL_DATA` there are no judgments,
+hence no candidates.
 
 **Ontology integration.** Feature keys come from the knowledge layer's taxonomy (`get_taxonomy`);
 feedback uses `FeedbackClassification.attribute` (curated VFC mapping) before the interim aliases in
