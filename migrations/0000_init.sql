@@ -1,4 +1,4 @@
--- Idempotent: scripts/preprocess.ts applies this on every run.
+-- Idempotent: apply explicitly with scripts/preprocess.ts --migrate.
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TABLE IF NOT EXISTS feedback_entries (

@@ -34,10 +34,12 @@ defined in [the project plan](project-plan.md#first-complete-milestone). Read
 6. **Neo4j evaluation.** After the first real case works, compare persistent graph
    storage/traversal against these interfaces using the synthetic fixture.
 
-Steps 1–5 have code and synthetic tests. Complete catalog extraction, automatic
-mapping proposals, competitor research, and Neo4j persistence are subsequent work.
-No SQL view, feedback relabeling, provider request, or database migration is required
-by this milestone.
+Steps 1–5 have code and synthetic tests. The
+[completion runbook](data-completion.md) adds feedback XLSX export, an additive
+SQL revision migration, private mapping/PDF proposals, reviewed catalog staging,
+and provider-free readiness inspection. Human review is still required for
+Feature meanings and catalog table/footnote interpretation. Competitor research
+and Neo4j persistence remain subsequent work.
 
 ## Curation and import
 
@@ -90,7 +92,9 @@ bundle must be closed, share the curated context identities, and pass graph
 validation. Conflicting context payloads require reconciliation in the manifest.
 A German catalog remains a German claim; a source's European sales label does not
 expand catalog availability. Table symbols, column alignment, and footnotes must
-be visually verified before staging. This importer does not parse arbitrary PDFs.
+be visually verified before staging. `review_catalog` produces PDF text candidates
+and stages only explicitly reviewed claims; arbitrary PDF table interpretation is
+not automatic.
 
 ## Inspect and connect
 
@@ -122,8 +126,8 @@ plan. Startup code may call `create_knowledge_service(...)` and then
 `configure_service(...)`; no orchestration module changes are needed.
 The factory requires a live SQL feedback connection (or an explicit test repository)
 and captures coverage at construction; rebuild the service when that registry changes.
-Its snapshot contains graph data only, while SQL feedback citations resolve the
-current import through read projections.
+Its snapshot contains graph data only. Logical SQL feedback citations resolve
+the current import; version-pinned citations reconstruct archived read projections.
 
 The aggregate inspector requests sales/studies by source region explicitly.
 The v1 baseline still queries sales with `brief.markets`. When these are feedback

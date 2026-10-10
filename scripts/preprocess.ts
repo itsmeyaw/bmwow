@@ -1,18 +1,23 @@
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { parseArgs } from "node:util";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { parseArgs, parseEnv } from "node:util";
 import { parse } from "csv-parse/sync";
-import { drizzle } from "drizzle-orm/node-postgres";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import pg from "pg";
 import { z } from "zod";
+import { type NewFeedbackAspect, type NewFeedbackEntry } from "../src/server/db/schema";
 import {
-  feedbackAspects,
-  feedbackEntries,
-  type NewFeedbackAspect,
-  type NewFeedbackEntry,
-} from "../src/server/db/schema";
+  complete,
+  hash,
+  provenance,
+  reusableEmbedding,
+  storeRevision,
+  type FeedbackProvenance,
+  type Origin,
+} from "./feedback-provenance";
 
 const VFC_CATEGORIES = [
   "Infotainment & Connectivity",
@@ -77,12 +82,22 @@ type Aspect = Feedback["aspects"][number];
 const clean = (v: string | undefined) => v?.trim() || null;
 const norm = (v: string | undefined) => v?.replace(/\u00a0/g, " ").trim() || null;
 const unbracket = (v: string | undefined) => clean(clean(v)?.replace(/^\[([\s\S]*)\]$/, "$1"));
-const msg = (e: unknown): string =>
-  e instanceof AggregateError
-    ? e.errors.map(msg).join("; ")
-    : e instanceof Error
-      ? e.message || e.name + (e.cause ? `: ${msg(e.cause)}` : "")
-      : String(e);
+const OriginSchema = z.object({
+  source_file: z.string().min(1),
+  source_hash: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+  locator: z.discriminatedUnion("kind", [
+    z.object({
+      kind: z.literal("spreadsheet"),
+      sheet: z.string().min(1),
+      range: z.string().regex(/^[A-Z]+[1-9][0-9]*(?::[A-Z]+[1-9][0-9]*)?$/),
+    }),
+    z.object({
+      kind: z.literal("csv"),
+      row: z.number().int().min(2),
+      columns: z.array(z.string().min(1)).min(1),
+    }),
+  ]),
+});
 const chunks = <T>(a: T[], n: number) =>
   Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, (i + 1) * n));
 
@@ -106,6 +121,9 @@ function groupFeedbacks(rows: Row[]) {
     Omit<NewFeedbackEntry, "embedding"> & {
       aspects: { feedbackType: string | null; level2: string; level3: string | null }[];
       fallbackFeedbackType: string | null;
+      origins: Origin[];
+      rawClassifications: Record<string, unknown>[];
+      originalRows: Row[];
     }
   >();
   for (const r of rows) {
@@ -123,12 +141,31 @@ function groupFeedbacks(rows: Row[]) {
         country: clean(r["Country"]),
         derivateCode: clean(r["Derivate (e-code)"]),
         engineType: engine === "BEVE" ? "BEV" : engine,
-        rawFeedback: raw,
+        rawFeedback: r["Customer Feedback"]!,
         aspects: [],
         fallbackFeedbackType: null,
+        origins: [],
+        rawClassifications: [],
+        originalRows: [],
       };
       byId.set(id, f);
     }
+    if (
+      f.rawFeedback !== r["Customer Feedback"] ||
+      f.country !== clean(r["Country"]) ||
+      f.derivateCode !== clean(r["Derivate (e-code)"])
+    )
+      throw new Error("Conflicting parent fields for one Feedback Explorer ID");
+    const origin = r.__bmwow_origin ? OriginSchema.parse(JSON.parse(r.__bmwow_origin)) : null;
+    if (origin) f.origins.push(origin);
+    f.originalRows.push(r);
+    f.rawClassifications.push({
+      feedback_type: r["Feedback Type"] ?? null,
+      vfc_level2: r["Vfc level2 Name"] ?? null,
+      vfc_level3: r["Vfc level3 Name"] ?? null,
+      vfc_combined: r["Vfc level2 3 Name"] ?? null,
+      locator: origin?.locator ?? null,
+    });
     const feedbackType = clean(r["Feedback Type"]);
     const level2 = norm(r["Vfc level2 Name"]);
     if (level2 && level2 !== "no_class_found")
@@ -139,10 +176,8 @@ function groupFeedbacks(rows: Row[]) {
 }
 
 function lookup(a: Aspect, tax: Taxonomy) {
-  const vfcCategory = tax.vfc_category[a.level2];
-  const issueType = a.level3 ? tax.issue_type[a.level3] : "Unclassified";
-  if (!vfcCategory) throw new Error(`no vfc_category mapping for "${a.level2}"`);
-  if (!issueType) throw new Error(`no issue_type mapping for "${a.level3}"`);
+  const vfcCategory = tax.vfc_category[a.level2] ?? "Unclassified";
+  const issueType = a.level3 ? (tax.issue_type[a.level3] ?? "Unclassified") : "Unclassified";
   return { vfcCategory, issueType };
 }
 
@@ -160,8 +195,15 @@ function sentiment(issueType: string, intensity: number) {
   };
 }
 
-function buildRecords(f: Feedback, tax: Taxonomy, e: Enrichment) {
-  const { aspects, fallbackFeedbackType, ...entry } = f;
+function buildRecords(f: Feedback, tax: Taxonomy, e: Enrichment, enriched = true) {
+  const {
+    aspects,
+    fallbackFeedbackType,
+    origins: _origins,
+    rawClassifications: _classifications,
+    originalRows: _rows,
+    ...entry
+  } = f;
   const labelled: Omit<NewFeedbackAspect, "feedbackEntryId">[] = aspects.map((a, i) => {
     const { vfcCategory, issueType } = lookup(a, tax);
     return {
@@ -171,7 +213,8 @@ function buildRecords(f: Feedback, tax: Taxonomy, e: Enrichment) {
       aspectLabelRaw: a.level3,
       issueType,
       quoteSnippet: null,
-      ...sentiment(issueType, e.scores[i]),
+      ...sentiment(issueType, enriched ? e.scores[i] : 0),
+      ...(!enriched ? { sentimentScore: null } : {}),
       extractionSource: "vfc_label",
     };
   });
@@ -293,7 +336,7 @@ function selfCheck() {
       "BMW",
       "BMW 5 Series",
       null,
-      "Lovely sound, but the screen keeps crashing. Wish it had CarPlay.",
+      " Lovely sound, but the screen keeps crashing. Wish it had CarPlay. ",
     ],
   );
   // 3. provenance
@@ -335,7 +378,16 @@ function selfCheck() {
 
 async function main() {
   const { values } = parseArgs({
-    options: { limit: { type: "string" }, "self-check": { type: "boolean" } },
+    options: {
+      limit: { type: "string" },
+      "self-check": { type: "boolean" },
+      "no-enrichment": { type: "boolean" },
+      migrate: { type: "boolean" },
+      "csv-dir": { type: "string" },
+      "env-file": { type: "string" },
+      "taxonomy-file": { type: "string" },
+      "proposals-file": { type: "string" },
+    },
   });
   if (values["self-check"]) {
     selfCheck();
@@ -346,19 +398,29 @@ async function main() {
   if (!(Number.isInteger(limit) && limit > 0) && limit !== Infinity)
     throw new Error("--limit must be a positive integer");
 
-  try {
-    process.loadEnvFile();
-  } catch {} // .env is optional if the vars come from the environment
-  const { OPENAI_API_KEY, DATABASE_URL } = process.env;
-  if (!OPENAI_API_KEY || !DATABASE_URL) {
-    console.error("OPENAI_API_KEY and DATABASE_URL must be set");
+  // An explicit file is authoritative. Missing files must never fall back to an
+  // ambient production URL; omitted keys in that file remain omitted.
+  let environment: Record<string, string | undefined>;
+  if (values["env-file"]) environment = parseEnv(readFileSync(values["env-file"], "utf8"));
+  else {
+    try {
+      process.loadEnvFile();
+    } catch {} // optional when configured by the shell
+    environment = process.env;
+  }
+  const { OPENAI_API_KEY, DATABASE_URL, DATABASE_URL_UNPOOLED } = environment;
+  const noEnrichment = !!values["no-enrichment"];
+  if ((!noEnrichment && !OPENAI_API_KEY) || !DATABASE_URL) {
+    console.error("DATABASE_URL is required; provider mode also requires OPENAI_API_KEY");
     process.exit(1);
   }
 
-  const openai = new OpenAI({ apiKey: OPENAI_API_KEY, maxRetries: 5 });
+  const openai = noEnrichment ? null : new OpenAI({ apiKey: OPENAI_API_KEY, maxRetries: 5 });
   const pool = new pg.Pool({ connectionString: DATABASE_URL });
-  pool.on("error", (e) => console.error("pg pool:", msg(e)));
-  const db = drizzle({ client: pool });
+  pool.on("error", () => console.error("feedback database connection failed"));
+  const csvDir = values["csv-dir"] ?? CSV_DIR;
+  const taxonomyPath = values["taxonomy-file"] ?? TAXONOMY_PATH;
+  const proposalsPath = values["proposals-file"] ?? "data/feedbacks/taxonomy-proposals.json";
   const usage = { input: 0, output: 0, embed: 0 };
 
   async function llm<S extends z.ZodType>(
@@ -367,6 +429,7 @@ async function main() {
     instructions: string,
     input: string,
   ) {
+    if (!openai) throw new Error("Provider calls are disabled in no-enrichment mode");
     const r = await openai.responses.parse({
       model: MODEL,
       reasoning: { effort },
@@ -381,14 +444,51 @@ async function main() {
   }
 
   try {
-    await pool.query(readFileSync("migrations/0000_init.sql", "utf8"));
+    if (values.migrate) {
+      if (!DATABASE_URL_UNPOOLED) throw new Error("Migration requires DATABASE_URL_UNPOOLED");
+      if (new URL(DATABASE_URL_UNPOOLED).hostname.includes("-pooler"))
+        throw new Error("Migration requires a direct connection");
+      const migrationPool = new pg.Pool({ connectionString: DATABASE_URL_UNPOOLED });
+      try {
+        const client = await migrationPool.connect();
+        try {
+          await client.query("BEGIN");
+          await client.query(readFileSync("migrations/0000_init.sql", "utf8"));
+          await client.query(readFileSync("migrations/0001_feedback_provenance.sql", "utf8"));
+          await client.query("COMMIT");
+        } catch (error) {
+          await client.query("ROLLBACK");
+          throw error;
+        } finally {
+          client.release();
+        }
+      } finally {
+        await migrationPool.end();
+      }
+    }
+    const history = (
+      await pool.query("SELECT to_regclass('public.feedback_revisions') AS relation")
+    ).rows[0].relation;
+    if (!history) throw new Error("Apply the feedback provenance migration before importing");
 
-    const files = readdirSync(CSV_DIR)
+    const files = readdirSync(csvDir)
       .filter((f) => f.endsWith(".csv"))
       .sort();
-    const rows = files.flatMap(
-      (f) => parse(readFileSync(`${CSV_DIR}/${f}`), { columns: true, bom: true }) as Row[],
-    );
+    const rows = files.flatMap((f) => {
+      const bytes = readFileSync(`${csvDir}/${f}`);
+      const sourceHash = "sha256:" + createHash("sha256").update(bytes).digest("hex");
+      const parsed = parse(bytes, { columns: true, bom: true }) as Row[];
+      return parsed.map((row, i) => ({
+        ...row,
+        __bmwow_origin:
+          row.__bmwow_origin ??
+          JSON.stringify({
+            source_file: `${csvDir}/${f}`,
+            source_hash: sourceHash,
+            locator: { kind: "csv", row: i + 2, columns: Object.keys(row) },
+          }),
+      }));
+    });
     const feedbacks = groupFeedbacks(rows);
     console.log(
       `read ${rows.length} rows from ${files.length} files -> ${feedbacks.length} unique feedbacks`,
@@ -398,7 +498,12 @@ async function main() {
     const tax = TaxonomySchema.parse({
       vfc_category: {},
       issue_type: {},
-      ...(existsSync(TAXONOMY_PATH) ? JSON.parse(readFileSync(TAXONOMY_PATH, "utf8")) : {}),
+      ...(existsSync(taxonomyPath) ? JSON.parse(readFileSync(taxonomyPath, "utf8")) : {}),
+    });
+    const proposed = TaxonomySchema.parse({
+      vfc_category: {},
+      issue_type: {},
+      ...(existsSync(proposalsPath) ? JSON.parse(readFileSync(proposalsPath, "utf8")) : {}),
     });
     const aspects = feedbacks.flatMap((f) => f.aspects);
     const missing2 = [...new Set(aspects.map((a) => a.level2))].filter(
@@ -430,49 +535,88 @@ async function main() {
     const sortKeys = <V>(o: Record<string, V>) =>
       Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
     try {
-      await classify(
-        missing2,
-        VFC_CATEGORIES,
-        "vehicle component / feature aspect (VFC level 2)",
-        tax.vfc_category,
-      );
-      await classify(
-        missing3,
-        ISSUE_TYPES,
-        "kind of customer reaction or issue (VFC level 3), e.g. praise, malfunction, wish",
-        tax.issue_type,
-      );
+      if (!noEnrichment)
+        await classify(
+          missing2,
+          VFC_CATEGORIES,
+          "vehicle component / feature aspect (VFC level 2)",
+          proposed.vfc_category,
+        );
+      if (!noEnrichment)
+        await classify(
+          missing3,
+          ISSUE_TYPES,
+          "kind of customer reaction or issue (VFC level 3), e.g. praise, malfunction, wish",
+          proposed.issue_type,
+        );
     } finally {
-      if (missing2.length || missing3.length)
+      if (!noEnrichment && (missing2.length || missing3.length)) {
+        mkdirSync(dirname(proposalsPath), { recursive: true });
         writeFileSync(
-          TAXONOMY_PATH,
+          proposalsPath,
           JSON.stringify(
-            { vfc_category: sortKeys(tax.vfc_category), issue_type: sortKeys(tax.issue_type) },
+            {
+              vfc_category: sortKeys(proposed.vfc_category),
+              issue_type: sortKeys(proposed.issue_type),
+            },
             null,
             2,
           ) + "\n",
         );
+      }
     }
 
-    // Resume: an embedding is only ever written together with its aspects, so it marks "done".
-    const done = new Set(
-      (
-        await pool.query<{ feedback_explorer_id: string }>(
-          "SELECT feedback_explorer_id FROM feedback_entries WHERE embedding IS NOT NULL",
-        )
-      ).rows.map((r) => r.feedback_explorer_id),
+    const processing = {
+      preprocessing: "feedback-v3",
+      enrichment_model: noEnrichment ? "none" : MODEL,
+      prompt_version: noEnrichment ? "none" : "feedback-enrichment-v1",
+      taxonomy_hash: hash(tax),
+      embedding_model: noEnrichment ? "none" : EMBED_MODEL,
+      embedding_dimensions: noEnrichment ? 0 : 1536,
+    };
+    const versions = new Map(
+      feedbacks.map((f) => [
+        f.feedbackExplorerId,
+        provenance(
+          f.feedbackExplorerId,
+          f.originalRows,
+          f.rawFeedback,
+          processing,
+          f.origins,
+          f.rawClassifications,
+        ),
+      ]),
     );
-    const remaining = feedbacks.filter((f) => !done.has(f.feedbackExplorerId));
+    const existing = new Map(
+      (
+        await pool.query<{
+          feedback_explorer_id: string;
+          revision_id: string | null;
+          provenance: FeedbackProvenance | null;
+          embedding: string | null;
+        }>(
+          "SELECT feedback_explorer_id, revision_id, provenance, embedding::text FROM feedback_entries",
+        )
+      ).rows.map((r) => [r.feedback_explorer_id, r]),
+    );
+    const remaining = feedbacks.filter(
+      (f) =>
+        !complete(
+          existing.get(f.feedbackExplorerId)?.provenance ?? null,
+          versions.get(f.feedbackExplorerId)!,
+        ),
+    );
     const todo = remaining.slice(0, limit);
     const stats = { written: 0, aspects: 0, failures: 0 };
     const failedIds: string[] = [];
-    const fail = (id: string, e: unknown) => {
-      console.error(id, msg(e));
+    const fail = (id: string, _e: unknown) => {
+      console.error("feedback enrichment or persistence failed; see the private failure report");
       stats.failures++;
       failedIds.push(id);
     };
 
     async function enrich(f: Feedback): Promise<Enrichment> {
+      if (noEnrichment) return { scores: [], extracted: [] };
       const n = f.aspects.length;
       const instructions = n
         ? `You read one BMW customer feedback verbatim and ${n} aspect(s) already identified in it. For each aspect, in the given order, rate its intensity from 0 to 1: how strongly the customer expresses it (0 = barely or mildly mentioned, 1 = extremely strong). Return exactly ${n} numbers in "scores" and an empty "extracted" array.`
@@ -503,34 +647,50 @@ async function main() {
 
     const chunked = chunks(todo, 200);
     for (const [ci, batch] of chunked.entries()) {
-      let vectors: number[][];
+      let vectors: (number[] | null)[];
       try {
-        const r = await openai.embeddings.create({
-          model: EMBED_MODEL,
-          dimensions: 1536,
-          input: batch.map((f) => f.rawFeedback),
+        vectors = batch.map((f) => {
+          const current = existing.get(f.feedbackExplorerId);
+          return current?.embedding &&
+            reusableEmbedding(current.provenance, versions.get(f.feedbackExplorerId)!)
+            ? (JSON.parse(current.embedding) as number[])
+            : null;
         });
-        usage.embed += r.usage.total_tokens;
-        vectors = [...r.data].sort((a, b) => a.index - b.index).map((d) => d.embedding);
-        if (vectors.length !== batch.length || vectors.some((v) => v.length !== 1536))
-          throw new Error(`embeddings: got ${vectors.length} vectors for ${batch.length} inputs`);
+        const missing = batch.map((_, i) => i).filter((i) => !vectors[i]);
+        if (openai && missing.length) {
+          const r = await openai.embeddings.create({
+            model: EMBED_MODEL,
+            dimensions: 1536,
+            input: missing.map((i) => batch[i].rawFeedback),
+          });
+          usage.embed += r.usage.total_tokens;
+          const fresh = [...r.data].sort((a, b) => a.index - b.index).map((d) => d.embedding);
+          if (fresh.length !== missing.length || fresh.some((v) => v.length !== 1536))
+            throw new Error("Embedding response does not match the requested count/dimensions");
+          missing.forEach((index, j) => {
+            vectors[index] = fresh[j];
+          });
+        }
       } catch (e) {
         for (const f of batch) fail(f.feedbackExplorerId, e);
         continue;
       }
       await mapLimit(batch, 25, async (f, i) => {
         try {
-          const { entry, aspects } = buildRecords(f, tax, await enrich(f));
-          await db.transaction(async (tx) => {
-            const [{ id }] = await tx
-              .insert(feedbackEntries)
-              .values({ ...entry, embedding: vectors[i] })
-              .returning({ id: feedbackEntries.id });
-            if (aspects.length)
-              await tx
-                .insert(feedbackAspects)
-                .values(aspects.map((a) => ({ ...a, feedbackEntryId: id })));
-          });
+          const { entry, aspects } = buildRecords(f, tax, await enrich(f), !noEnrichment);
+          const client = await pool.connect();
+          try {
+            await storeRevision(
+              client,
+              entry,
+              aspects,
+              versions.get(f.feedbackExplorerId)!,
+              vectors[i],
+              existing.get(f.feedbackExplorerId)?.revision_id ?? null,
+            );
+          } finally {
+            client.release();
+          }
           stats.written++;
           stats.aspects += aspects.length;
         } catch (e) {
@@ -546,6 +706,7 @@ async function main() {
     console.log(
       [
         `rows read:         ${rows.length}`,
+        `rows excluded:     ${rows.length - feedbacks.reduce((sum, f) => sum + f.originalRows.length, 0)}`,
         `unique feedbacks:  ${feedbacks.length}`,
         `skipped (done):    ${feedbacks.length - remaining.length}`,
         `entries written:   ${stats.written}`,
@@ -553,16 +714,19 @@ async function main() {
         `failures:          ${stats.failures}`,
         `tokens:            ${usage.input} in / ${usage.output} out / ${usage.embed} embedding`,
         `estimated cost:    $${cost.toFixed(4)}`,
-        ...(failedIds.length ? [`failed ids:        ${failedIds.join(", ")}`] : []),
       ].join("\n"),
     );
-    if (stats.failures) process.exitCode = 1;
+    if (stats.failures) {
+      mkdirSync("data/feedbacks", { recursive: true });
+      writeFileSync("data/feedbacks/import-failures.json", JSON.stringify({ failedIds }, null, 2));
+      process.exitCode = 1;
+    }
   } finally {
     await pool.end();
   }
 }
 
-main().catch((e) => {
-  console.error(e);
+main().catch(() => {
+  console.error("Feedback import failed; check configuration, source consistency and migrations");
   process.exit(1);
 });

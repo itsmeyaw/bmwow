@@ -82,8 +82,7 @@ def workbook(path, sheets):
             )
 
 
-@pytest.fixture
-def inputs(tmp_path):
+def make_inputs(tmp_path):
     sales = tmp_path / "sales.xlsx"
     studies = tmp_path / "studies.xlsx"
     sales_rows = [
@@ -112,6 +111,11 @@ def inputs(tmp_path):
         },
     )
     return sales, studies
+
+
+@pytest.fixture
+def inputs(tmp_path):
+    return make_inputs(tmp_path)
 
 
 def imported(inputs, manifest=None):

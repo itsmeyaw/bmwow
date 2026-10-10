@@ -1,6 +1,6 @@
 """Explicit application curation; unknown model metadata and mappings are not guessed."""
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 from .types import MappingStatus
 from .types import SearchLocale as LocaleRecord
@@ -25,6 +25,8 @@ class VfcMapping(Configuration):
     feature_id: str
     status: MappingStatus
     rationale: str = Field(min_length=1)
+    reviewed_by: str | None = None
+    reviewed_at: AwareDatetime | None = None
 
 
 class KnowledgeConfig(Configuration):

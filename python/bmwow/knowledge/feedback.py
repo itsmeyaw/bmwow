@@ -190,6 +190,10 @@ class FeedbackKnowledgeService:
         prefix = f"evidence:{dataset.dataset_key}:"
         if value.startswith(prefix):
             return self._repository.find_feedback(unquote(value[len(prefix) :]))
+        prefix = f"feedback_revision:{dataset.dataset_key}:"
+        if value.startswith(prefix):
+            resolver = getattr(self._repository, "find_revision", None)
+            return resolver(value[len(prefix) :]) if resolver else None
         prefix = f"aspect:{dataset.dataset_key}:"
         if value.startswith(prefix):
             return self._repository.find_aspect(value[len(prefix) :])

@@ -51,7 +51,8 @@ differences between graph objects, read projections, and analysis DTOs.
 - `combined.py` reconciles SQL Derivates with canonical graph model IDs, combines
   dataset coverage, and routes citations while preserving original feedback fields.
   SQL registry coverage is captured at construction; construct a new service to
-  refresh it. Feedback record reads and SQL citations still query the current import.
+  refresh it. Logical feedback reads query the current import; version-pinned
+  citations resolve immutable archived imports when provenance is available.
 - `config.py` holds explicit application curation: segment profiles, sale regions,
   market search locales, feature keys, proposed/reviewed VFC/study/aspect mappings, and combined sales
   group labels. It does not guess missing product metadata.
@@ -283,7 +284,8 @@ Sentiment Score, extraction source, Quote/status, and import timestamp. Its
 references point back to the original parent feedback and its SQL locator.
 `classifications` contains original **curated VFC labels only**. Its legacy
 `vfc_category`/`vfc_issue` fields mean Aspect Term/Label; the separate aspect fields
-mean coarse buckets. `vfc_combined` remains unknown because SQL does not store it.
+mean coarse buckets. Versioned imports retain `vfc_combined` in provenance;
+legacy imports may leave it unknown.
 Feature mappings stay unknown in this feedback-only service; the combined service
 can attach exact reviewed matches from its private configuration. A coarse category
 is not a canonical Feature ID.
@@ -306,10 +308,13 @@ The default source namespace is `bmw-feedback` and must be shared by the team:
 `evidence:<dataset_key>:<percent-encoded Feedback Explorer ID>` identifies feedback;
 `aspect:<dataset_key>:<SQL UUID>` identifies an imported aspect;
 `source:<dataset_key>` identifies dataset metadata. Parent UUIDs locate SQL feedback;
-aspect UUIDs locate SQL aspects. Original CSV row/file locations, source versions,
-and extraction model/prompt versions are unavailable and are not invented.
-Aspect UUIDs may change on reimport; SQL citations resolve the **current import**,
-not an immutable historical snapshot.
+aspect UUIDs locate SQL aspects. Versioned imports retain original locations,
+source hashes, original rows, and processing/enrichment specifications. New
+references use `feedback_revision:<dataset_key>:<UUID>` and resolve immutable
+archived payloads. Historical aspect UUIDs remain resolvable after refresh.
+Logical feedback IDs resolve the current projection. Legacy imports without
+provenance retain their explicit unknowns; migration does not reconstruct originals.
+See [the completion runbook](data-completion.md) for versioned imports and readiness.
 
 The resolver accepts a read ID or its `fb:`/`kg:` wrapper and returns a typed
 FeedbackItem, FeedbackAspect, FeedbackDataset, or feedback-coverage ModelNode. These are read projections,

@@ -41,9 +41,11 @@ dist/
 .DS_Store
 *.pem
 raw_data/
+/raw_data
 
 # Local data inputs and agent caches (feedback CSVs, checkpoints, web cache)
 /data/
+/data
 
 # debug
 *.log
