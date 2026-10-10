@@ -6,7 +6,7 @@ new node type, relationship, payload field, or contract version is needed. Pytho
 models and graph validation remain authoritative; this guide explains how to use
 their existing distinctions. The raw-data adapter is outside this change.
 
-Run the worked example from the repository root:
+Run the worked example from `python/`:
 
 ```sh
 uv run python scripts/inspect_parking_dossier.py

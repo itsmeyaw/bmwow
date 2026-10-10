@@ -10,7 +10,7 @@ Ontology v0.2.0 supplies the common contract. It is not the finished application
 Keep that contract stable while building the first complete workflow; extend it
 when an actual source mapping or product question exposes a gap.
 
-Situation-analysis orchestration v1 is now present in `src/agent/`. The first
+Situation-analysis orchestration v1 is now present in `python/bmwow/agent/`. The first
 database-independent knowledge slice connects it to validated synthetic snapshots
 through `bmwow.knowledge`; see [the integration handoff](data-layer.md). This allows
 work before Neon is ready, while leaving private ingestion, candidate writes,
@@ -73,10 +73,9 @@ database has been created or BMW data uploaded.
   `DATABASE_URL_UNPOOLED` for direct migration connections. Keep values in ignored
   local environment files or deployment secrets, never committed configuration or
   `NEXT_PUBLIC_*` variables. GitHub CI uses synthetic data and a separate test store.
-- The repo currently includes Drizzle and `@libsql/client`. Drizzle can remain the
-  migration tool if that is the SQL owner's choice; the SQLite/libSQL driver cannot
-  connect to Neon. Select a PostgreSQL driver/configuration when implementing the
-  adapter, and coordinate dependency and lockfile changes with that owner.
+- The TypeScript side uses `pg` (node-postgres) through `drizzle-orm/node-postgres`,
+  with the schema in `src/server/db/schema.ts` and DDL in `migrations/`. Coordinate
+  schema and dependency changes with the SQL owner.
 
 See [Neon connection guidance](https://neon.com/docs/connect/choose-connection),
 [connection pooling](https://neon.com/docs/connect/connection-pooling), and
@@ -169,6 +168,6 @@ one, why priority differs across proposals, and how contradictory evidence or a 
 edit changes the recommendation. A large number of agents or a comprehensive
 configuration engine is not an acceptance criterion.
 
-See [ontology guide](ontology.md), [ontology implementation plan](ontology-plan.md),
+See [ontology guide](ontology.md),
 [source mappings](../contracts/ontology/source-mappings.json), and
 [web research contract](web-research.md).

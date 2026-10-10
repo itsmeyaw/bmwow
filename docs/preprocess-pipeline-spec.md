@@ -76,7 +76,7 @@ A full run costs **~$1.35** and takes **~4 minutes**.
 22. As an operator, I want to run the whole pipeline with a single command, so that there is no multi-step runbook to get wrong.
 23. As an operator, I want to cap the run to the first N feedbacks, so that I can validate output for fractions of a cent before committing to the full spend.
 24. As an operator, I want re-running the pipeline to skip feedbacks already fully processed, so that a crash at 90% doesn't cost me a full re-run.
-25. As an operator, I want a feedback that fails enrichment to leave *no* partial row behind, so that the resume marker never lies to me about what's done.
+25. As an operator, I want a feedback that fails enrichment to leave _no_ partial row behind, so that the resume marker never lies to me about what's done.
 26. As an operator, I want failed feedback IDs reported at the end of the run, so that I know what to investigate rather than discovering gaps in the dashboard.
 27. As an operator, I want the run to survive OpenAI rate limiting without manual intervention, so that I don't babysit it.
 28. As an operator, I want a printed summary of rows read, feedbacks written, aspects written, failures, and estimated cost, so that I can sanity-check the run in one glance.
@@ -96,7 +96,7 @@ A full run costs **~$1.35** and takes **~4 minutes**.
 39. As a data consumer, I want the original raw VFC label preserved alongside its coarse bucket, so that a bucketing mistake is recoverable with an UPDATE rather than a full re-ingest.
 40. As a data consumer, I want each aspect to record whether it came from the curated VFC label or from LLM inference, so that provenance is always auditable.
 41. As a data consumer, I want `sentiment` derived from the curated taxonomy rather than from model intuition, so that dashboard counts are stable across re-runs.
-42. As a data consumer, I want a feedback's multiple conflicting `Feedback Type` values all preserved, so that a feedback praising the engine *and* reporting a defect is counted in both.
+42. As a data consumer, I want a feedback's multiple conflicting `Feedback Type` values all preserved, so that a feedback praising the engine _and_ reporting a defect is counted in both.
 
 ## Implementation Decisions
 
@@ -129,20 +129,20 @@ batch script, not an edge function.
 
 ### Schema: `feedback_entries` (parent, one row per unique feedback)
 
-| column | type | notes |
-|---|---|---|
-| `id` | `UUID` PK | `gen_random_uuid()` |
-| `feedback_explorer_id` | `TEXT` **UNIQUE NOT NULL** | from the CSV's `ID` column |
-| `source` | `TEXT` | **added** — see below |
-| `brand` | `TEXT` | brackets stripped |
-| `sales_description` | `TEXT` | brackets stripped |
-| `country` | `TEXT` | |
-| `derivate_code` | `TEXT` | |
-| `engine_type` | `TEXT` | `BEVE`→`BEV` normalized |
-| `raw_feedback` | `TEXT NOT NULL` | original verbatim |
-| `embedding` | `vector(1536)` | |
-| `search_tsv` | `tsvector` GENERATED STORED | `to_tsvector('english', raw_feedback)` |
-| `created_at` | `TIMESTAMPTZ` | `NOW()` |
+| column                 | type                        | notes                                  |
+| ---------------------- | --------------------------- | -------------------------------------- |
+| `id`                   | `UUID` PK                   | `gen_random_uuid()`                    |
+| `feedback_explorer_id` | `TEXT` **UNIQUE NOT NULL**  | from the CSV's `ID` column             |
+| `source`               | `TEXT`                      | **added** — see below                  |
+| `brand`                | `TEXT`                      | brackets stripped                      |
+| `sales_description`    | `TEXT`                      | brackets stripped                      |
+| `country`              | `TEXT`                      |                                        |
+| `derivate_code`        | `TEXT`                      |                                        |
+| `engine_type`          | `TEXT`                      | `BEVE`→`BEV` normalized                |
+| `raw_feedback`         | `TEXT NOT NULL`             | original verbatim                      |
+| `embedding`            | `vector(1536)`              |                                        |
+| `search_tsv`           | `tsvector` GENERATED STORED | `to_tsvector('english', raw_feedback)` |
+| `created_at`           | `TIMESTAMPTZ`               | `NOW()`                                |
 
 Deviations from the original brief, each deliberate:
 
@@ -153,8 +153,8 @@ Deviations from the original brief, each deliberate:
   per-row translate call would have doubled LLM cost and latency for approximately zero
   rows. Embeddings are generated from `raw_feedback` directly.
 - **`feedback_type` moved to the child table.** **(verified)** 1,495 IDs (14.8%) carry a
-  *different* `Feedback Type` on each of their rows — e.g. `F70-0002` is `Likes` for
-  Workmanship *and* `Difficult to Use` for Owner's Manual, from one verbatim. The field
+  _different_ `Feedback Type` on each of their rows — e.g. `F70-0002` is `Likes` for
+  Workmanship _and_ `Difficult to Use` for Owner's Manual, from one verbatim. The field
   is an attribute of the aspect, not the feedback. Leaving it on the parent would force
   the loader to discard one value, undercounting Defects whenever a feedback both praised
   and complained. Not duplicated onto the parent.
@@ -162,7 +162,7 @@ Deviations from the original brief, each deliberate:
   in the original schema. Almost certainly distinguishes dealer-call transcripts from
   owner-written reviews — a dimension worth slicing by. One column now beats a migration
   later.
-- **`search_tsv` added.** The brief asked for *hybrid* semantic search; a pure HNSW
+- **`search_tsv` added.** The brief asked for _hybrid_ semantic search; a pure HNSW
   cosine search is only the semantic half. The lexical half catches model codes, trim
   names, and feature names verbatim — exactly what users type. One generated column,
   one GIN index, zero API spend.
@@ -172,20 +172,20 @@ Deviations from the original brief, each deliberate:
 
 ### Schema: `feedback_aspects` (child, 1:N)
 
-| column | type | notes |
-|---|---|---|
-| `id` | `UUID` PK | `gen_random_uuid()` |
-| `feedback_entry_id` | `UUID` FK | → `feedback_entries.id` `ON DELETE CASCADE` |
-| `feedback_type` | `TEXT` | **relocated from parent** |
-| `vfc_category` | `TEXT NOT NULL` | coarse bucket, ~16 values |
-| `aspect_term` | `TEXT` | raw `Vfc level2 Name`, 227 values |
-| `aspect_label_raw` | `TEXT` | **added** — raw `Vfc level3 Name`, 85 values |
-| `issue_type` | `TEXT NOT NULL` | **added** — coarse bucket, ~11 values |
-| `quote_snippet` | `TEXT` | populated for LLM-extracted aspects only |
-| `sentiment` | `TEXT NOT NULL` | Positive / Negative / Neutral |
-| `sentiment_score` | `NUMERIC(3,2)` | −1.00 … +1.00, CHECK-constrained |
-| `extraction_source` | `TEXT NOT NULL` | **added** — `vfc_label` \| `llm` |
-| `created_at` | `TIMESTAMPTZ` | `NOW()` |
+| column              | type            | notes                                        |
+| ------------------- | --------------- | -------------------------------------------- |
+| `id`                | `UUID` PK       | `gen_random_uuid()`                          |
+| `feedback_entry_id` | `UUID` FK       | → `feedback_entries.id` `ON DELETE CASCADE`  |
+| `feedback_type`     | `TEXT`          | **relocated from parent**                    |
+| `vfc_category`      | `TEXT NOT NULL` | coarse bucket, ~16 values                    |
+| `aspect_term`       | `TEXT`          | raw `Vfc level2 Name`, 227 values            |
+| `aspect_label_raw`  | `TEXT`          | **added** — raw `Vfc level3 Name`, 85 values |
+| `issue_type`        | `TEXT NOT NULL` | **added** — coarse bucket, ~11 values        |
+| `quote_snippet`     | `TEXT`          | populated for LLM-extracted aspects only     |
+| `sentiment`         | `TEXT NOT NULL` | Positive / Negative / Neutral                |
+| `sentiment_score`   | `NUMERIC(3,2)`  | −1.00 … +1.00, CHECK-constrained             |
+| `extraction_source` | `TEXT NOT NULL` | **added** — `vfc_label` \| `llm`             |
+| `created_at`        | `TIMESTAMPTZ`   | `NOW()`                                      |
 
 `aspect_label_raw` and `extraction_source` exist so that bucketing errors are fixable
 with an UPDATE and so provenance is always auditable. Two TEXT columns at 13,771 rows
@@ -245,7 +245,7 @@ This is 44× cheaper, but cost is the smaller win. The real wins:
 - **Reviewable.** A 312-line JSON file is something a human can read and correct in five
   minutes. An LLM mis-bucketing `Drivetrain` row-by-row is invisible; mis-bucketing it
   once in a committed file is obvious in a diff.
-- **Incremental.** Only labels *absent* from the file trigger an API call, so a fourth
+- **Incremental.** Only labels _absent_ from the file trigger an API call, so a fourth
   CSV classifies only its new labels.
 
 Closed vocabularies — the model must select from the list or return `Unclassified`, and
@@ -325,7 +325,7 @@ flip a curated `Malfunction` into a positive.
 Rationale: the curated VFC label came from a human taxonomy, not an inference — it is the
 stronger signal. It also keeps `COUNT(*) WHERE sentiment='Negative'` stable across
 re-runs, which a score-threshold-derived sentiment would not be. The score then does what
-a score should: rank *within* a sentiment class.
+a score should: rank _within_ a sentiment class.
 
 `Feature Request` is deliberately Neutral rather than Negative — counting 754 "I wish it
 also did X" rows as complaints would inflate detractor numbers.
@@ -409,19 +409,19 @@ immediately if either is absent.
 
 ### Cost and runtime budget
 
-| pass | calls | cost |
-|---|---|---|
-| taxonomy classification | ~11 | ~$0.01 |
-| per-feedback enrichment | 10,128 | ~$1.25 |
-| embeddings | ~21 | ~$0.07 |
-| **total** | | **~$1.35, ~4 min** |
+| pass                    | calls  | cost               |
+| ----------------------- | ------ | ------------------ |
+| taxonomy classification | ~11    | ~$0.01             |
+| per-feedback enrichment | 10,128 | ~$1.25             |
+| embeddings              | ~21    | ~$0.07             |
+| **total**               |        | **~$1.35, ~4 min** |
 
 ## Testing Decisions
 
 ### What makes a good test here
 
-Only external behaviour. For this pipeline that means: *given these CSV rows, this
-taxonomy map, and these enrichment results, produce exactly these database rows.* Tests
+Only external behaviour. For this pipeline that means: _given these CSV rows, this
+taxonomy map, and these enrichment results, produce exactly these database rows._ Tests
 must not assert on helper function names, intermediate shapes, call ordering, or how many
 times a private function ran. A test that breaks when the cleaning logic is refactored
 but the output is unchanged is a bad test.
@@ -522,9 +522,9 @@ seam rather than the internals.
 - Dependencies added: `pg`, `csv-parse` (no CSV parser was installed, and **(verified)**
   the G60 file contains quoted fields with embedded newlines and commas — hand-rolling a
   quote-aware parser would be the wrong kind of lazy), `@types/pg` as a dev dependency.
-- `data/feedbacks/*.csv` is committed; `raw_data/` and `.env*` are already gitignored.
+- `data/feedbacks/*.csv` stays local: `data/`, `raw_data/`, and `.env*` are gitignored (BMW data must not reach GitHub).
 - The taxonomy JSON is **committed**, deliberately. Regenerating it per run would discard
   the entire reason vocabulary-level classification was chosen over row-level: that the
   output is a small artifact a human owns.
 - If the ~16 / ~11 bucket sets need renaming, do it before the first full run. Changing
-  them later means re-running the (cheap) taxonomy pass *plus* a backfill UPDATE.
+  them later means re-running the (cheap) taxonomy pass _plus_ a backfill UPDATE.

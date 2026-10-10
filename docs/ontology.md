@@ -22,22 +22,20 @@ Foundry, its authorization system, or an OWL/RDF inference engine.
 - [source-mappings.json](../contracts/ontology/source-mappings.json): hand-maintained source adapter guidance.
 - [synthetic.json](../contracts/ontology/examples/synthetic.json): invented catalogs, feedback, studies, sales, and web research.
 - [web-research.md](web-research.md): proposed collection interface; no scraper is implemented.
-- [ontology-plan.md](ontology-plan.md): pre-implementation decisions and acceptance questions.
 - [ontology-consumers.md](ontology-consumers.md): four-question parking dossier, Signal kind rules, frontend/orchestration recipes, and rejected distinctions.
 
-All Python work uses the root uv project and imports `bmwow.ontology`. Run from the
-repository root:
+The Python reference implementation imports `bmwow.ontology`. Run from `python/`:
 
 ```sh
 uv sync --locked
 uv run bmwow-schema --check
-uv run bmwow-validate contracts/ontology/examples/synthetic.json
+uv run bmwow-validate ../contracts/ontology/examples/synthetic.json
 uv run pytest
 uv run ruff check .
 uv run ruff format --check .
 ```
 
-Edit `backend/bmwow/ontology/models.py`, `relationships.py`, and the validator;
+Edit `python/bmwow/ontology/models.py`, `relationships.py`, and the validator;
 generate contracts with `uv run bmwow-schema`. Do not edit generated contracts by
 hand. Shared fixtures use synthetic content. Real originals and derived examples
 stay in ignored `raw_data/`.
@@ -227,7 +225,7 @@ historical actuals or proven successor demand.
 
 ## Agent tools and LangChain integration
 
-`backend/bmwow/ontology/tools.py` provides deterministic helpers and Pydantic
+`python/bmwow/ontology/tools.py` provides deterministic helpers and Pydantic
 inputs/outputs, with no LangChain dependency:
 
 - `query_nodes(bundle, OntologyQuery)`: scoped object retrieval.
@@ -271,7 +269,7 @@ control belong to that service; this package does not implement them.
 The former `bmwow.ontology.agent` module is now `bmwow.ontology.tools` to distinguish
 these domain operations from actual AI agents. Public `from bmwow.ontology import ...`
 imports, generated contract filenames, payloads, and ontology version remain stable.
-Future prompts, LangChain agents, and workflows belong in `backend/bmwow/agents/`.
+Agents and workflows live in `python/bmwow/agent/` and are ported to `src/server/`.
 
 ## Identity, integration ownership, and validation
 

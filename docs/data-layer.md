@@ -8,7 +8,7 @@ writes are pending. The raw-data adapter and ontology contracts are unchanged.
 
 ## Run without Neon
 
-From the repository root:
+From `python/`:
 
 ```sh
 uv sync --locked
@@ -23,23 +23,14 @@ v1 and prints capabilities, feedback, study measurements, and combined future
 sales with their original qualifications. Synthetic setup is explicit: the factory
 rejects any snapshot containing a non-synthetic SourceDocument.
 
-On this macOS checkout, a hidden editable-install `.pth` can prevent imports from
-`.venv`. Use a temporary environment prefix in zsh when needed:
-
-```sh
-UV_PROJECT_ENVIRONMENT=venv uv sync --locked
-UV_PROJECT_ENVIRONMENT=venv uv run python -m scripts.inspect_knowledge
-```
-
-Apply that prefix to each `uv` command using this environment. It changes no shell
-configuration and requires no permanent export. See README troubleshooting for
-the alternative of clearing the local hidden flag.
+If `import bmwow` fails on macOS, see the troubleshooting note in
+[`python/README.md`](../python/README.md).
 
 ## Boundaries and ownership
 
-- `backend/bmwow/ontology/` remains the source of truth for graph objects,
+- `python/bmwow/ontology/` remains the source of truth for graph objects,
   relationships, validation, and generated JSON contracts. Its version stays 0.2.0.
-- `backend/bmwow/knowledge/records.py` defines **read projections**, not additional
+- `python/bmwow/knowledge/records.py` defines **read projections**, not additional
   graph node types. It reuses ontology Context, Locator, Measurement, and NumericRange.
 - `repository.py` defines `SnapshotRepository.load_snapshot() -> GraphBundle`.
   `InMemoryRepository` validates a complete snapshot and returns isolated copies.
@@ -50,16 +41,13 @@ the alternative of clearing the local hidden flag.
   market search locales, feature keys, reviewed VFC mappings, and combined sales
   group labels. It does not guess missing product metadata.
 - `synthetic.py` supplies invented configuration for the tracked fixture only.
-- `src/models/knowledge.py` reexports the read models for existing imports.
-  `src/knowledge/` is a thin temporary v1 compatibility boundary. New backend
-  logic belongs in `backend/bmwow/`; the existing `src/agent/` layout is retained
-  while the orchestration owner evolves v1. Run it from the checkout: `src` is
-  not included in the installed `bmwow` wheel.
+- `bmwow.agent.models.knowledge` reexports the read models for v1 imports.
+  `bmwow.agent.knowledge_bridge` is a thin temporary v1 compatibility boundary.
 
-All Python dependencies, including the existing LangChain/LangGraph, OpenAI,
-Firecrawl, SQLite checkpoint, and clustering integrations, are declared and locked
-at the root. `pyproject.toml.bak` is historical and is not an installation input.
-Tests use fake LLM/search providers; installing these integrations does not call them.
+All Python dependencies, including the LangChain/LangGraph, OpenAI, Firecrawl,
+SQLite checkpoint, and clustering integrations, are declared and locked in
+`python/pyproject.toml`. Tests use fake LLM/search providers; installing these
+integrations does not call them.
 
 ## Inject the service
 
@@ -67,14 +55,14 @@ The application startup code owns configuration, storage, and injection:
 
 ```python
 from bmwow.knowledge import KnowledgeService
-from src.knowledge import configure_service
+from bmwow.agent.knowledge_bridge import configure_service
 
 # repository and config are supplied by the application, not created by the agents.
 configure_service(KnowledgeService(repository, config))
 ```
 
 With `KNOWLEDGE_BACKEND=real` (v1's default), `ModuleBackend` imports
-`src.knowledge.ontology` and `src.knowledge.sql_client`; both delegate to that
+`bmwow.agent.knowledge_bridge.ontology` and `.sql_client`; both delegate to that
 service. Existing signatures and imports are preserved. The bridge accepts sync
 or async functions, including iterable feedback results. An unconfigured real
 backend raises an actionable error; it never silently substitutes synthetic data.
@@ -206,7 +194,7 @@ ontology models inside the agent or frontend layer.
 
 ## Verification
 
-`tests/knowledge/` checks complete graph validation, copy isolation, metadata
+`python/tests/knowledge/` checks complete graph validation, copy isolation, metadata
 preservation, conditional/ranged capabilities, classification grouping, explicit
 country membership, zero and future/group sales, unknown study metadata, partial
 dates, citation resolution, async bridge support, identity-based feedback dedupe,
@@ -215,15 +203,5 @@ The graph test uses the real baseline node; its positioning LLM step and the oth
 three interpretation agents are replaced with controlled readers. Existing v1
 tests separately exercise all four agents with fake LLM/search providers.
 
-Run the root checks from AGENTS.md: pytest, Ruff lint/format, schema freshness, and
-synthetic graph validation. This validates the integration behavior, not the merit
-of real BMW proposals, actual SQL ingestion, or live provider calls.
-
-Validation on 2026-10-10: **249 tests passed**, including 29 knowledge integration
-tests. All 24 new/modified Python files pass Ruff lint and format checks; generated
-contracts are current and the synthetic graph validates (57 nodes, 74 edges).
-The inspection script works in both text and JSON modes. Root-wide Ruff checks
-still fail on 22 pre-existing lint issues and 27 unformatted files outside this
-change. The lint codes were compared with HEAD and the format failures checked
-against the changed-file list. Those unrelated v1 cleanup items remain for a
-separate change; no checks were disabled or relaxed.
+Run the Python checks from AGENTS.md. They validate integration behavior, not the
+merit of real BMW proposals, actual SQL ingestion, or live provider calls.
