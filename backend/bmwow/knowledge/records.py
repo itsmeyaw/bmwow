@@ -1,0 +1,126 @@
+"""Read contracts for knowledge consumers; these are not new ontology node types."""
+
+from __future__ import annotations
+
+import datetime as dt
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from bmwow.ontology.models import Context, Locator, Measurement, NumericRange
+
+
+class Record(BaseModel):
+    # Keep v1's permissive construction; declare the qualifications it must retain.
+    model_config = ConfigDict(from_attributes=True, extra="ignore")
+
+
+class EvidenceReference(Record):
+    evidence_id: str
+    source_id: str
+    record_key: str
+    locator: Locator
+
+
+class QualifiedRecord(Record):
+    references: list[EvidenceReference] = Field(default_factory=list)
+    context: Context | None = None
+    limitations: list[str] = Field(default_factory=list)
+
+
+class AttributeValue(QualifiedRecord):
+    node_id: str
+    attribute: str
+    value: float | str
+    unit: str | None = None
+    source_note: str = ""
+    as_of: dt.date | None = None
+    value_range: NumericRange | None = None
+    measurement: Measurement | None = None
+    availability: (
+        Literal[
+            "announced", "standard", "optional", "available_unspecified", "unavailable", "unknown"
+        ]
+        | None
+    ) = None
+    epistemic_status: str | None = None
+
+
+class ModelNode(Record):
+    node_id: str
+    model_code: str | None = None
+    name: str
+    brand: str
+    segment: str
+    powertrain: str | None = None
+    # v1 registry field means dataset coverage. Portfolio queries use sold_regions.
+    regions: list[str] = Field(default_factory=list)
+    sold_regions: list[str] = Field(default_factory=list)
+    data_coverage: dict[str, list[str]] = Field(default_factory=dict)
+    curation_note: str | None = None
+    attributes: list[AttributeValue] = Field(default_factory=list)
+
+
+class FeedbackClassification(Record):
+    feedback_type: str | None
+    vfc_category: str | None
+    vfc_issue: str | None
+    vfc_combined: str | None
+    attribute: str | None
+    mapping_status: Literal["proposed", "reviewed"] | None
+    locator: Locator
+
+
+class FeedbackItem(QualifiedRecord):
+    item_id: str
+    text: str
+    channel: str | None
+    market: str | None = None
+    date: dt.date | None = None
+    rating: float | None = None
+    model: str | None = None
+    engine_type: str | None = None
+    classifications: list[FeedbackClassification] = Field(default_factory=list)
+
+
+class DocChunk(QualifiedRecord):
+    node_id: str
+    doc_title: str
+    text: str
+    url: str | None = None
+    published: dt.date | None = None
+    publication_label: str | None = None
+    regions: list[str] = Field(default_factory=list)
+    kind: Literal["study", "report"] | None = None
+    measurement: Measurement | None = None
+
+
+class FeedbackFilter(Record):
+    models: list[str] = Field(default_factory=list)
+    markets: list[str] = Field(default_factory=list)
+    since: dt.date | None = None
+    limit: int | None = Field(default=None, ge=0)
+
+
+class SalesRow(QualifiedRecord):
+    model: str
+    market: str
+    period: str
+    units: int
+    row_id: str | None = None
+    model_codes: list[str] = Field(default_factory=list)
+    status: Literal["actual", "source_reported_future", "forecast", "unknown"] = "unknown"
+    source_group: str | None = None
+    measurement: Measurement | None = None
+
+
+class StudyScore(QualifiedRecord):
+    node_id: str
+    model: str
+    region: str
+    study: str
+    question: str | None
+    statistic: str
+    response_category: str | None
+    value: float | None
+    measurement: Measurement

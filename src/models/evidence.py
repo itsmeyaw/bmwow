@@ -10,6 +10,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
+from bmwow.knowledge.records import FeedbackClassification, QualifiedRecord
+from bmwow.ontology.models import Measurement
 from pydantic import BaseModel, Field
 
 from .knowledge import ModelNode
@@ -21,13 +23,20 @@ AGENT_NAMES: tuple[AgentName, ...] = ("baseline", "competition", "feedback", "tr
 EXCERPT_MAX_CHARS = 1200
 
 
-class Source(BaseModel):
+class Source(QualifiedRecord):
     id: str  # "kg:<node_id>", "sql:<query_hash>", "web:<url_hash8>", "fb:<item_id>"
     kind: Literal["ontology", "sql", "web", "feedback"]
     ref: str  # node id / SQL text / URL / feedback item id
     title: str = ""
     excerpt: str  # exact text or rendered row the claim relies on (<= 1200 chars). REQUIRED.
     retrieved_at: datetime
+    measurement: Measurement | None = None
+    availability: str | None = None
+    epistemic_status: str | None = None
+    classifications: list[FeedbackClassification] = Field(default_factory=list)
+    engine_type: str | None = None
+    model_codes: list[str] = Field(default_factory=list)
+    publication_label: str | None = None
 
 
 class Quantity(BaseModel):
@@ -67,7 +76,9 @@ class AnalysisRequest(BaseModel):
     """What the PM enters (§3.1). Validated against the model registry and region list (§4.4–4.5)."""
 
     model_code: str  # reference model; must be in the model registry: G60, F70, G68
-    regions: list[str] | None = None  # e.g. ["EU"], ["EU", "US"]; None/empty = all regions the model has data for
+    regions: list[str] | None = (
+        None  # e.g. ["EU"], ["EU", "US"]; None/empty = all regions the model has data for
+    )
 
 
 class SearchLocale(BaseModel):
@@ -90,10 +101,16 @@ class ProductBrief(BaseModel):
     regions: list[str]  # validated region codes
     markets: list[str]  # markets the regions expand to (as used in sales and feedback data)
     segment: str  # from reference_model
-    competitors: list[ModelNode] = Field(default_factory=list)  # each tagged with its regions in this run
-    focus_areas: list[str] = Field(default_factory=list)  # taxonomy areas to emphasize; empty = all (PM may set
+    competitors: list[ModelNode] = Field(
+        default_factory=list
+    )  # each tagged with its regions in this run
+    focus_areas: list[str] = Field(
+        default_factory=list
+    )  # taxonomy areas to emphasize; empty = all (PM may set
     # them in a corrected brief via service.start_analysis(brief_override=...))
-    search_locale: dict[str, SearchLocale] = Field(default_factory=dict)  # region -> web-search locale
+    search_locale: dict[str, SearchLocale] = Field(
+        default_factory=dict
+    )  # region -> web-search locale
     # Optional additions: region -> its markets (per-region shares), and resolution notes for the UI.
     region_markets: dict[str, list[str]] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)

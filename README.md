@@ -5,7 +5,7 @@ sales data, public sentiment, competitor information, and trends into traceable
 requirements for successor vehicles. Human review remains separate from agent proposals.
 
 The repository has one **Python project managed by uv** and one **Next.js frontend
-managed by pnpm**. All Python work, including ontology and future orchestration or
+managed by pnpm**. All Python work, including ontology, orchestration, and
 data adapters, shares the root `pyproject.toml`, `uv.lock`, and environment.
 
 ## Setup
@@ -24,7 +24,10 @@ pnpm dev
 ```
 
 Open http://localhost:3000 for the frontend. Python setup does not start an API or
-agents; those integrations are still to be built.
+agents. Orchestration v1 and a synthetic knowledge bridge are available; the Neon
+adapter and the complete product-decision workflow remain to be integrated.
+Run `uv run python -m scripts.inspect_knowledge` to exercise the bridge without
+a database, API keys, or BMW input. See [the data-layer handoff](docs/data-layer.md).
 
 Add Python dependencies with `uv add <package>` or `uv add --dev <package>` at the
 root. Include both `pyproject.toml` and `uv.lock` in the change. Do not create separate
@@ -41,6 +44,7 @@ backend/bmwow/                Importable Python package; future backend modules 
   ontology/validation.py      Structure and graph-wide rules; validation CLI
   ontology/tools.py           Typed queries, tracing, comparison checks and proposals
   ontology/schema.py          Generates and checks portable JSON contracts
+  knowledge/                  Typed read records, snapshot interface, and projections
 contracts/ontology/           Shared JSON artifacts for frontend, agents, and data adapters
   schema.json                 Generated JSON Schema; do not edit manually
   vocabulary.json             Generated vocabulary; do not edit manually
@@ -50,11 +54,17 @@ contracts/ontology/           Shared JSON artifacts for frontend, agents, and da
 docs/ontology.md              Ontology meaning, design factors, and integration guidance
 docs/ontology-consumers.md    Worked dossier and frontend/orchestration handoff
 docs/project-plan.md          Next milestones, team boundaries, and BMW data restrictions
+docs/data-layer.md            Synthetic knowledge integration and SQL/orchestration handoff
 docs/web-research.md          Proposed web evidence collection contract
 scripts/inspect_parking_dossier.py  Runnable synthetic four-question example
+scripts/inspect_knowledge.py   Synthetic read projections through orchestration v1
 tests/ontology/               Contract, graph, interoperability, and CLI tests
+tests/knowledge/              Synthetic read and v1 bridge integration tests
 raw_data/                     Local BMW data and sample; ignored by Git
 src/app/                      Next.js frontend
+src/agent/                    Existing situation-analysis orchestration v1
+src/knowledge/                Thin compatibility boundary to bmwow.knowledge
+src/models/                   V1 analysis DTOs; knowledge records are reexports
 package.json / pnpm-lock.yaml Frontend dependencies and scripts
 AGENTS.md                     Guidance for coding agents
 ```
@@ -69,8 +79,10 @@ namespace. Keep both so imports such as `from bmwow.ontology import GraphBundle`
 work consistently in tests, scripts, and future services. The wheel configuration
 in `pyproject.toml` installs `backend/bmwow/`. Future LangChain agents and workflows
 belong in `backend/bmwow/agents/`; `ontology/tools.py` contains deterministic domain
-operations that those agents can call. Create the agents module when implementing
-orchestration.
+operations that those agents can call. Existing orchestration v1 is currently in
+`src/agent/`; this slice retains its imports while new knowledge logic follows the
+installed package layout. A later agent migration should be coordinated with its
+owner. The v1 `src` modules currently require running from the checkout.
 
 There is one ontology definition. Pydantic models and Python relationship rules
 generate `contracts/ontology/schema.json`, `contracts/ontology/vocabulary.json`,
@@ -159,8 +171,9 @@ applicable installed Next.js guide as directed by `AGENTS.md` before frontend ch
 ## Team handoff
 
 See the [project plan](docs/project-plan.md) for the complete evidence-to-review
-workflow and the next milestone. Ontology v0.2.0 is the shared contract; private
-ingestion, SQL adapters, LangChain orchestration, and the review API/UI are next.
+workflow and the next milestone. Ontology v0.2.0 is the shared contract. Orchestration
+v1 now has a [synthetic read bridge](docs/data-layer.md); private ingestion, the Neon
+adapter, candidate ingestion, synthesis, and the review API/UI remain next.
 
 Start with the [consumer guide](docs/ontology-consumers.md) and run
 `uv run python scripts/inspect_parking_dossier.py`. It answers the four product

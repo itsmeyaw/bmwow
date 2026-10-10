@@ -10,6 +10,12 @@ Ontology v0.2.0 supplies the common contract. It is not the finished application
 Keep that contract stable while building the first complete workflow; extend it
 when an actual source mapping or product question exposes a gap.
 
+Situation-analysis orchestration v1 is now present in `src/agent/`. The first
+database-independent knowledge slice connects it to validated synthetic snapshots
+through `bmwow.knowledge`; see [the integration handoff](data-layer.md). This allows
+work before Neon is ready, while leaving private ingestion, candidate writes,
+requirement synthesis, and the complete review workflow pending.
+
 ## BMW data boundary
 
 BMW has prohibited uploading its data to GitHub. This applies to private as well

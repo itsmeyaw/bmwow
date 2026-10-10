@@ -15,7 +15,7 @@ nodes/            baseline, competition (Send fan-out per competitor), feedback,
                   failure isolation, bounded tool loop
 validation.py     citation + quantity + claim-number checks (drop and count, never repair)
 router.py         data need → sql_rag | graph_rag | web_search (one-line source swaps)
-tools/knowledge.py  the only coupling to src/knowledge (contract records + adapter); swap here when it lands
+tools/knowledge.py  coupling to src/knowledge (thin bridge to bmwow.knowledge); swap storage behind it
 tools/web_search.py Firecrawl behind SearchBackend, on-disk cache, OFFLINE_MODE
 tools/feedback_stats.py  dedupe → embed → HDBSCAN (KMeans fallback); all counts/shares computed here
 prompts/          one .md per LLM step; _common_rules.md is included in each
@@ -24,14 +24,19 @@ prompts/          one .md per LLM step; _common_rules.md is included in each
 ## Run
 
 ```bash
-uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -r pyproject.toml --extra dev
-.venv/bin/python -m pytest                                   # fakes only, no keys needed
+uv sync --locked                                             # root pyproject.toml + uv.lock
+uv run pytest                                               # fakes/synthetic only, no keys needed
+uv run python -m scripts.inspect_knowledge                   # real module bridge, synthetic snapshot
 cp .env.example .env                                         # set OPENAI_API_KEY, LLM_STRONG, LLM_CHEAP, FIRECRAWL_API_KEY
-KNOWLEDGE_BACKEND=fake .venv/bin/python -m scripts.run_analysis scripts/example_request.json
+KNOWLEDGE_BACKEND=fake uv run python -m scripts.run_analysis scripts/example_request.json
 ```
 
-`KNOWLEDGE_BACKEND=fake` serves `tests/fakes/` until `src/knowledge/` exists; `real` (default) imports
+`KNOWLEDGE_BACKEND=fake` serves the separate `tests/fakes/` agent backend; `real` (default) imports
 `src.knowledge.ontology` and `src.knowledge.sql_client` (sync or async functions both work).
+Configure a `bmwow.knowledge.KnowledgeService` at startup as described in
+[the data-layer handoff](../../docs/data-layer.md). No automatic synthetic fallback or Neon
+connection is created. A full agent run still needs LLM/search providers or test overrides;
+the inspection script needs neither. All Python dependencies are managed at the repository root.
 
 ## Decisions worth knowing
 
@@ -41,13 +46,15 @@ KNOWLEDGE_BACKEND=fake .venv/bin/python -m scripts.run_analysis scripts/example_
 - **Region scoping**: portfolio, competitors and documents are queried with `brief.regions`, sales and
   feedback with `brief.markets`, web searches with the region's `search_locale` (cache key includes it).
   `get_model` / `get_attribute_values` address one model by id and are not region-scoped.
-- **Competitors** are tagged with the requested regions they are sold in (no region data = all requested
-  regions); each is researched in the locales of its regions.
+- **Competitors** use curated `sold_regions` on the new bridge. The old no-region fallback applies only
+  to legacy unqualified records; each competitor is researched in its requested sale locales.
 - **Feedback with several regions**: one finding per theme over all items (weights sum to 1 − noise),
   plus one per theme and region (share of that region's items, citing that region's items only).
 - **Brief additions** (optional fields): `region_markets` (region → markets) and `warnings` (shown to the PM).
 
 - **Feedback shares** are relative to the *deduplicated* corpus, so cluster shares + `noise_share` = 1.
+  Traced records deduplicate by evidence identity; identical text from distinct original records
+  remains distinct. Legacy untraced records retain text/similarity deduplication.
   Clusters that the LLM labels with the same (attribute, polarity) are merged into one finding.
 - **`Quantity.origin`** (optional field): `record` (ontology/SQL value, must appear in the cited excerpt),
   `computed` (by code from stored data), `source_text` (must appear in a cited excerpt). Set by code only.
@@ -56,4 +63,8 @@ KNOWLEDGE_BACKEND=fake .venv/bin/python -m scripts.run_analysis scripts/example_
 - **LLM-written claims** may only contain numbers found in the cited excerpts; otherwise the finding is
   dropped (`stats.dropped_unsupported_numbers`).
 - Reports list only the sources their findings cite.
-- `AttributeValue.as_of` (optional) drives `STALE_AFTER_DAYS`; values without a date count as fresh.
+- `AttributeValue.as_of` drives `STALE_AFTER_DAYS`; traced records without a date need freshness
+  research. Only legacy untraced records retain v1's assumption that an unknown date is fresh.
+- Combined/future sales keep their original row citations and temporal labels. They cannot become
+  historical model volume, growth, or allocated portfolio shares. Unknown historical coverage
+  is reported as partial, even when contextual observations are available.

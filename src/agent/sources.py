@@ -9,7 +9,7 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -22,7 +22,7 @@ _TRACKING_PARAMS = re.compile(r"^(utm_.*|gclid|fbclid|mc_cid|mc_eid|ref|ref_src)
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def clip(text: str, limit: int = EXCERPT_MAX_CHARS) -> str:
@@ -45,7 +45,9 @@ def canonical_url(url: str) -> str:
     if host.startswith("www."):
         host = host[4:]
     path = parts.path.rstrip("/") or "/"
-    query = urlencode(sorted((k, v) for k, v in parse_qsl(parts.query) if not _TRACKING_PARAMS.match(k)))
+    query = urlencode(
+        sorted((k, v) for k, v in parse_qsl(parts.query) if not _TRACKING_PARAMS.match(k))
+    )
     return urlunsplit((scheme, host, path, query, ""))
 
 
@@ -65,9 +67,14 @@ def render_attribute(model_name: str, av: AttributeValue) -> str:
 
 def render_model(model: ModelNode) -> str:
     code = f" | code={model.model_code}" if model.model_code else ""
-    regions = f" | regions={','.join(model.regions)}" if model.regions else ""
-    head = (f"{model.name}{code} | brand={model.brand} | segment={model.segment} "
-            f"| powertrain={model.powertrain or 'n/a'}{regions}")
+    regions = f" | data_regions={','.join(model.regions)}" if model.regions else ""
+    if model.curation_note is not None:
+        regions += f" | sold_regions={','.join(model.sold_regions) or 'unknown'}"
+        regions += f" | metadata_note={model.curation_note}"
+    head = (
+        f"{model.name}{code} | brand={model.brand} | segment={model.segment} "
+        f"| powertrain={model.powertrain or 'n/a'}{regions}"
+    )
     lines = [head] + [render_attribute(model.name, av) for av in model.attributes]
     return clip("\n".join(lines))
 
@@ -80,6 +87,12 @@ def attribute_source(model: ModelNode, av: AttributeValue) -> Source:
         title=f"{model.name} – {av.attribute}",
         excerpt=clip(render_attribute(model.name, av)),
         retrieved_at=utcnow(),
+        references=av.references,
+        context=av.context,
+        limitations=av.limitations,
+        measurement=av.measurement,
+        availability=av.availability,
+        epistemic_status=av.epistemic_status,
     )
 
 
@@ -95,7 +108,10 @@ def model_source(model: ModelNode) -> Source:
 
 
 def doc_source(chunk: DocChunk) -> Source:
-    published = f" ({chunk.published.isoformat()})" if chunk.published else ""
+    date_label = chunk.publication_label or (
+        chunk.published.isoformat() if chunk.published else None
+    )
+    published = f" ({date_label})" if date_label else ""
     return Source(
         id=f"kg:{chunk.node_id}",
         kind="ontology",
@@ -103,6 +119,11 @@ def doc_source(chunk: DocChunk) -> Source:
         title=f"{chunk.doc_title}{published}",
         excerpt=clip(chunk.text),
         retrieved_at=utcnow(),
+        references=chunk.references,
+        context=chunk.context,
+        limitations=chunk.limitations,
+        measurement=chunk.measurement,
+        publication_label=chunk.publication_label,
     )
 
 
@@ -115,10 +136,17 @@ def feedback_source(item: FeedbackItem) -> Source:
         title=meta,
         excerpt=clip(item.text),  # verbatim
         retrieved_at=utcnow(),
+        references=item.references,
+        context=item.context,
+        limitations=item.limitations,
+        classifications=item.classifications,
+        engine_type=item.engine_type,
     )
 
 
-def sql_source(function: str, params: dict[str, Any], rendered_rows: str, title: str = "") -> Source:
+def sql_source(
+    function: str, params: dict[str, Any], rendered_rows: str, title: str = ""
+) -> Source:
     ref = f"{function}({json.dumps(params, sort_keys=True, default=str)})"
     return Source(
         id="sql:" + short_hash(ref, 10),
@@ -162,7 +190,9 @@ class SourceRegistry:
         return source_id in self._sources
 
     def full_text(self, source_id: str) -> str:
-        return self._full_text.get(source_id) or (self._sources[source_id].excerpt if source_id in self else "")
+        return self._full_text.get(source_id) or (
+            self._sources[source_id].excerpt if source_id in self else ""
+        )
 
     def find_quote(self, source_id: str, quote: str) -> str | None:
         """Return the quote if it appears verbatim (whitespace-insensitive) in the source text."""
@@ -212,7 +242,9 @@ class Budget:
         return Budget(max_tool_calls=max_tool_calls, max_pages=max_pages, parent=self)
 
     def has(self, kind: Literal["call", "page"]) -> bool:
-        ok = self.tool_calls < self.max_tool_calls if kind == "call" else self.pages < self.max_pages
+        ok = (
+            self.tool_calls < self.max_tool_calls if kind == "call" else self.pages < self.max_pages
+        )
         return ok and (self.parent is None or self.parent.has(kind))
 
     def take(self, *kinds: Literal["call", "page"]) -> bool:

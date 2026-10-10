@@ -9,41 +9,62 @@ from __future__ import annotations
 
 import asyncio
 import importlib
-from typing import Any, Iterable, Protocol, TypeVar
+from collections.abc import Iterable
+from typing import Any, Protocol
 
 from pydantic import BaseModel
 
-from src.models.knowledge import (AttributeValue, DocChunk, FeedbackFilter, FeedbackItem, ModelNode,  # noqa: F401
-                                  SalesRow)
+from src.models.knowledge import (  # noqa: F401
+    AttributeValue,
+    DocChunk,
+    FeedbackFilter,
+    FeedbackItem,
+    ModelNode,
+    SalesRow,
+    StudyScore,
+)
 
 from ..config import get_settings
 
 
 class KnowledgeBackend(Protocol):
     async def get_model(self, model_code: str) -> ModelNode | None: ...
-    async def list_portfolio(self, segment: str | None = None, regions: list[str] | None = None) -> list[ModelNode]: ...
-    async def list_competitor_models(self, segment: str, regions: list[str],
-                                     names: list[str] | None = None) -> list[ModelNode]: ...
-    async def get_attribute_values(self, model_id: str, attributes: list[str] | None = None) -> list[AttributeValue]: ...
+    async def list_portfolio(
+        self, segment: str | None = None, regions: list[str] | None = None
+    ) -> list[ModelNode]: ...
+    async def list_competitor_models(
+        self, segment: str, regions: list[str], names: list[str] | None = None
+    ) -> list[ModelNode]: ...
+    async def get_attribute_values(
+        self, model_id: str, attributes: list[str] | None = None
+    ) -> list[AttributeValue]: ...
     async def get_feedback_items(self, filters: FeedbackFilter) -> list[FeedbackItem]: ...
-    async def search_documents(self, query: str, kinds: list[str] | None = None, regions: list[str] | None = None,
-                               k: int = 10) -> list[DocChunk]: ...
-    async def sales_volume(self, models: list[str], markets: list[str] | None = None,
-                           period_from: str | None = None, period_to: str | None = None) -> list[SalesRow]: ...
+    async def search_documents(
+        self,
+        query: str,
+        kinds: list[str] | None = None,
+        regions: list[str] | None = None,
+        k: int = 10,
+    ) -> list[DocChunk]: ...
+    async def sales_volume(
+        self,
+        models: list[str],
+        markets: list[str] | None = None,
+        period_from: str | None = None,
+        period_to: str | None = None,
+    ) -> list[SalesRow]: ...
     async def list_supported_models(self) -> list[dict[str, Any]] | None: ...
     async def list_regions(self) -> dict[str, dict[str, Any]] | None: ...
     async def get_taxonomy(self) -> dict[str, list[str]] | None: ...
+    async def get_study_scores(self, models: list[str], regions: list[str]) -> list[StudyScore]: ...
     async def store_findings(self, analysis: Any) -> bool: ...
 
 
-T = TypeVar("T", bound=BaseModel)
-
-
-def _coerce(cls: type[T], obj: Any) -> T:
+def _coerce[T: BaseModel](cls: type[T], obj: Any) -> T:
     return obj if isinstance(obj, cls) else cls.model_validate(obj)
 
 
-def _coerce_all(cls: type[T], objs: Iterable[Any]) -> list[T]:
+def _coerce_all[T: BaseModel](cls: type[T], objs: Iterable[Any]) -> list[T]:
     return [_coerce(cls, o) for o in objs]
 
 
@@ -70,27 +91,52 @@ class ModuleBackend:
         model = await self._run(self.ontology.get_model, model_code)
         return None if model is None else _coerce(ModelNode, model)
 
-    async def list_portfolio(self, segment: str | None = None, regions: list[str] | None = None) -> list[ModelNode]:
-        return _coerce_all(ModelNode, await self._run(self.ontology.list_portfolio, segment, regions))
+    async def list_portfolio(
+        self, segment: str | None = None, regions: list[str] | None = None
+    ) -> list[ModelNode]:
+        return _coerce_all(
+            ModelNode, await self._run(self.ontology.list_portfolio, segment, regions)
+        )
 
-    async def list_competitor_models(self, segment: str, regions: list[str],
-                                     names: list[str] | None = None) -> list[ModelNode]:
-        return _coerce_all(ModelNode, await self._run(self.ontology.list_competitor_models, segment, regions, names))
+    async def list_competitor_models(
+        self, segment: str, regions: list[str], names: list[str] | None = None
+    ) -> list[ModelNode]:
+        return _coerce_all(
+            ModelNode,
+            await self._run(self.ontology.list_competitor_models, segment, regions, names),
+        )
 
-    async def get_attribute_values(self, model_id: str, attributes: list[str] | None = None) -> list[AttributeValue]:
-        return _coerce_all(AttributeValue, await self._run(self.ontology.get_attribute_values, model_id, attributes))
+    async def get_attribute_values(
+        self, model_id: str, attributes: list[str] | None = None
+    ) -> list[AttributeValue]:
+        return _coerce_all(
+            AttributeValue,
+            await self._run(self.ontology.get_attribute_values, model_id, attributes),
+        )
 
     async def get_feedback_items(self, filters: FeedbackFilter) -> list[FeedbackItem]:
         # The contract allows an iterable; materialise it (bounded by filters.limit).
-        items = await self._run(lambda f: list(self.ontology.get_feedback_items(f)), filters)
-        return _coerce_all(FeedbackItem, items)
+        items = await self._run(self.ontology.get_feedback_items, filters)
+        return _coerce_all(FeedbackItem, list(items))
 
-    async def search_documents(self, query: str, kinds: list[str] | None = None, regions: list[str] | None = None,
-                               k: int = 10) -> list[DocChunk]:
-        return _coerce_all(DocChunk, await self._run(self.ontology.search_documents, query, kinds, regions, k))
+    async def search_documents(
+        self,
+        query: str,
+        kinds: list[str] | None = None,
+        regions: list[str] | None = None,
+        k: int = 10,
+    ) -> list[DocChunk]:
+        return _coerce_all(
+            DocChunk, await self._run(self.ontology.search_documents, query, kinds, regions, k)
+        )
 
-    async def sales_volume(self, models: list[str], markets: list[str] | None = None,
-                           period_from: str | None = None, period_to: str | None = None) -> list[SalesRow]:
+    async def sales_volume(
+        self,
+        models: list[str],
+        markets: list[str] | None = None,
+        period_from: str | None = None,
+        period_to: str | None = None,
+    ) -> list[SalesRow]:
         rows = await self._run(self.sql.sales_volume, models, markets, period_from, period_to)
         return _coerce_all(SalesRow, rows)
 
@@ -104,6 +150,10 @@ class ModuleBackend:
 
     async def get_taxonomy(self) -> dict[str, list[str]] | None:
         return await self._optional("get_taxonomy")
+
+    async def get_study_scores(self, models: list[str], regions: list[str]) -> list[StudyScore]:
+        rows = await self._optional("get_study_scores", models, regions)
+        return _coerce_all(StudyScore, rows or [])
 
     async def store_findings(self, analysis: Any) -> bool:
         """Optional contract (§7). Returns False when the ontology does not provide it."""

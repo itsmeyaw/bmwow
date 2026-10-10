@@ -65,11 +65,16 @@ def normalize_text(text: str) -> str:
 
 
 def exact_dedupe(items: list[FeedbackItem]) -> list[FeedbackItem]:
-    seen: set[str] = set()
+    seen: set[tuple] = set()
     out: list[FeedbackItem] = []
     for item in items:
-        key = normalize_text(item.text)
-        if key and key not in seen:
+        text = normalize_text(item.text)
+        key = (
+            ("evidence", tuple(sorted((ref.source_id, ref.evidence_id) for ref in item.references)))
+            if item.references
+            else ("legacy_text", text)
+        )
+        if text and key not in seen:
             seen.add(key)
             out.append(item)
     return out
@@ -108,7 +113,9 @@ def _kmeans(x: np.ndarray) -> np.ndarray:
 
 
 def _hdbscan(x: np.ndarray) -> np.ndarray:
-    return HDBSCAN(min_cluster_size=max(5, len(x) // 40), min_samples=3, metric="euclidean", copy=True).fit_predict(x)
+    return HDBSCAN(
+        min_cluster_size=max(5, len(x) // 40), min_samples=3, metric="euclidean", copy=True
+    ).fit_predict(x)
 
 
 def cluster_vectors(x: np.ndarray, method: Method = "auto") -> tuple[np.ndarray, str]:
@@ -127,18 +134,25 @@ def cluster_vectors(x: np.ndarray, method: Method = "auto") -> tuple[np.ndarray,
 async def embed_texts(embeddings: Embeddings, texts: list[str]) -> np.ndarray:
     vectors: list[list[float]] = []
     for start in range(0, len(texts), EMBED_BATCH):
-        vectors += await embeddings.aembed_documents(texts[start:start + EMBED_BATCH])
+        vectors += await embeddings.aembed_documents(texts[start : start + EMBED_BATCH])
     return _unit(np.asarray(vectors, dtype=float))
 
 
-async def analyze_feedback(items: list[FeedbackItem], embeddings: Embeddings,
-                           method: Method = "auto") -> FeedbackClustering:
+async def analyze_feedback(
+    items: list[FeedbackItem], embeddings: Embeddings, method: Method = "auto"
+) -> FeedbackClustering:
     n_items = len(items)
     unique = exact_dedupe(items)
     if not unique:
         return FeedbackClustering(items=[], n_items=n_items, clusters=[])
     vectors = await embed_texts(embeddings, [i.text for i in unique])
-    keep = near_dedupe(vectors)
+    # Original evidence identities are records, even when wording is identical.
+    # Similarity clustering may group them; it must not erase them from the denominator.
+    legacy = [i for i, item in enumerate(unique) if not item.references]
+    keep = sorted(
+        {i for i, item in enumerate(unique) if item.references}
+        | {legacy[i] for i in near_dedupe(vectors[legacy])}
+    )
     unique = [unique[i] for i in keep]
     vectors = vectors[keep]
 
@@ -152,4 +166,6 @@ async def analyze_feedback(items: list[FeedbackItem], embeddings: Embeddings,
         clusters.append(Cluster(label=int(label), members=members, representatives=reps))
     clusters.sort(key=lambda c: -c.size)
     noise = [int(i) for i in np.flatnonzero(labels == -1)]
-    return FeedbackClustering(items=unique, n_items=n_items, clusters=clusters, noise=noise, method=used)
+    return FeedbackClustering(
+        items=unique, n_items=n_items, clusters=clusters, noise=noise, method=used
+    )
