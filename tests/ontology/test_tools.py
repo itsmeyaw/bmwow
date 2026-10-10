@@ -348,6 +348,69 @@ def test_new_revision_has_no_inherited_review_and_is_latest_query_default(bundle
     assert len(history.nodes) == 2
 
 
+@pytest.mark.parametrize("relation", ["SUPPORTS", "CHALLENGES"])
+@pytest.mark.parametrize("direction", ["incoming", "outgoing"])
+def test_proposal_support_and_challenge_links_must_be_incoming(bundle, relation, direction):
+    before = copy.deepcopy(bundle)
+    candidate = proposal(bundle)
+    new_id = candidate["requirement"]["id"]
+    signal_id = "signal:fixture-public-challenge"
+    candidate["edges"].append(
+        {
+            "id": "edge:proposal-incoming-argument",
+            "type": relation,
+            "source_id": signal_id if direction == "incoming" else new_id,
+            "target_id": new_id if direction == "incoming" else signal_id,
+            "rationale": "Synthetic argument assessed for this exact new revision.",
+            "context_transfer": None,
+        }
+    )
+    result = validate_proposal(bundle, candidate, actor_id="test-agent")
+    assert result.accepted == (direction == "incoming")
+    if direction == "incoming":
+        assert validate_bundle(result.candidate) == []
+        dossier = get_requirement_context(result.candidate, {"requirement_id": new_id})
+        assert any(
+            link.type == relation and link.target_id == new_id for link in dossier.trace.edges
+        )
+    else:
+        assert {error.code for error in result.errors} == {"disallowed_change"}
+        assert result.candidate is None
+    assert bundle == before
+
+
+def test_reconsidered_challenge_can_follow_a_revision_but_human_review_cannot(bundle):
+    decision(bundle, "approve", "approve")
+    decision(bundle, "set_priority", "priority", priority=3)
+    candidate = proposal(bundle)
+    challenge = copy.deepcopy(
+        next(link for link in bundle["edges"] if link["type"] == "CHALLENGES")
+    )
+    challenge["id"] = "edge:reconsidered-challenge"
+    challenge["target_id"] = candidate["requirement"]["id"]
+    candidate["edges"].append(challenge)
+    result = validate_proposal(bundle, candidate, actor_id="test-agent")
+    assert result.accepted
+    previous = get_requirement_context(result.candidate, {"requirement_id": REQUIREMENT})
+    revised = get_requirement_context(
+        result.candidate, {"requirement_id": candidate["requirement"]["id"]}
+    )
+    assert previous.review.status == "approved" and previous.review.priority == 3
+    assert revised.review.status == "unreviewed" and revised.review.priority is None
+    assert not revised.decisions
+    assert any(link.id == challenge["id"] for link in revised.trace.edges)
+
+
+def test_proposal_cannot_invent_a_signal_through_justification(bundle):
+    candidate = proposal(bundle)
+    next(link for link in candidate["edges"] if link["type"] == "JUSTIFIED_BY")["target_id"] = (
+        "signal:not-ingested"
+    )
+    result = validate_proposal(bundle, candidate)
+    assert not result.accepted and result.candidate is None
+    assert {error.code for error in result.errors} == {"disallowed_change"}
+
+
 def test_comparison_rejects_unknown_survey_bases_and_incompatible_scales(bundle):
     result = comparison_readiness(
         bundle, {"node_ids": ["evidence:fixture-study-mean", "evidence:fixture-study-share"]}

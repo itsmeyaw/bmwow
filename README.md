@@ -48,8 +48,10 @@ contracts/ontology/           Shared JSON artifacts for frontend, agents, and da
   source-mappings.json         Curated mappings from supplied raw columns
   examples/synthetic.json     Shareable integration fixture, with invented evidence
 docs/ontology.md              Ontology meaning, design factors, and integration guidance
+docs/ontology-consumers.md    Worked dossier and frontend/orchestration handoff
 docs/project-plan.md          Next milestones, team boundaries, and BMW data restrictions
 docs/web-research.md          Proposed web evidence collection contract
+scripts/inspect_parking_dossier.py  Runnable synthetic four-question example
 tests/ontology/               Contract, graph, interoperability, and CLI tests
 raw_data/                     Local BMW data and sample; ignored by Git
 src/app/                      Next.js frontend
@@ -160,6 +162,11 @@ See the [project plan](docs/project-plan.md) for the complete evidence-to-review
 workflow and the next milestone. Ontology v0.2.0 is the shared contract; private
 ingestion, SQL adapters, LangChain orchestration, and the review API/UI are next.
 
+Start with the [consumer guide](docs/ontology-consumers.md) and run
+`uv run python scripts/inspect_parking_dossier.py`. It answers the four product
+questions from the existing dossier while retaining each edge's target and
+rationale. Add `--json` for the existing generated RequirementDossier payload.
+
 - **Ontology/backend:** import `bmwow.ontology` and extend the shared Python package.
   See [ontology guide](docs/ontology.md) for entity meaning, limits, IDs, and revisions.
 - **Agent orchestration:** use typed models for tool payloads and proposals; run
@@ -208,9 +215,16 @@ originals and data-bearing derivatives, exports, embeddings, generated proposals
 screenshots, and logs/transcripts local or in BMW-permitted storage. The team's
 current understanding permits an access-controlled server database outside
 GitHub; Neon is the selected provider. Commit its migrations and import scripts,
-but not its contents or credentials. GitHub
-CI and build artifacts must use synthetic content. See the
+but not its contents or credentials. GitHub CI and build artifacts must use
+synthetic content. See the
 [data boundary](docs/project-plan.md#bmw-data-boundary).
+
+Use [issue #3](https://github.com/itsmeyaw/bmwow/issues/3) for sanitized agent
+discussion and proposals. Agents must receive explicit human confirmation in
+their own chat before making real changes; issue comments never constitute that
+confirmation. See [the coordination guide](docs/agent-coordination.md) for privacy,
+proposal handling, and rule loading. `AGENTS.md` holds the shared policy, and
+`CLAUDE.md` imports it for Claude Code.
 
 Commit Python source, frontend source, tests, docs, `AGENTS.md`, shared tool
 configuration, `.python-version`, both dependency lockfiles, and the generated
@@ -249,8 +263,9 @@ entire configure --local --skip-push-sessions
 
 This writes `strategy_options.push_sessions: false` to ignored
 `.entire/settings.local.json`. Capture continues locally; each teammate must apply
-this setting in their clone for this project. Do not push checkpoint refs or `entire/*` branches with
-`--all` or `--mirror` when you intend to share only source code. This option does
+this setting in their clone for this project. Do not push checkpoint refs or
+`entire/*` branches with `--all` or `--mirror` when you intend to share only source
+code. This option does
 not remove checkpoint history that was already pushed. Checkpoints containing
 BMW data must stay out of GitHub too. See
 [keeping checkpoints local](https://docs.entire.io/guides/checkpoints/keep-checkpoints-local).

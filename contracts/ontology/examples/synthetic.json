@@ -763,7 +763,7 @@
         "actor_id": "fixture-reviewer",
         "decided_at": "2026-10-10T15:47:12Z",
         "requirement_revision": 1,
-        "reason": "Synthetic review example: compare the physical-control proposal with the opposing opinion before deciding.",
+        "reason": "Synthetic review example: the requirement specifies a usability outcome, not a physical control. Compare physical and on-screen implementations against the opposing opinions before deciding.",
         "priority": null
       }
     },
@@ -904,7 +904,7 @@
       "id": "evidence:fixture-catalog-parking",
       "entity_key": "evidence:fixture-catalog-parking",
       "type": "Evidence",
-      "label": "Synthetic catalog entry: Invented parking control; code SYN-PARK. ",
+      "label": "Synthetic catalog entry: Invented parking control; code SYN-PARK; standard equipment.",
       "revision": 1,
       "properties": {
         "evidence_kind": "catalog_excerpt",
@@ -916,7 +916,7 @@
           "page": 1,
           "section": "Invented row 1"
         },
-        "raw_text": "Synthetic catalog entry: Invented parking control; code SYN-PARK. ",
+        "raw_text": "Synthetic catalog entry: Invented parking control; code SYN-PARK; standard equipment. Task usability has not been measured.",
         "measurement": null,
         "raw_classifications": [],
         "context": {
@@ -2460,7 +2460,7 @@
       "type": "CHALLENGES",
       "source_id": "signal:fixture-public-challenge",
       "target_id": "requirement:fixture-parking",
-      "rationale": "An opposing opinion challenges the physical-switch implementation.",
+      "rationale": "This opinion limits a possible physical-switch implementation suggested by other signals. It does not oppose the usability need, and the requirement does not mandate a physical switch.",
       "context_transfer": null
     },
     {

@@ -23,6 +23,7 @@ Foundry, its authorization system, or an OWL/RDF inference engine.
 - [synthetic.json](../contracts/ontology/examples/synthetic.json): invented catalogs, feedback, studies, sales, and web research.
 - [web-research.md](web-research.md): proposed collection interface; no scraper is implemented.
 - [ontology-plan.md](ontology-plan.md): pre-implementation decisions and acceptance questions.
+- [ontology-consumers.md](ontology-consumers.md): four-question parking dossier, Signal kind rules, frontend/orchestration recipes, and rejected distinctions.
 
 All Python work uses the root uv project and imports `bmwow.ontology`. Run from the
 repository root:
