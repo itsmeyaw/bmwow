@@ -1,0 +1,12 @@
+Call the Skill tool with "grilling".
+
+
+Base directory for this skill: /Users/itsmeyaw/.claude/skills/grill-me
+Relative paths in this skill (e.g., scripts/, references/) are relative to this base directory.
+
+Create a dashboard for visualizsation of the customer feedback anaalysis, competitor research, and trend research. This dashboard is aimed to be a business intelligence dashboard. You can suggest better design if you find better UI/UX than my proposal. The user of this dashboard is a Product Manager for car at BMW. 
+
+My design idea: 
+Overall layout: Dashboard with navigation on the left, main content middle with breadcrumbs on top, and collapsible chat window (or popup) on the right side
+Analysis page: A selection of cars with some categorization based on series (G or F series). See: [Image 1] . When a user click on a car, the car page will be shown.
+Car Page: Contain a car page showing analysis of all data based on each regions. USer can choose region via a dropdown (world or certain country). I am open for visualitzation option and suggestion but it should show prioritization of aspects of car that need should be improved, complete with all the reasoning and supporting data citation. From the first view of the car page, the user should be able to see the overall incentives for the car and incentives for each aspect. See: [Image 2]
