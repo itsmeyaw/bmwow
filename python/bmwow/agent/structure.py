@@ -157,7 +157,8 @@ def _comparisons(pkg: EvidencePackage) -> list[str]:
             f"{s.ci_low:.1%}–{s.ci_high:.1%}){', thin sample' if s.thin else ''}."
         )
         if s.differs_from:
-            line += f" Significantly different from {s.differs_from} (p={s.p_value:.2g})."
+            p = "p<0.001" if (s.p_value or 0) < 0.001 else f"p={s.p_value:.2g}"
+            line += f" Significantly different from {s.differs_from} ({p})."
         lines.append(line)
     for t in pkg.trends:
         lines.append(
