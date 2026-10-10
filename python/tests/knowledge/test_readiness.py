@@ -120,3 +120,32 @@ def test_raw_workbooks_catalog_and_versioned_feedback_reach_ready_boundary(tmp_p
     assert report.study_theme_measurements == 2 and report.sales_rows == 3
     assert report.catalog_theme_claims_in_region == 1 and report.citations_unresolved == 0
     assert report.study_unknown_sample_size == 2
+
+
+def test_invalid_inferred_quote_cannot_satisfy_theme_readiness(knowledge_service):
+    config = knowledge_service.config
+    config.aspect_mappings["Invented screen"] = VfcMapping(
+        feature_id="feature:parking-controls",
+        status="reviewed",
+        rationale="Invented semantic mapping; quote still needs verification",
+    )
+    feedback = MemoryFeedback()
+    feedback.items = [
+        project_feedback(
+            parent(derivate_code="G60"),
+            [aspect(extraction_source="llm", quote_snippet="Fabricated invented quotation")],
+            "combined-test",
+        )
+    ]
+    service = CombinedKnowledgeService(
+        InMemoryRepository(knowledge_service.snapshot()),
+        config,
+        feedback,
+        {"G60": "vehicle:bmw-g60"},
+    )
+    report = inspect_readiness(
+        service, model="G60", region="US", feature_keys=["parking_control_usability"]
+    )
+    assert report.mapping_counts == {"reviewed": 1}
+    assert report.rejected_inferred_aspects == 1 and report.usable_theme_aspects == 0
+    assert "No reviewed feedback mapping for the selected theme" in report.blockers
