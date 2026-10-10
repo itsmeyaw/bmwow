@@ -24,6 +24,7 @@ Foundry, its authorization system, or an OWL/RDF inference engine.
 - [web-research.md](web-research.md): proposed collection interface; no scraper is implemented.
 - [ontology-consumers.md](ontology-consumers.md): four-question parking dossier, Signal kind rules, frontend/orchestration recipes, and rejected distinctions.
 - [data-layer.md](data-layer.md): snapshot, SQL feedback, and combined read interfaces.
+- [definitions.md](definitions.md): canonical shared vocabulary and ontology/read/analysis distinctions.
 - [knowledge-ingestion.md](knowledge-ingestion.md): private curation/import commands and validated local candidate acceptance.
 
 The Python reference implementation imports `bmwow.ontology`. Run from `python/`:

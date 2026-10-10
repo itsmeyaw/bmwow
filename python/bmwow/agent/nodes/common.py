@@ -6,7 +6,7 @@ import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any
 
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
@@ -19,6 +19,7 @@ from bmwow.agent.models.evidence import (
     AgentReport,
     Confidence,
     Finding,
+    Polarity,
     ProductBrief,
     Quantity,
     Source,
@@ -31,7 +32,6 @@ from ..validation import assign_ids, claim_numbers_supported, validate_findings
 
 log = logging.getLogger(__name__)
 
-Polarity = Literal["positive", "negative", "neutral", "demand"]
 SUMMARY_MAX_WORDS = 120
 
 

@@ -7,7 +7,7 @@ service reads SQL feedback/aspects; the combined service adds snapshot-backed
 sales, studies, documents, and curated capabilities through the same v1 interface.
 Workbook ingestion and local candidate acceptance are implemented. Requirement
 persistence, human review services, and the analysis write hook remain pending.
-The raw SQL schema, ontology contract, and v1 read records are unchanged.
+The raw SQL schema, generated ontology contracts, and v1 wire field names are unchanged.
 
 ## Run without Neon
 
@@ -30,6 +30,9 @@ If `import bmwow` fails on macOS, see the troubleshooting note in
 [`python/README.md`](../python/README.md).
 
 ## Boundaries and ownership
+
+See [definition boundaries](definitions.md) for canonical type ownership and the
+differences between graph objects, read projections, and analysis DTOs.
 
 - `python/bmwow/ontology/` remains the source of truth for graph objects,
   relationships, validation, and generated JSON contracts. Its version stays 0.2.0.

@@ -15,12 +15,14 @@ from bmwow.agent.tools import graph_rag, sql_rag
 from bmwow.agent.tools.feedback_stats import analyze_feedback, exact_dedupe
 from bmwow.agent.tools.knowledge import ModuleBackend
 from bmwow.knowledge import AttributeValue, FeedbackFilter
+from bmwow.knowledge import records as canonical_records
 from bmwow.ontology import validate_bundle
 from tests.fakes.llm import HashEmbeddings
 
 
 def test_legacy_imports_reexport_one_record_definition():
-    assert legacy_records.AttributeValue is AttributeValue
+    for name in legacy_records.__all__:
+        assert getattr(legacy_records, name) is getattr(canonical_records, name)
 
 
 def test_unconfigured_runtime_has_no_fake_fallback():

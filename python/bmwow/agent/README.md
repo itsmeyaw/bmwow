@@ -5,6 +5,13 @@ parallel and produce a validated `SituationAnalysis` (schemas in
 `bmwow/agent/models/evidence.py`) for downstream consumers. The proposed
 `structure_agent` and complete requirement/review workflow remain later work.
 
+[Definition boundaries](../../../docs/definitions.md) identifies the owner of each
+shared type and explains why Finding/Signal, Source/SourceDocument, demand/sentiment,
+and feedback/source-region selectors remain distinct. Knowledge records are
+compatibility re-exports, and availability/confidence vocabulary comes from the
+ontology. The original SPEC links to these owners instead of repeating schemas
+or fallback configuration.
+
 ```
 service.py        list_models / resolve / start_analysis / get_analysis / stream_analysis / explain / aclose
                   ← the API layer calls these

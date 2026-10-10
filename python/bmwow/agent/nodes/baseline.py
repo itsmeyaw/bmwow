@@ -7,14 +7,14 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from bmwow.agent.models.evidence import Confidence, Quantity
+from bmwow.agent.models.evidence import Confidence, Polarity, Quantity
 
 from .. import router
 from ..llm import get_chat_model
 from ..prompting import render_prompt
 from ..sources import attribute_source, model_source
 from ..tools.knowledge import ModelNode, SalesRow
-from .common import AgentContext, Polarity, structured_call
+from .common import AgentContext, structured_call
 
 MAX_POSITIONING_FINDINGS = 8
 

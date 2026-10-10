@@ -12,7 +12,7 @@ from collections import Counter
 
 from pydantic import BaseModel, Field
 
-from bmwow.agent.models.evidence import Confidence, Quantity
+from bmwow.agent.models.evidence import Confidence, Polarity, Quantity
 
 from .. import router
 from ..config import get_settings
@@ -21,7 +21,7 @@ from ..prompting import render_prompt
 from ..sources import feedback_source
 from ..tools.feedback_stats import Cluster, FeedbackClustering, analyze_feedback
 from ..tools.knowledge import FeedbackFilter, FeedbackItem
-from .common import AgentContext, Polarity, structured_call
+from .common import AgentContext, structured_call
 
 MAX_THEME_SOURCES = 8
 
