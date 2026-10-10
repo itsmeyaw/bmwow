@@ -1,7 +1,0 @@
-# Model registry (AGENT_SPEC §4.5): the only reference models the app supports.
-# Used when the knowledge layer does not offer list_supported_models().
-# Names and regions are PLACEHOLDERS until the team confirms them against the data; do not fill them
-# in from general knowledge. Adding a model = one entry here plus its data, no code change.
-G60: { name: "5 Series Sedan",                  regions: [EU, US, CN] }   # regions: TO CONFIRM with the data
-F70: { name: "1 Series",                        regions: [EU] }           # regions: TO CONFIRM with the data
-G68: { name: "5 Series Sedan long wheelbase",   regions: [CN] }           # regions: TO CONFIRM with the data

@@ -1,6 +1,0 @@
-# Regions (AGENT_SPEC §4.4): region -> markets (as used in sales and feedback data) and web-search locale.
-# Used when the knowledge layer does not offer list_regions().
-# PLACEHOLDERS: the team decides the real region list and market codes, matching the data.
-EU: { markets: [DE, FR, IT, ES, NL], search: { country: de, lang: en } }   # markets: TO CONFIRM with the data
-US: { markets: [US],                 search: { country: us, lang: en } }
-CN: { markets: [CN],                 search: { country: cn, lang: zh } }
