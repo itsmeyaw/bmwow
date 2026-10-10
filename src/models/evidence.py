@@ -126,9 +126,18 @@ class ProductBrief(BaseModel):
         return None
 
 
+class OntologyPersistence(BaseModel):
+    """Optional ontology write outcome, independent of analysis completion and human review."""
+
+    status: Literal["skipped", "stored", "failed"]
+    error: str | None = None
+
+
 class SituationAnalysis(BaseModel):  # the hand-off object
     run_id: str
     request: AnalysisRequest  # what the PM typed
     brief: ProductBrief  # what the run actually used
     reports: dict[AgentName, AgentReport]  # all four keys always present
     created_at: datetime
+    # None means no outcome was recorded, including analyses saved before this field existed.
+    ontology_persistence: OntologyPersistence | None = None

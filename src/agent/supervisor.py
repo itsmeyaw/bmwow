@@ -11,13 +11,22 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Mapping
+from collections.abc import Mapping
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from typing import Any
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Checkpointer
 
-from src.models.evidence import AGENT_NAMES, AgentName, AgentReport, SituationAnalysis
+from src.models.evidence import (
+    AGENT_NAMES,
+    AgentName,
+    AgentReport,
+    OntologyPersistence,
+    SituationAnalysis,
+)
 
 from .config import get_settings
 from .nodes import AGENT_RUNS
@@ -61,24 +70,51 @@ async def collect(state: AnalysisState) -> dict[str, Any]:
     for agent in AGENT_NAMES:
         report = reports.get(agent)
         if report is None:
-            report = AgentReport(agent=agent, status="failed", findings=[], sources=[],
-                                 summary=f"{agent} agent produced no report.", errors=["no report produced"])
+            report = AgentReport(
+                agent=agent,
+                status="failed",
+                findings=[],
+                sources=[],
+                summary=f"{agent} agent produced no report.",
+                errors=["no report produced"],
+            )
         final[agent] = validate_report(report)
-    analysis = SituationAnalysis(run_id=state["run_id"], request=state["request"], brief=state["brief"],
-                                 reports=final, created_at=utcnow())
-    await persist(analysis)
+    analysis = SituationAnalysis(
+        run_id=state["run_id"],
+        request=state["request"],
+        brief=state["brief"],
+        reports=final,
+        created_at=utcnow(),
+    )
+    analysis = await persist(analysis)
     return {"analysis": analysis}
 
 
-async def persist(analysis: SituationAnalysis) -> None:
-    """Write data/processed/analyses/<run_id>.json and, if available, store findings in the ontology."""
+async def persist(analysis: SituationAnalysis) -> SituationAnalysis:
+    """Save locally before the optional write, then save its outcome; local write errors propagate."""
     out_dir = get_settings().analyses_dir
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / f"{analysis.run_id}.json").write_text(analysis.model_dump_json(indent=2))
+    path = out_dir / f"{analysis.run_id}.json"
+    path.write_text(analysis.model_dump_json(indent=2))
     try:
-        await get_backend().store_findings(analysis)
-    except Exception:  # optional contract; never fail the run over it
+        stored = await get_backend().store_findings(analysis)
+        outcome = OntologyPersistence(status="stored" if stored else "skipped")
+    except Exception as exc:  # optional write failure remains visible without losing the analysis
         log.exception("store_findings failed for run %s", analysis.run_id)
+        outcome = OntologyPersistence(status="failed", error=f"{type(exc).__name__}: {exc}")
+    persisted = analysis.model_copy(update={"ontology_persistence": outcome})
+    # Replacing the file keeps the first saved analysis intact if the outcome update fails.
+    temporary = NamedTemporaryFile(
+        mode="w", encoding="utf-8", dir=out_dir, prefix=f".{path.name}.", delete=False
+    )
+    temporary_path = Path(temporary.name)
+    try:
+        with temporary:
+            temporary.write(persisted.model_dump_json(indent=2))
+        temporary_path.replace(path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
+    return persisted
 
 
 def build_builder(agents: Mapping[AgentName, AgentRun] | None = None) -> StateGraph:
@@ -87,7 +123,9 @@ def build_builder(agents: Mapping[AgentName, AgentRun] | None = None) -> StateGr
     builder = StateGraph(AnalysisState)
     builder.add_node("resolve_request", resolve)
     builder.add_edge(START, "resolve_request")
-    builder.add_conditional_edges("resolve_request", after_resolve, [*AGENT_NODE_NAMES.values(), END])
+    builder.add_conditional_edges(
+        "resolve_request", after_resolve, [*AGENT_NODE_NAMES.values(), END]
+    )
     for agent in AGENT_NAMES:
         builder.add_node(AGENT_NODE_NAMES[agent], agent_node(agent, runs[agent]))
     builder.add_node("collect", collect)
@@ -96,8 +134,9 @@ def build_builder(agents: Mapping[AgentName, AgentRun] | None = None) -> StateGr
     return builder
 
 
-def build_graph(checkpointer: Checkpointer = None,
-                agents: Mapping[AgentName, AgentRun] | None = None) -> CompiledStateGraph:
+def build_graph(
+    checkpointer: Checkpointer = None, agents: Mapping[AgentName, AgentRun] | None = None
+) -> CompiledStateGraph:
     return build_builder(agents).compile(checkpointer=checkpointer, name="situation_analysis")
 
 

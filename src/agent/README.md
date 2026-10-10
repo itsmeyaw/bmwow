@@ -51,6 +51,16 @@ the inspection script needs neither. All Python dependencies are managed at the 
 - **Feedback with several regions**: one finding per theme over all items (weights sum to 1 − noise),
   plus one per theme and region (share of that region's items, citing that region's items only).
 - **Brief additions** (optional fields): `region_markets` (region → markets) and `warnings` (shown to the PM).
+- **Registry/taxonomy fallbacks**: the bridge returns `None` when an optional contract is unavailable;
+  only that signal selects the YAML fallback. Empty results stay empty. Errors from implemented
+  functions surface during request resolution or in the agent's failed report.
+- **Ontology persistence**: `SituationAnalysis.ontology_persistence` and `RunStatus.ontology_persistence`
+  record `skipped`, `stored`, or `failed`; failures include an `error`. The same object appears in the
+  streamed `run_finished` event and survives restart through the saved analysis JSON. `done` means
+  analysis completion; check this separate outcome for the optional ontology write. The local analysis
+  is saved before the hook runs and updated with its outcome. Local save failures still fail the run.
+  Older saved analyses without the field load with `None` (unknown), not an assumed write outcome.
+  `stored` reports successful completion of the configured hook, not human review or approval.
 
 - **Feedback shares** are relative to the *deduplicated* corpus, so cluster shares + `noise_share` = 1.
   Traced records deduplicate by evidence identity; identical text from distinct original records

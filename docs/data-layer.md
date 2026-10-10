@@ -80,6 +80,12 @@ or async functions, including iterable feedback results. An unconfigured real
 backend raises an actionable error; it never silently substitutes synthetic data.
 The existing `KNOWLEDGE_BACKEND=fake` remains the separate v1 agent-test backend.
 
+Registry and taxonomy YAML fallbacks apply only to the bridge's `None` signal for
+an unavailable optional contract. Empty responses are authoritative. Implemented
+function errors propagate instead of substituting placeholder model/region or
+taxonomy data: request resolution reports registry failures, and agent failure
+isolation records taxonomy failures in the affected report.
+
 Available reads: model registry, regions, model, portfolio, competitors, taxonomy,
 capabilities, feedback, sales, study scores, lexical document search, and citation
 resolution. `get_study_scores(models, regions)` is an optional additive bridge
@@ -191,6 +197,16 @@ configuration. Adding a code to the YAML fallback does not establish data covera
 bridge returns `False`: an analysis may be saved to v1's ignored/local analysis
 directory, but it is not stored in Neon or accepted into the ontology.
 
+Situation analysis now records the optional write in `ontology_persistence`:
+`skipped` when `store_findings` returns `False`, `stored` when it returns `True`,
+and `failed` with an `error` when it raises. The configured hook's completion does
+not establish graph acceptance or human approval. The local analysis is saved
+before the hook runs, then atomically replaced with the outcome. Optional write
+failures preserve the analysis and its agent reports; local save failures still fail the run.
+`RunStatus` and streamed `run_finished` events expose the same outcome, including
+after restart. A completed analysis can therefore be `done` with a failed optional
+write. Older saved analyses load with `ontology_persistence=None` (unknown).
+
 The next write integration must explicitly translate validated agent outputs into
 candidate Signals/Needs/Trends/Assumptions with provenance and epistemic status,
 validate the merged graph, and commit atomically against the expected snapshot.
@@ -219,7 +235,7 @@ Run the root checks from AGENTS.md: pytest, Ruff lint/format, schema freshness, 
 synthetic graph validation. This validates the integration behavior, not the merit
 of real BMW proposals, actual SQL ingestion, or live provider calls.
 
-Validation on 2026-10-10: **249 tests passed**, including 29 knowledge integration
+Initial bridge validation on 2026-10-10: **249 tests passed**, including 29 knowledge integration
 tests. All 24 new/modified Python files pass Ruff lint and format checks; generated
 contracts are current and the synthetic graph validates (57 nodes, 74 edges).
 The inspection script works in both text and JSON modes. Root-wide Ruff checks
@@ -227,3 +243,11 @@ still fail on 22 pre-existing lint issues and 27 unformatted files outside this
 change. The lint codes were compared with HEAD and the format failures checked
 against the changed-file list. Those unrelated v1 cleanup items remain for a
 separate change; no checks were disabled or relaxed.
+
+Failure-reporting validation on 2026-10-10: **262 tests passed**, including 13 new
+cases for optional write outcomes, restart recovery, legacy analyses, local write
+failures, and registry/taxonomy errors and empty responses. All eight changed
+Python files pass Ruff lint and format checks. Generated contracts remain current
+and the synthetic graph validates. Root-wide checks retain 19 pre-existing lint
+issues and 21 unformatted files; comparison with the pre-change baseline found
+no new lint failures.
