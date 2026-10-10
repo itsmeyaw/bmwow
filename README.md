@@ -49,6 +49,29 @@ The checks are `pnpm lint`, `pnpm fmt:check`, and `pnpm build`, plus the Python
 checks listed in [`python/README.md`](python/README.md). Agents and contributors
 work in git worktrees; see [AGENTS.md](AGENTS.md).
 
+### Sales CSV import
+
+Place the private CSV exports in `data/sales/`, with filenames ending in
+` - <model code>.csv`, then run from the repository root:
+
+```sh
+pnpm exec tsx scripts/import-sales.ts --self-check  # synthetic, no network
+pnpm exec tsx scripts/import-sales.ts             # .env database connection
+```
+
+The importer validates all files before writing, applies `migrations/0001_sales.sql`,
+and upserts `sales` in one transaction, verifying every stored value. Reruns update
+matching `(model_code, market_code)` pairs without duplicating them. It uses
+`DATABASE_URL_UNPOOLED`, falling back to `DATABASE_URL` with Neon's pooler suffix
+removed for a direct connection. Existing environment variables take precedence over `.env`.
+
+Only `market_code` is stored; the `market` label is ignored. The three volume columns
+retain their source years and explicit zeros. At the user's request, `G60_G68` is
+temporarily stored as `G60`; its volumes still represent the combined source group,
+not an independently measured G60 total. `source_file` and `source_row` preserve the
+original filename and CSV line number (header is line 1). This raw import does not
+change the ontology's combined-model mapping or classify future volumes as historical.
+
 To inspect SQL feedback across EU member countries, add `--region EU` to the
 inspection command in the [Python setup guide](python/README.md). Direct country
 filters remain available, and each feedback keeps its original country.
