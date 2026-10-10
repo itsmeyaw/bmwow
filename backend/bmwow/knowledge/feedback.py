@@ -8,6 +8,7 @@ from urllib.parse import quote, unquote
 from pydantic import Field
 
 from .config import Configuration, ModelProfile
+from .geography import feedback_region_markets
 from .records import FeedbackAspect, FeedbackFilter, FeedbackItem, FeedbackPage, ModelNode, Record
 
 
@@ -87,19 +88,24 @@ class FeedbackKnowledgeService:
             {
                 "model_code": item.derivate,
                 "name": item.sales_description or item.derivate,
-                "regions": item.countries,
+                "regions": sorted(feedback_region_markets(item.countries)),
             }
             for item in self._repository.coverage()
         ]
 
     def list_regions(self) -> dict[str, dict]:
-        countries = sorted({c for item in self._repository.coverage() for c in item.countries})
+        regions = feedback_region_markets(
+            country for item in self._repository.coverage() for country in item.countries
+        )
         return {
-            country: {
-                "markets": [country],
-                "search": {"country": country.lower(), "lang": self._config.research_language},
+            region: {
+                "markets": countries,
+                "search": {
+                    "country": countries[0].lower(),
+                    "lang": self._config.research_language,
+                },
             }
-            for country in countries
+            for region, countries in sorted(regions.items())
         }
 
     def get_model(self, model_code: str) -> ModelNode | None:
@@ -107,6 +113,7 @@ class FeedbackKnowledgeService:
             if model_code.strip().upper() not in {item.derivate, vehicle_id(item.derivate).upper()}:
                 continue
             profile = self._config.model_profiles.get(item.derivate)
+            regions = sorted(feedback_region_markets(item.countries))
             note = "Feedback coverage only; equipment and sale availability are not established."
             note += (
                 f" {profile.curation_note}"
@@ -120,9 +127,9 @@ class FeedbackKnowledgeService:
                 brand=item.brand or "unknown",
                 segment=profile.segment if profile else "unknown",
                 powertrain=profile.powertrain if profile else None,
-                regions=item.countries,
+                regions=regions,
                 sold_regions=profile.sold_regions if profile else [],
-                data_coverage={"feedback_dataset": item.countries},
+                data_coverage={"feedback_dataset": regions},
                 curation_note=note,
             )
         return None

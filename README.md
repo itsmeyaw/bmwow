@@ -34,6 +34,8 @@ For private SQL feedback, put `DATABASE_URL` in an ignored `.env`, then run
 a bounded G70/US selection, checks typed aspects and citation resolution, and prints
 aggregate checks only. It calls no LLM, embedding, or web providers. On this macOS
 checkout, prefix the command with `UV_PROJECT_ENVIRONMENT=venv` as described below.
+Use `--region EU` to inspect feedback across EU member countries; direct country
+filters remain available, and every feedback retains its original country.
 Application startup must explicitly inject `create_neon_feedback_service()`;
 the inspection command does that temporarily. See the handoff for configuration.
 

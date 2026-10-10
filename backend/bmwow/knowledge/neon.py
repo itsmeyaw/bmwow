@@ -24,6 +24,7 @@ from .feedback import (
     feedback_id,
     vehicle_id,
 )
+from .geography import feedback_country_markets
 from .records import (
     EvidenceReference,
     FeedbackAspect,
@@ -60,7 +61,7 @@ def _where(filters: FeedbackFilter) -> tuple[str, list[Any]]:
     clauses, params = [], []
     for column, values in (
         ("derivate_code", [value.strip().upper() for value in filters.models]),
-        ("country", [value.strip().upper() for value in filters.markets]),
+        ("country", feedback_country_markets(filters.markets)),
         ("source", filters.sources),
     ):
         if values:

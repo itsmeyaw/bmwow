@@ -129,8 +129,9 @@ sales and combined rows. They do not prove the model is sold there. Portfolio re
 use separately curated `sold_regions`. Competitor reads also require an existing
 COMPETES_WITH relationship. The resolver uses curated availability for these
 qualified records, rather than treating empty coverage as worldwide availability.
-Country-to-region mapping uses explicit Market.country_codes; it does not assume
-DE means EU. A sales row retains its original regional grain. Do not add a regional
+Snapshot country-to-region mapping uses explicit Market.country_codes. The SQL
+feedback backend uses the explicit EU membership policy described below. A sales
+row retains its original regional grain. Do not add a regional
 total to its constituent country totals.
 
 **Capabilities and ranges.** Availability, conditions, epistemic status, scope,
@@ -213,6 +214,9 @@ Curate that metadata before launching competitor research or the full analysis.
 
 Filters preserve the existing `models`/`markets` wire names (Derivate/ISO country),
 with additive `engine_types` and `sources`. Source A–D meanings remain unknown.
+For SQL feedback, `markets=["EU"]` expands to the 27 EU member country codes before
+the count and parent-selection queries. Mixed selections such as `["EU", "DE", "US"]`
+are deduplicated. Direct country filters such as `["DE"]` still select that country.
 The parent selection is ordered by Feedback Explorer ID using C collation and
 limited **before** fetching its aspects. The count query counts feedback, never
 joined aspects. All queries in one retrieval share a repeatable-read snapshot.
@@ -262,12 +266,35 @@ not persisted ontology Evidence/SourceDocument/Signal objects. It does not resol
 a query hash. The virtual `vehicle:feedback:<Derivate>` IDs are likewise read
 identities; reconcile them explicitly with canonical VehicleModel IDs on ingestion.
 
-The live registry derives Derivates and ISO-country coverage from SQL. Each country
-is its own region with that one market; EU/CN membership is not inferred. Search
-language defaults to English as an application policy, not a language claim about
-Verbatim. Equipment, sale availability, and competitive selection remain unknown.
+The live registry derives Derivates and ISO-country coverage from SQL, then groups
+EU member countries under `EU` using `backend/bmwow/knowledge/geography.py`.
+The policy uses the [27 EU member states](https://european-union.europa.eu/easy-read_en),
+verified on 2026-10-10; it is not a definition of all European markets. GB, NO, CH,
+and other nonmembers retain their own region codes. Membership changes require
+reviewing this explicit policy.
+
+`ModelNode.regions`, its `data_coverage`, and `list_supported_models()` use grouped
+region codes. `list_regions()["EU"].markets` contains only member countries actually
+present in feedback coverage; no EU option is advertised when none are present.
+An agent request for `regions=["EU"]` expands through that registry into SQL country
+filters. A default request selects grouped regions once, without duplicating member
+countries as separate regions. The original `FeedbackItem.market` and
+`Context.country_codes` remain the individual country, preserving source scope,
+citations, and per-region denominators. Country grouping makes no database writes.
+
+The regional search locale uses the first covered country in alphabetical order;
+search language defaults to English as an application policy, not a language claim
+about Verbatim. Equipment, sale availability, and competitive selection remain unknown.
 Registry errors propagate through the teammate's existing failure-reporting path;
 empty coverage does not activate the YAML fallback.
+
+Inspect a region with this command (apply the macOS environment prefix when needed):
+
+```sh
+uv run python -m scripts.inspect_neon_feedback --env-file .env --region EU --limit 50
+```
+
+The existing `--country` option still accepts individual countries or the EU alias.
 
 Sales, studies, capabilities, portfolio, and documents raise
 `KnowledgeUnavailableError` when requested. Competitive selection returns an empty

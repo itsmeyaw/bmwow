@@ -12,6 +12,7 @@ from uuid import UUID
 import psycopg
 import pytest
 from bmwow.knowledge import (
+    FeedbackCoverage,
     FeedbackFilter,
     FeedbackKnowledgeService,
     FeedbackServiceConfig,
@@ -221,6 +222,26 @@ def test_filter_parameters_are_never_interpolated_into_sql():
     assert "engine_type IS NULL" in query
 
 
+def test_eu_alias_expands_before_count_and_limit_without_replacing_original_countries():
+    parents = [
+        parent(country="DE"),
+        parent(id=UUID(int=2), feedback_explorer_id="synthetic-fr", country="FR"),
+    ]
+    repo, conn, _ = repository([{"n": 2}], parents, [])
+    page = repo.read_feedback(
+        FeedbackFilter(models=["G70"], markets=[" eu ", "DE", "US", "eu"], limit=2)
+    )
+    countries = conn.calls[1][1][1]
+    assert len(countries) == len(set(countries)) == 28
+    assert {"DE", "FR", "IE", "CY", "US"} <= set(countries)
+    assert not {"EU", "GB", "NO", "CH"} & set(countries)
+    assert "country = ANY(%s)" in conn.calls[1][0]
+    assert conn.calls[1][1] == conn.calls[2][1][:-1]
+    assert [item.market for item in page.items] == ["DE", "FR"]
+    assert [item.context.country_codes for item in page.items] == [["DE"], ["FR"]]
+    assert page.retrieval.returned_count == page.retrieval.total_matching == 2
+
+
 @pytest.mark.parametrize("limit", [None, 10000])
 def test_default_and_hard_limit_are_explicit(limit):
     repo, conn, _ = repository([{"n": 1}], [parent()], [])
@@ -330,6 +351,115 @@ class MemoryFeedbackRepository:
     def find_aspect(self, key):
         value = self.page.items[0].aspects[0]
         return value.model_copy(deep=True) if key == str(ASPECT_ID) else None
+
+
+async def test_eu_and_us_request_expands_registry_and_retains_country_scoped_sources(monkeypatch):
+    parents = [
+        parent(country="DE"),
+        parent(id=UUID(int=2), feedback_explorer_id="synthetic-fr", country="FR"),
+        parent(id=UUID(int=3), feedback_explorer_id="synthetic-us", country="US"),
+    ]
+    repo, conn, _ = repository(
+        [{"n": 3}], parents, [aspect(), aspect(id=UUID(int=11), feedback_entry_id=UUID(int=2))]
+    )
+    monkeypatch.setattr(
+        repo,
+        "coverage",
+        lambda: [
+            FeedbackCoverage(
+                derivate="G70",
+                countries=["DE", "FR", "US", "GB", "NO"],
+                engine_types=["BEV"],
+                feedback_count=5,
+            ),
+            FeedbackCoverage(
+                derivate="G60", countries=["JP"], engine_types=["ICE"], feedback_count=1
+            ),
+        ],
+    )
+    service = FeedbackKnowledgeService(repo)
+    bridge = ModuleBackend(ontology, sql_client)
+    configure_service(service)
+    set_backend(bridge)
+    try:
+        registry = await load_registry()
+        assert set(registry.regions) == {"EU", "GB", "JP", "NO", "US"}
+        assert registry.regions["EU"].markets == ["DE", "FR"]
+        assert registry.regions["EU"].search.country == "de"
+        assert registry.models["G70"].regions == ["EU", "GB", "NO", "US"]
+        assert registry.check(AnalysisRequest(model_code="G70"))[1] == ["EU", "GB", "NO", "US"]
+        with pytest.raises(ValueError, match="no data for region"):
+            registry.check(AnalysisRequest(model_code="G60", regions=["EU"]))
+        brief = await resolve_request(AnalysisRequest(model_code="G70", regions=["eu", "US"]))
+        assert brief.regions == ["EU", "US"] and brief.markets == ["DE", "FR", "US"]
+        assert brief.region_markets == {"EU": ["DE", "FR"], "US": ["US"]}
+        assert brief.region_of("DE") == brief.region_of("FR") == "EU"
+        assert brief.region_of("US") == "US" and brief.region_of("GB") is None
+        assert brief.reference_model.data_coverage == {"feedback_dataset": ["EU", "GB", "NO", "US"]}
+        assert not brief.reference_model.sold_regions
+        page = await bridge.get_feedback_page(
+            FeedbackFilter(models=[brief.model_code], markets=brief.markets, limit=3)
+        )
+        assert conn.calls[1][1] == [["G70"], ["DE", "FR", "US"]]
+        assert page.retrieval.total_matching == page.retrieval.returned_count == 3
+        assert [item.market for item in page.items] == ["DE", "FR", "US"]
+        assert sum(len(item.aspects) for item in page.items) == 2
+        for item in page.items:
+            source = Source.model_validate_json(feedback_source(item).model_dump_json())
+            assert source.context.country_codes == [item.market]
+            assert all(value.context.country_codes == [item.market] for value in source.aspects)
+            assert source.references == item.references
+    finally:
+        configure_service(None)
+        set_backend(None)
+
+
+@pytest.mark.parametrize("country", ["CY", "IE", "LT", "PT"])
+def test_eu_coverage_uses_imported_members_and_a_real_country_search_locale(monkeypatch, country):
+    repo = MemoryFeedbackRepository()
+    monkeypatch.setattr(
+        repo,
+        "coverage",
+        lambda: [
+            FeedbackCoverage(
+                derivate="G70", countries=[country], engine_types=["BEV"], feedback_count=1
+            )
+        ],
+    )
+    service = FeedbackKnowledgeService(repo)
+    assert service.list_regions() == {
+        "EU": {"markets": [country], "search": {"country": country.lower(), "lang": "en"}}
+    }
+    assert (
+        service.list_supported_models()[0]["regions"] == service.get_model("G70").regions == ["EU"]
+    )
+
+
+def test_no_eu_country_coverage_does_not_create_an_eu_region():
+    service = FeedbackKnowledgeService(MemoryFeedbackRepository())
+    assert "EU" not in service.list_regions()
+    assert service.get_model("G70").regions == ["US"]
+
+
+@pytest.mark.parametrize("selector", ["EU", "DE"])
+async def test_inspection_accepts_eu_and_individual_member_country_selectors(monkeypatch, selector):
+    repo = MemoryFeedbackRepository()
+    repo.page.items = [project_feedback(parent(country="DE"), [aspect()], "bmw-feedback")]
+    monkeypatch.setattr(
+        repo,
+        "coverage",
+        lambda: [
+            FeedbackCoverage(
+                derivate="G70", countries=["DE"], engine_types=["BEV"], feedback_count=1
+            )
+        ],
+    )
+    result = await inspect_service(
+        FeedbackKnowledgeService(repo), derivate="G70", country=selector, limit=50
+    )
+    assert result["request_has_feedback_coverage"] is True
+    assert result["citation_checks_passed"] == 2
+    assert result["country"] == selector
 
 
 @pytest.fixture

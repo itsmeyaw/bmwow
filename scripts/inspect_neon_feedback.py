@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 from bmwow.knowledge import FeedbackFilter, FeedbackKnowledgeService
+from bmwow.knowledge.geography import feedback_country_markets, feedback_region
 from bmwow.knowledge.neon import FeedbackStorageError, create_neon_feedback_service
 from dotenv import load_dotenv
 
@@ -30,12 +31,17 @@ async def inspect_service(
         models = await backend.list_supported_models()
         regions = await backend.list_regions()
         model = await backend.get_model(derivate)
-        has_coverage = model is not None and country in model.regions
+        region = feedback_region(country)
+        countries = feedback_country_markets([country])
+        has_coverage = (
+            model is not None and region in model.regions and page.retrieval.total_matching > 0
+        )
         if items:
             assert has_coverage and any(value["model_code"] == derivate for value in models or [])
-            assert country in (regions or {}).get(country, {}).get("markets", [])
+            covered_markets = (regions or {}).get(region, {}).get("markets", [])
+            assert all(item.market in covered_markets for item in items)
         assert len({item.references[0].record_key for item in items}) == len(items)
-        assert all(item.model == derivate and item.market == country for item in items)
+        assert all(item.model == derivate and item.market in countries for item in items)
         assert all(item.date is None and item.rating is None for item in items)
         assert page.retrieval.returned_count == len(items)
         citation_checks = 0
@@ -75,7 +81,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--env-file", type=Path, help="Local ignored file holding DATABASE_URL.")
     parser.add_argument("--derivate", default="G70")
-    parser.add_argument("--country", default="US")
+    parser.add_argument(
+        "--country", "--region", default="US", help="ISO country code or region alias, e.g. EU."
+    )
     parser.add_argument("--limit", type=int, default=50)
     args = parser.parse_args()
     if args.limit < 0:
