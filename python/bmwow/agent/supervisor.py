@@ -157,7 +157,9 @@ async def gap_fill(state: AnalysisState) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001 - the first-round evidence stands on its own
         log.exception("gap_fill failed for run %s", state.get("run_id"))
         ctx.errors.append(f"gap_fill: {type(exc).__name__}: {exc}")
-    ctx.mark("gap_fill", "ok", f"researched {', '.join(features)}")
+        ctx.mark("gap_fill", "unavailable", f"{type(exc).__name__}: {exc}")
+    else:
+        ctx.mark("gap_fill", "ok", f"researched {', '.join(features)}")
     merged = merge_reports(base, ctx.build_report())
     return {"reports": {"competition": merged}, "gap_round": 1, "gap_requests": []}
 

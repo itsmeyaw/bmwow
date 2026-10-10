@@ -194,3 +194,21 @@ def test_knowledge_layer_mapping_wins_and_only_active_features_count():
     assert [m.attribute for m in feedback.mentions_of(bare, "EU", ontology_taxonomy)[0]] == [
         "electric_range"
     ]
+
+
+async def test_sub_themes_count_against_the_findings_population(monkeypatch):
+    report, _ = await run_feedback()
+    combined = find(report, "real_world_range", "problem", None)
+    range_themes = [t for t in report.sub_themes if t.attribute == "real_world_range"]
+    assert range_themes and all(t.of == combined.stats.k for t in range_themes)
+
+    # range mentions from owners outside BEV+PHEV yield neither findings nor sub-themes
+    original = fake_ontology.get_feedback_items
+    monkeypatch.setattr(
+        fake_ontology,
+        "get_feedback_items",
+        lambda filters: [i.model_copy(update={"engine_type": "ICE"}) for i in original(filters)],
+    )
+    report, _ = await run_feedback()
+    assert not any(f.attribute == "real_world_range" for f in report.findings)
+    assert not any(t.attribute == "real_world_range" for t in report.sub_themes)

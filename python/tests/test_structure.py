@@ -214,3 +214,20 @@ async def test_no_gap_fill_below_the_importance_threshold(analysis_request, monk
     monkeypatch.setattr(load_rules().gap_fill, "min_customer_ci_low", 1.0)
     analysis = await run(analysis_request)
     assert not any(a.source == "gap_fill" for a in analysis.reports["competition"].availability)
+
+
+async def test_failed_gap_fill_is_reported_unavailable(analysis_request, monkeypatch):
+    from bmwow.agent.nodes import competition as competition_node
+
+    rules = load_rules()
+    monkeypatch.setattr(rules.competition, "core_features", {"real_world_range": "range WLTP km"})
+
+    async def broken(ctx, competitors, features):
+        raise TimeoutError("search backend timed out")
+
+    monkeypatch.setattr(competition_node, "research_features", broken)
+    analysis = await run(analysis_request)
+    competition = analysis.reports["competition"]
+    gap = next(a for a in competition.availability if a.source == "gap_fill")
+    assert gap.status == "unavailable" and "TimeoutError" in gap.reason
+    assert any("gap_fill" in e for e in competition.errors)

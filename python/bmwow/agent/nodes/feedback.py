@@ -201,7 +201,7 @@ async def run(ctx: AgentContext) -> None:
     )
 
     _add_findings(ctx, items, mentions, region_of)
-    await _add_sub_themes(ctx, mentions, by_id)
+    await _add_sub_themes(ctx, items, mentions, region_of)
     _add_candidates(ctx, unclassified, by_id)
 
 
@@ -330,13 +330,25 @@ def _representatives(group: list[Mention], limit: int) -> list[str]:
 
 
 async def _add_sub_themes(
-    ctx: AgentContext, mentions: list[Mention], by_id: dict[str, FeedbackItem]
+    ctx: AgentContext,
+    items: list[FeedbackItem],
+    mentions: list[Mention],
+    region_of: dict[str, str],
 ) -> None:
+    """Sub-themes count against the same population as the findings, so a feature's sub-themes
+    never come from owners who cannot experience it (e.g. ICE owners on range)."""
     rules = load_rules().feedback
+    by_id = {i.item_id: i for i in items}
     grouped: dict[tuple[str, Direction], list[Mention]] = defaultdict(list)
     for m in mentions:
         if m.region in ctx.brief.regions:
             grouped[(m.attribute, m.direction)].append(m)
+    populations: dict[str, set[str]] = {}
+    for attribute, _ in grouped:
+        if attribute not in populations:
+            populations[attribute] = _population(ctx, attribute, items, region_of)[0][ALL]
+    for key, group in grouped.items():
+        grouped[key] = [m for m in group if m.item_id in populations[key[0]]]
 
     llm_jobs: list[tuple[str, Direction, list[str]]] = []
     for (attribute, direction), group in sorted(grouped.items(), key=lambda kv: -len(kv[1])):
