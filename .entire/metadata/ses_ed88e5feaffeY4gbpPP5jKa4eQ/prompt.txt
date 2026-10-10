@@ -1,0 +1,10 @@
+Research only, do not write code. Repo: /Users/itsmeyaw/projects/bmwow (recently merged teammate work). Thoroughness: medium. Read docs/ontology.md, docs/web-research.md, docs/project-plan.md, docs/ontology-consumers.md, docs/ontology-plan.md, docs/data-layer-handoff-prompt.md, docs/agent-coordination.md, CONTEXT.md, README.md, backend/bmwow/ontology/models.py (and other backend/bmwow modules), contracts/ontology/* (schema.json, vocabulary.json, source-mappings.json, examples/synthetic.json — synthetic only).
+
+Report concisely with file paths:
+1. Ontology entity types and key fields, especially anything for: competitor vehicles/research, market/trend research, vehicle specifications (spec fields, units), evidence/citations/sources (URL, title, date), regions/countries/markets, vehicle derivates, aspects/VFC categories, sentiment, human review status, priorities/recommendations/insights.
+2. How competitor & trend research is collected (web-research.md interface), who owns it, where it's stored (Neon tables? JSON bundles? files?), and whether it joins to feedback (by VFC category, derivate, country?).
+3. What docs/ontology-consumers.md says the frontend/dashboard should consume (API boundary, file paths, format, endpoints) and who owns the frontend.
+4. Any planned dashboard requirements in project-plan.md (pages, views, PM user stories, terminology like "incentive", "priority").
+5. CONTEXT.md terms added since (list any terms beyond Feedback/Verbatim/Source/Derivate/Sales Description/Engine Type/Aspect/Feedback Type/VFC Label/Aspect Term/Aspect Label/Unlabelled/VFC Category/Issue Type/Unclassified/Taxonomy Mapping/Curated/Inferred/Quote/Sentiment/Intensity/Sentiment Score).
+6. Any conflicts between the TypeScript Neon pipeline (scripts/preprocess.ts, migrations/) and the Python ontology approach.
+7. Coordination rules relevant to a frontend agent adding a new DB table/migration or contract.
