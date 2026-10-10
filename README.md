@@ -24,10 +24,18 @@ pnpm dev
 ```
 
 Open http://localhost:3000 for the frontend. Python setup does not start an API or
-agents. Orchestration v1 and a synthetic knowledge bridge are available; the Neon
-adapter and the complete product-decision workflow remain to be integrated.
+agents. Orchestration v1, a synthetic knowledge bridge, and read-only Neon feedback
+integration are available; the complete product-decision workflow remains to be integrated.
 Run `uv run python -m scripts.inspect_knowledge` to exercise the bridge without
 a database, API keys, or BMW input. See [the data-layer handoff](docs/data-layer.md).
+
+For private SQL feedback, put `DATABASE_URL` in an ignored `.env`, then run
+`uv run python -m scripts.inspect_neon_feedback --env-file .env`. It defaults to
+a bounded G70/US selection, checks typed aspects and citation resolution, and prints
+aggregate checks only. It calls no LLM, embedding, or web providers. On this macOS
+checkout, prefix the command with `UV_PROJECT_ENVIRONMENT=venv` as described below.
+Application startup must explicitly inject `create_neon_feedback_service()`;
+the inspection command does that temporarily. See the handoff for configuration.
 
 Add Python dependencies with `uv add <package>` or `uv add --dev <package>` at the
 root. Include both `pyproject.toml` and `uv.lock` in the change. Do not create separate
@@ -44,7 +52,7 @@ backend/bmwow/                Importable Python package; future backend modules 
   ontology/validation.py      Structure and graph-wide rules; validation CLI
   ontology/tools.py           Typed queries, tracing, comparison checks and proposals
   ontology/schema.py          Generates and checks portable JSON contracts
-  knowledge/                  Typed read records, snapshot interface, and projections
+  knowledge/                  Typed reads, graph snapshots, and read-only Neon feedback queries
 contracts/ontology/           Shared JSON artifacts for frontend, agents, and data adapters
   schema.json                 Generated JSON Schema; do not edit manually
   vocabulary.json             Generated vocabulary; do not edit manually
@@ -58,6 +66,7 @@ docs/data-layer.md            Synthetic knowledge integration and SQL/orchestrat
 docs/web-research.md          Proposed web evidence collection contract
 scripts/inspect_parking_dossier.py  Runnable synthetic four-question example
 scripts/inspect_knowledge.py   Synthetic read projections through orchestration v1
+scripts/inspect_neon_feedback.py  Private SQL feedback validation; aggregate output only
 tests/ontology/               Contract, graph, interoperability, and CLI tests
 tests/knowledge/              Synthetic read and v1 bridge integration tests
 raw_data/                     Local BMW data and sample; ignored by Git
@@ -172,8 +181,9 @@ applicable installed Next.js guide as directed by `AGENTS.md` before frontend ch
 
 See the [project plan](docs/project-plan.md) for the complete evidence-to-review
 workflow and the next milestone. Ontology v0.2.0 is the shared contract. Orchestration
-v1 now has a [synthetic read bridge](docs/data-layer.md); private ingestion, the Neon
-adapter, candidate ingestion, synthesis, and the review API/UI remain next.
+v1 now has a [typed read bridge](docs/data-layer.md), including a feedback-only Neon
+backend. Connecting other private datasets, candidate ingestion, synthesis, and
+the review API/UI remain next.
 
 Start with the [consumer guide](docs/ontology-consumers.md) and run
 `uv run python scripts/inspect_parking_dossier.py`. It answers the four product
@@ -197,8 +207,9 @@ rationale. Add `--json` for the existing generated RequirementDossier payload.
 - **SQL/data:** raw tables can retain the supplied column layout. Map them through
   adapters into Evidence and related nodes; the ontology is not the required raw
   SQL table design. Neon is the selected shared PostgreSQL provider; agree one
-  canonical dataset and coordinated imports/migrations. Its setup and adapter are
-  still pending. See [shared database plan](docs/project-plan.md#shared-database-neon)
+  canonical dataset and coordinated imports/migrations. The existing feedback tables
+  have a read-only Python adapter; studies, sales, and catalog reads remain pending.
+  See [shared database plan](docs/project-plan.md#shared-database-neon)
   and [source mappings](contracts/ontology/source-mappings.json).
 - **Web research:** public sentiment, competitor claims, and trends use the same
   evidence contract. See [collection guidance](docs/web-research.md).

@@ -33,6 +33,18 @@ def get_feedback_items(filters: FeedbackFilter):
     return get_service().get_feedback_items(filters)
 
 
+def get_feedback_page(filters: FeedbackFilter):
+    service = get_service()
+    method = getattr(service, "get_feedback_page", None)
+    return method(filters) if method else None
+
+
+def get_data_availability():
+    service = get_service()
+    method = getattr(service, "get_data_availability", None)
+    return method() if method else None
+
+
 def search_documents(
     query: str,
     kinds: list[str] | None = None,

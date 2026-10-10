@@ -140,6 +140,9 @@ def feedback_source(item: FeedbackItem) -> Source:
         context=item.context,
         limitations=item.limitations,
         classifications=item.classifications,
+        aspects=item.aspects,
+        retrieval=item.retrieval,
+        imported_at=item.imported_at,
         engine_type=item.engine_type,
     )
 

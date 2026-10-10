@@ -356,6 +356,12 @@ class KnowledgeService:
                 continue
             if filters.markets and not set(filters.markets) & set(context.country_codes):
                 continue
+            if filters.sources and properties.source_channel not in filters.sources:
+                continue
+            if filters.engine_types:
+                engines = {value.lower().replace("beve", "bev") for value in filters.engine_types}
+                if not engines & (set(context.engine_types) or {"unknown"}):
+                    continue
             # These inputs do not establish a feedback date. A date filter cannot include undated rows.
             if filters.since is not None:
                 continue

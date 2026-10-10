@@ -71,6 +71,34 @@ class FeedbackClassification(Record):
     locator: Locator
 
 
+class FeedbackAspect(QualifiedRecord):
+    """Imported aspect enrichment, separate from the original VFC classification."""
+
+    aspect_id: str
+    locator: Locator
+    feedback_type: str | None = None
+    aspect_term: str | None = None
+    aspect_label: str | None = None
+    vfc_category: str
+    issue_type: str
+    sentiment: Literal["Positive", "Negative", "Neutral"]
+    sentiment_score: float | None = Field(default=None, ge=-1, le=1)
+    extraction_source: Literal["vfc_label", "llm"]
+    quote: str | None = None
+    quote_status: Literal["supported", "missing", "mismatch", "not_applicable"]
+    imported_at: dt.datetime | None = None
+
+
+class FeedbackRetrieval(Record):
+    """Denominator and selection metadata for one bounded retrieval."""
+
+    total_matching: int = Field(ge=0)
+    returned_count: int = Field(ge=0)
+    truncated: bool
+    selection_policy: str
+    limitations: list[str] = Field(default_factory=list)
+
+
 class FeedbackItem(QualifiedRecord):
     item_id: str
     text: str
@@ -81,6 +109,14 @@ class FeedbackItem(QualifiedRecord):
     model: str | None = None
     engine_type: str | None = None
     classifications: list[FeedbackClassification] = Field(default_factory=list)
+    aspects: list[FeedbackAspect] = Field(default_factory=list)
+    retrieval: FeedbackRetrieval | None = None
+    imported_at: dt.datetime | None = None
+
+
+class FeedbackPage(Record):
+    items: list[FeedbackItem] = Field(default_factory=list)
+    retrieval: FeedbackRetrieval
 
 
 class DocChunk(QualifiedRecord):
@@ -100,6 +136,8 @@ class FeedbackFilter(Record):
     markets: list[str] = Field(default_factory=list)
     since: dt.date | None = None
     limit: int | None = Field(default=None, ge=0)
+    engine_types: list[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
 
 
 class SalesRow(QualifiedRecord):

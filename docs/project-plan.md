@@ -11,10 +11,10 @@ Keep that contract stable while building the first complete workflow; extend it
 when an actual source mapping or product question exposes a gap.
 
 Situation-analysis orchestration v1 is now present in `src/agent/`. The first
-database-independent knowledge slice connects it to validated synthetic snapshots
-through `bmwow.knowledge`; see [the integration handoff](data-layer.md). This allows
-work before Neon is ready, while leaving private ingestion, candidate writes,
-requirement synthesis, and the complete review workflow pending.
+knowledge slice connects it to validated synthetic snapshots and read-only private
+Neon feedback through `bmwow.knowledge`; see [the integration handoff](data-layer.md).
+Other dataset reads, graph ingestion, candidate writes, requirement synthesis, and
+the complete review workflow remain pending.
 
 ## BMW data boundary
 
@@ -52,9 +52,11 @@ web research queries use public topics and do not contain original private BMW t
 
 ## Shared database: Neon
 
-Neon is the chosen storage provider. Provisioning, migrations, imports, and the
-application connection remain to be implemented; this decision does not mean a
-database has been created or BMW data uploaded.
+Neon is the chosen storage provider. The shared database now has feedback and
+aspect tables with a read-only Python adapter. Application startup explicitly
+injects that service; the local inspection command validates a bounded selection
+and its citations without provider calls. Other datasets and graph persistence
+remain pending. This status does not approve additional imports or migrations.
 
 - Use one team project and designate one shared dataset as the canonical source
   for integration and the demo. Agree its project, branch, and database identity
@@ -73,10 +75,10 @@ database has been created or BMW data uploaded.
   `DATABASE_URL_UNPOOLED` for direct migration connections. Keep values in ignored
   local environment files or deployment secrets, never committed configuration or
   `NEXT_PUBLIC_*` variables. GitHub CI uses synthetic data and a separate test store.
-- The repo currently includes Drizzle and `@libsql/client`. Drizzle can remain the
-  migration tool if that is the SQL owner's choice; the SQLite/libSQL driver cannot
-  connect to Neon. Select a PostgreSQL driver/configuration when implementing the
-  adapter, and coordinate dependency and lockfile changes with that owner.
+- Existing Drizzle schema and migrations remain owned by the SQL teammate. Python
+  feedback reads use Psycopg 3 from the shared root dependency/lockfile; the adapter
+  changes no SQL schema. Query DTOs preserve imported aspects separately from
+  original VFC labels. They are not persisted ontology objects or human approvals.
 
 See [Neon connection guidance](https://neon.com/docs/connect/choose-connection),
 [connection pooling](https://neon.com/docs/connect/connection-pooling), and
@@ -104,9 +106,10 @@ The milestone is complete when the app can:
 4. Show that dossier in the frontend and record a product manager's decision.
 5. Revise the proposal without carrying approval forward to the new revision.
 
-A small validated file snapshot can support this milestone before SQL integration
-is ready. The final workflow should use the same contract through a database
-adapter. The shareable demo and CI remain runnable with synthetic content.
+A small validated file snapshot can support the complete milestone while other
+SQL datasets and graph writes are integrated. The current Neon slice establishes
+traceable feedback retrieval only. The shareable demo and CI remain runnable with
+synthetic content.
 
 ## Implementation sequence
 

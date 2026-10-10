@@ -12,6 +12,7 @@ import importlib
 from collections.abc import Iterable
 from typing import Any, Protocol
 
+from bmwow.knowledge import DataAvailability
 from pydantic import BaseModel
 
 from src.models.knowledge import (  # noqa: F401
@@ -19,6 +20,7 @@ from src.models.knowledge import (  # noqa: F401
     DocChunk,
     FeedbackFilter,
     FeedbackItem,
+    FeedbackPage,
     ModelNode,
     SalesRow,
     StudyScore,
@@ -118,6 +120,18 @@ class ModuleBackend:
         # The contract allows an iterable; materialise it (bounded by filters.limit).
         items = await self._run(self.ontology.get_feedback_items, filters)
         return _coerce_all(FeedbackItem, list(items))
+
+    async def get_feedback_page(self, filters: FeedbackFilter) -> FeedbackPage | None:
+        """Optional additive read; old snapshot backends retain their list contract."""
+        page = await self._optional("get_feedback_page", filters)
+        return None if page is None else _coerce(FeedbackPage, page)
+
+    async def get_data_availability(self) -> list[DataAvailability] | None:
+        records = await self._optional("get_data_availability")
+        return None if records is None else _coerce_all(DataAvailability, records)
+
+    async def resolve_citation(self, citation_id: str) -> Any:
+        return await self._optional("resolve_citation", citation_id)
 
     async def search_documents(
         self,

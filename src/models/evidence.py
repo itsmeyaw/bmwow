@@ -10,7 +10,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from bmwow.knowledge.records import FeedbackClassification, QualifiedRecord
+from bmwow.knowledge.records import (
+    FeedbackAspect,
+    FeedbackClassification,
+    FeedbackRetrieval,
+    QualifiedRecord,
+)
 from bmwow.ontology.models import Measurement
 from pydantic import BaseModel, Field
 
@@ -34,6 +39,9 @@ class Source(QualifiedRecord):
     availability: str | None = None
     epistemic_status: str | None = None
     classifications: list[FeedbackClassification] = Field(default_factory=list)
+    aspects: list[FeedbackAspect] = Field(default_factory=list)
+    retrieval: FeedbackRetrieval | None = None
+    imported_at: datetime | None = None
     engine_type: str | None = None
     model_codes: list[str] = Field(default_factory=list)
     publication_label: str | None = None

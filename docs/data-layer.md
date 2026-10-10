@@ -1,10 +1,10 @@
 # Knowledge layer and orchestration v1 handoff
 
-This is the first database-independent read integration. `bmwow.knowledge` projects
-a validated ontology v0.2.0 snapshot into typed records that situation-analysis
-agents can consume. The included demonstration uses only the existing invented
-fixture. Neon provisioning, the SQL adapter, private ingestion, and ontology
-writes are pending. The raw-data adapter and ontology contracts are unchanged.
+`bmwow.knowledge` supplies typed reads from either a validated ontology v0.2.0
+snapshot or the existing private Neon feedback tables. The synthetic demonstration
+uses only the invented fixture; the Neon backend serves feedback and aspects only.
+Other SQL datasets and ontology writes remain pending. The raw-data adapter and
+ontology contracts are unchanged.
 
 ## Run without Neon
 
@@ -43,6 +43,10 @@ the alternative of clearing the local hidden flag.
   graph node types. It reuses ontology Context, Locator, Measurement, and NumericRange.
 - `repository.py` defines `SnapshotRepository.load_snapshot() -> GraphBundle`.
   `InMemoryRepository` validates a complete snapshot and returns isolated copies.
+- `feedback.py` defines the query-based `FeedbackRepository` port and the partial
+  `FeedbackKnowledgeService`. It does not wrap SQL feedback in an invented graph.
+- `neon.py` implements that port with Psycopg 3 against `public.feedback_entries`
+  and `public.feedback_aspects`. Each operation owns a short read-only transaction.
 - `service.py` provides deterministic reads over one fixed, validated snapshot.
   Construct and inject a new service when the dataset version changes. Read results
   and configuration are copies; consumers cannot mutate the stored graph.
@@ -86,15 +90,21 @@ function errors propagate instead of substituting placeholder model/region or
 taxonomy data: request resolution reports registry failures, and agent failure
 isolation records taxonomy failures in the affected report.
 
-Available reads: model registry, regions, model, portfolio, competitors, taxonomy,
+Snapshot reads: model registry, regions, model, portfolio, competitors, taxonomy,
 capabilities, feedback, sales, study scores, lexical document search, and citation
 resolution. `get_study_scores(models, regions)` is an optional additive bridge
 method; older modules without it return an empty list. It does not mean v1 now
 contains a complete deterministic study-analysis agent.
 
+The Neon backend supplies registry, model metadata from feedback coverage,
+feedback/aspects, retrieval metadata, and SQL citation resolution. Optional bridge
+methods `get_feedback_page()` and `get_data_availability()` expose the bounded
+selection and connected dataset kinds. Snapshot backends return `None` for these
+optional additions; existing `get_feedback_items() -> list[FeedbackItem]` stays intact.
+
 ## Qualifications agents and frontend must retain
 
-**Identity and citations.** Every projected observation carries EvidenceReference
+**Identity and citations.** Every graph-projected observation carries EvidenceReference
 objects with original Evidence ID, SourceDocument ID, record key, and exact locator.
 Capabilities cite their existing Signal and retain its underlying evidence links.
 Original record IDs, not repeated classification rows, identify feedback items.
@@ -104,7 +114,7 @@ Use those fields in source views; the bounded text excerpt is a preview.
 Sales retrieval retains the legacy `sql:<query_hash>` summary source and adds one
 `kg:<Evidence ID>` source per original row. The baseline agent cites row sources
 when available. `resolve_citation()` accepts an original ID or `kg:` / `fb:` wrapper
-and returns the graph object; a query hash is not an original graph node. Resolve
+and returns the graph object on a snapshot backend; a query hash is not an original graph node. Resolve
 Source.references for the originals behind a query, and use existing ontology
 trace helpers for a capability's chain.
 
@@ -165,31 +175,116 @@ partial coverage. A reported future value is not relabeled as a verified forecas
 
 ## SQL/Neon adapter handoff
 
-The SQL owner can retain raw spreadsheet-shaped tables. Before selecting queries,
-agree the actual tables, immutable record keys, source/dataset versions, supported
-models/markets, and ownership of imports. No schema or Neon resources are prescribed
-or created by this slice.
+### Run the feedback slice
 
-Implement `SnapshotRepository` around that schema. Hydrate a closed graph with the
-original SourceDocument/Evidence records and any already reviewed interpretation
-nodes. Preserve original text and structured values; a locator alone cannot load
-a workbook cell or PDF passage. Preserve classification grouping, scope, dates,
-group identities, zeroes, range endpoints, unit/statistic distinctions, conditions,
-and provenance. Use idempotent stable IDs tied to source versions and original
-record identity. Unknown mappings remain unknown and should be reported.
+Put `DATABASE_URL` in an ignored local environment file. Keep it server-side.
+From the repository root:
 
-Run `validate_bundle` on the **complete** hydrated snapshot before injection.
-The service revalidates it and checks configuration references. This repository
-interface is intentionally small for the first integration; if dataset size later
-requires query-based reads, evolve the storage boundary with equivalent contract
-tests. It currently provides no cache, auth, transaction, or concurrent-write API.
-Use one agreed team dataset and expose approved backend reads; browser consumers
-must not receive database credentials. Original files and database contents stay
-in BMW-permitted storage outside GitHub, including private repositories and CI.
+```sh
+UV_PROJECT_ENVIRONMENT=venv uv sync --locked
+UV_PROJECT_ENVIRONMENT=venv uv run python -m scripts.inspect_neon_feedback \
+  --env-file .env --derivate G70 --country US --limit 50
+```
 
-The synthetic registry includes only G60/G68; it is not the team's real-model
-inventory. Real G70/F70/G60/G68 support requires SQL ingestion and reviewed
-configuration. Adding a code to the YAML fallback does not establish data coverage.
+The command temporarily injects the SQL read service, uses the real v1
+`ModuleBackend`, round-trips Source metadata, and resolves sampled feedback and
+aspect citations. It prints aggregate validation results and dataset availability,
+not Verbatim, Quotes, IDs, embeddings, or credentials. It makes no model/provider
+calls or database writes. Live checks are opt-in; ordinary pytest uses synthetic
+data. A zero-result selection is valid and performs no citation checks.
+
+Application startup, after loading its private environment, uses:
+
+```python
+from bmwow.knowledge.neon import create_neon_feedback_service
+from src.knowledge import configure_service
+
+configure_service(create_neon_feedback_service())  # reads DATABASE_URL; lazy connection
+```
+
+`NeonFeedbackConfig` controls dataset namespace, default/hard limits and timeouts.
+The default selection is at most 200 feedbacks; the hard cap is 5,000. `None` is a
+bounded default, not an unbounded export. `FeedbackServiceConfig.model_profiles`
+accepts explicit `ModelProfile` objects keyed by Derivate. A missing profile leaves
+the segment `unknown`; it does not derive segment or sale availability from feedback.
+Curate that metadata before launching competitor research or the full analysis.
+
+### Query and aspect contract
+
+Filters preserve the existing `models`/`markets` wire names (Derivate/ISO country),
+with additive `engine_types` and `sources`. Source A–D meanings remain unknown.
+The parent selection is ordered by Feedback Explorer ID using C collation and
+limited **before** fetching its aspects. The count query counts feedback, never
+joined aspects. All queries in one retrieval share a repeatable-read snapshot.
+There is no continuation/pagination API in this slice.
+
+`FeedbackPage.retrieval` reports total matches, returned count, truncation, selection
+policy, and limitations. Each `FeedbackItem` and emitted `Source` also retains it
+for callers using the legacy list method. This is a deterministic bounded corpus,
+not a representative population sample. Aspects do not increase the feedback
+denominator, and category totals can overlap because a feedback has several aspects.
+
+`FeedbackItem.aspects` carries each imported aspect's own SQL locator, Feedback
+Type, Aspect Term/Label, coarse VFC Category and Issue Type, Sentiment, signed
+Sentiment Score, extraction source, Quote/status, and import timestamp. Its
+references point back to the original parent feedback and its SQL locator.
+`classifications` contains original **curated VFC labels only**. Its legacy
+`vfc_category`/`vfc_issue` fields mean Aspect Term/Label; the separate aspect fields
+mean coarse buckets. `vfc_combined` remains unknown because SQL does not store it.
+Feature mappings stay unknown; a coarse category is not a canonical Feature ID.
+
+An inferred aspect's Quote is `supported` only when it is a nonblank exact substring
+of the imported Verbatim. `missing` and `mismatch` aspects remain visible with a
+limitation; consumers must not present them as grounded claims. Curated aspects
+use `not_applicable`. Curated VFC labels do not establish human authorship of coarse
+buckets or Sentiment Scores. Scores are not confidence or ratings, and zero Neutral
+scores cannot recover intensity. A feedback with zero aspects is retained.
+
+`date`, `rating`, and `Context.as_of` stay null. `imported_at` retains `created_at`
+without claiming an observation date. `since` excludes undated feedback and reports
+that limitation. Existing graph-backed feedback reads also honor the additive
+Engine Type/Source filters.
+
+### Identity, scope, and missing datasets
+
+The default source namespace is `bmw-feedback` and must be shared by the team:
+`evidence:<dataset_key>:<percent-encoded Feedback Explorer ID>` identifies feedback;
+`aspect:<dataset_key>:<SQL UUID>` identifies an imported aspect;
+`source:<dataset_key>` identifies dataset metadata. Parent UUIDs locate SQL feedback;
+aspect UUIDs locate SQL aspects. Original CSV row/file locations, source versions,
+and extraction model/prompt versions are unavailable and are not invented.
+Aspect UUIDs may change on reimport; SQL citations resolve the **current import**,
+not an immutable historical snapshot.
+
+The resolver accepts a read ID or its `fb:`/`kg:` wrapper and returns a typed
+FeedbackItem, FeedbackAspect, FeedbackDataset, or feedback-coverage ModelNode. These are read projections,
+not persisted ontology Evidence/SourceDocument/Signal objects. It does not resolve
+a query hash. The virtual `vehicle:feedback:<Derivate>` IDs are likewise read
+identities; reconcile them explicitly with canonical VehicleModel IDs on ingestion.
+
+The live registry derives Derivates and ISO-country coverage from SQL. Each country
+is its own region with that one market; EU/CN membership is not inferred. Search
+language defaults to English as an application policy, not a language claim about
+Verbatim. Equipment, sale availability, and competitive selection remain unknown.
+Registry errors propagate through the teammate's existing failure-reporting path;
+empty coverage does not activate the YAML fallback.
+
+Sales, studies, capabilities, portfolio, and documents raise
+`KnowledgeUnavailableError` when requested. Competitive selection returns an empty
+list for v1 request resolution, with availability metadata marking competitors
+unavailable. Taxonomy returns `None` so v1 can use its configured product-feature
+taxonomy; SQL coarse buckets are not silently substituted for that taxonomy.
+Synthetic data is never mixed into this backend. `store_findings()` stays `False`.
+
+### Later graph ingestion
+
+For future ontology storage, hydrate a closed graph with actual source metadata,
+Evidence, and reviewed interpretations. Preserve source versions, exact original
+locations, scope, dates, groups, ranges, units, conditions, and provenance, then
+run `validate_bundle` on the **complete** merged snapshot. SQL read DTO validation
+does not replace graph validation or authenticate human review. Source revision
+metadata and other datasets require coordination with their owners and a separate
+approved import/migration scope. This slice creates no Neon resources or schema changes.
 
 ## Write path and next milestone
 
@@ -214,9 +309,27 @@ SituationAnalysis and its Source records are read/analysis DTOs, not persisted
 ontology objects. Requirement proposal validation and revision-specific human
 Decision events remain separate. No source read or LLM finding grants approval.
 
-Once SQL is ready, substitute the repository and curate configuration, then run
-one real model/market/theme through retrieval and inspect its citations locally.
-Next wire candidate ingestion, requirement synthesis, and the frontend dossier.
+Feedback reads and local citation inspection are now available. The orchestration
+owner should next choose how to use imported aspects and stored embeddings: the
+current feedback agent still embeds the selected Verbatim and interprets clusters.
+This adapter neither uses nor re-creates embeddings. Then connect studies, sales,
+and PDF capabilities, followed by candidate ingestion, synthesis, and the dossier.
+
+For the frontend, group by feedback identity and render its aspects underneath;
+show Quote status and curated/inferred provenance separately. Retain the optional
+`Source.aspects`, `Source.retrieval`, and `Source.imported_at` fields when parsing
+reports. Display import time separately from the unknown feedback date. A report
+can contain missing-data errors while the feedback read path remains available.
+
+For orchestration, use `get_feedback_page()` when a zero-result selection still
+needs retrieval metadata, and inspect `get_data_availability()` before planning
+reads from unconnected datasets. The legacy list method carries the same metadata
+on each returned feedback. Do not treat stored aspects as accepted Signals or
+Sentiment Scores as extraction confidence. Validate any later graph candidate
+against a complete merged snapshot.
+
+Psycopg connection behavior follows its [transaction guidance](https://www.psycopg.org/psycopg3/docs/basic/transactions.html)
+and [parameter binding guidance](https://www.psycopg.org/psycopg3/docs/basic/params.html).
 Coordinate boundary changes with both teammates rather than duplicating the
 ontology models inside the agent or frontend layer.
 
@@ -251,3 +364,15 @@ Python files pass Ruff lint and format checks. Generated contracts remain curren
 and the synthetic graph validates. Root-wide checks retain 19 pre-existing lint
 issues and 21 unformatted files; comparison with the pre-change baseline found
 no new lint failures.
+
+Neon feedback integration validation on 2026-10-10: **284 tests passed**, including
+22 new synthetic cases for SQL projection, parent counts and limits, Source/Engine
+Type filters, quote grounding, missing data, sanitized failures, citation resolution,
+configuration isolation, and the real feedback agent with fake providers. All 13
+changed/new Python files pass Ruff lint and format checks. Generated contracts are
+current and the synthetic graph validates (57 nodes, 74 edges). Repository-wide
+checks still report the same 19 pre-existing lint issues and 21 unformatted files
+outside this change; no checks were disabled. The opt-in live G70/US inspection
+passed coverage discovery, typed read/source round trips, and sampled SQL citation
+checks using read-only transactions. No real-data results or credentials are stored
+in tracked files, and no LLM, embedding, or web provider calls were made.
