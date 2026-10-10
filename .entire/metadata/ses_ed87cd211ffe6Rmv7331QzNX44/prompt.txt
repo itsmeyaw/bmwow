@@ -1,0 +1,12 @@
+Research only, do NOT modify any files. Repo: /Users/itsmeyaw/projects/bmwow. Thoroughness: very thorough.
+
+I need an accurate map of how code is organized and what depends on what, to plan a reorganization. Report:
+
+1. Python code locations: backend/bmwow/ (ontology, knowledge), src/agent/, src/knowledge/, src/models/, src/__init__.py, scripts/*.py, tests/. For each module/package: one-line purpose, and its imports of other project modules (e.g. `from src.agent...`, `from bmwow...`, `from tests.fakes...`). Specifically list every place that imports `src.` (module path strings too, e.g. in config like KNOWLEDGE_BACKEND, importlib, yaml, prompts paths, file paths relative to repo like "src/agent/prompts").
+2. Non-Python files that reference Python paths (README.md, docs/*.md, AGENTS.md, AGENT_SPEC.md, CONTEXT.md, src/agent/README.md, .env.example, pyproject.toml) — list file:line for references to `src/agent`, `src/knowledge`, `src/models`, `backend/bmwow`, `scripts/`.
+3. TypeScript code: src/app/*, src/components/*, src/lib/*, src/db/schema.ts, scripts/preprocess.ts, migrations/0000_init.sql. Purpose of each, what they import, whether preprocess.ts uses src/db/schema.ts, which DB clients it uses (pg vs @libsql/client vs drizzle), and whether package deps like @libsql/client, cn, pg, openai, csv-parse, dotenv, drizzle-orm are actually used anywhere (grep imports). Note what's in src/components and src/lib (untracked files).
+4. Any dead/obsolete files: e.g. pyproject.toml.bak, scripts/__init__.py, src/__init__.py, tsconfig.tsbuildinfo, public/*.svg default Next assets referenced or not, src/app/page.tsx content (is it still the create-next-app default?).
+5. Does tsconfig include cause TS to type-check anything weird? Does the Python tree under src/ collide with Next.js src/ dir (e.g. src/agent/*.md, yaml)?
+6. Summarize docs/*.md: one or two lines each on what it covers and whether it looks stale/duplicated (e.g. docs/data-layer-handoff-prompt.md looks like an agent prompt; docs/preprocess-pipeline-spec.md; docs/ontology-plan.md). Also summarize AGENT_SPEC.md (root) and CONTEXT.md and src/agent/README.md.
+
+Return a structured, concise but complete report with file paths and line numbers.
