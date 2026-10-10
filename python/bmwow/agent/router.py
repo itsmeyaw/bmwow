@@ -20,6 +20,7 @@ ROUTES: dict[str, tuple[ToolName, str]] = {
     "attribute_values": ("graph_rag", "get_attribute_values"),
     "feedback_items": ("graph_rag", "get_feedback_items"),
     "studies": ("graph_rag", "search_documents"),
+    "study_scores": ("graph_rag", "get_study_scores"),
     # Served by agent loops through LangChain tools (tools/web_search.py), listed for completeness.
     "competitor_live_specs": ("web_search", "web_search"),
     "live_trends": ("web_search", "web_search"),

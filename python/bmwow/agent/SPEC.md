@@ -1,5 +1,10 @@
 # SPEC — `bmwow/agent/`: Situation Analysis Agents
 
+> **v2 note.** The pipeline was extended after this spec: validate, structure_agent (evidence
+> packages, rubric judgment, guard) and gap_fill follow the four agents; feedback counts aspects
+> instead of clustering; competition is a fixed search-and-extract workflow; baseline has no LLM
+> step. See [README.md](README.md#pipeline-v2). Where they differ, the README describes the code.
+
 > **Status:** original build spec for orchestration v1 (Python reference implementation). The API
 > layer will be Next.js route handlers in TypeScript (`src/app/api/`, logic in `src/server/`).
 >

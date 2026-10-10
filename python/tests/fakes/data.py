@@ -6,6 +6,8 @@ import random
 from datetime import date
 
 from bmwow.agent.tools.knowledge import AttributeValue, DocChunk, FeedbackItem, ModelNode, SalesRow
+from bmwow.knowledge.records import FeedbackAspect
+from bmwow.ontology.models import SqlLocator
 
 SEGMENT = "Premium mid-size sedan"
 REF_CODE = "TEST01"  # the fake reference model
@@ -304,6 +306,84 @@ PLACES = [
     "toulouse",
     "xiamen",
 ]
+# Aspects as the preprocessing stores them: (area, aspect terms, issue type, feedback type, engines).
+# rear_space only carries the generic term "Seats", so what exactly is meant needs its texts.
+THEME_ASPECTS = {
+    "winter_range": (
+        "Electrification & Charging",
+        ["Electric Range", "Range in winter"],
+        "Performance Shortfall",
+        "Difficult to Use",
+        ["BEV", "PHEV"],
+    ),
+    "laggy_infotainment": (
+        "Infotainment & Connectivity",
+        ["Infotainment software", "Software freezes"],
+        "Malfunction",
+        "Defect",
+        ["BEV", "PHEV", "ICE"],
+    ),
+    "seat_ventilation": (
+        "Seats & Comfort",
+        ["Seating, ventilate / heat", "Seating, ventilate / heat", "Seats"],
+        "Feature Request",
+        "Wants",
+        ["BEV", "PHEV", "ICE"],
+    ),
+    "slow_charging": (
+        "Electrification & Charging",
+        ["DC charging speed", "Charging"],
+        "Performance Shortfall",
+        "Difficult to Use",
+        ["BEV", "PHEV"],
+    ),
+    "rear_space": (
+        "Seats & Comfort",
+        ["Seats"],
+        "Space & Storage Shortfall",
+        "Difficult to Use",
+        ["BEV", "PHEV", "ICE"],
+    ),
+    "handling": (
+        "Chassis, Ride & Handling",
+        ["Handling / Riding", "Steering"],
+        "Praise",
+        "Likes",
+        ["BEV", "PHEV", "ICE"],
+    ),
+}
+# A recurring topic the classification does not know: surfaces as a candidate feature.
+OPEN_TOPIC = "Model year timing"
+OPEN_TOPIC_TEXTS = [
+    "a model year update came out right after my delivery",
+    "the model year change made my new car feel outdated",
+    "nobody told me a model year update was coming",
+    "model year facelift arrived three months after i bought it",
+]
+
+
+def _aspect(
+    item_id: str, n: int, area: str, term: str, issue: str, ftype: str | None, quote: str | None
+) -> FeedbackAspect:
+    return FeedbackAspect(
+        aspect_id=f"asp-{item_id}-{n}",
+        locator=SqlLocator(
+            kind="sql",
+            table="public.feedback_aspects",
+            record_key=f"{item_id}-{n}",
+            original_locator=None,
+        ),
+        feedback_type=ftype,
+        aspect_term=term,
+        vfc_category=area,
+        issue_type=issue,
+        sentiment="Positive" if issue == "Praise" else "Negative",
+        extraction_source="llm" if quote else "vfc_label",
+        quote=quote,
+        quote_status="supported" if quote else "not_applicable",
+    )
+
+
 NOISE = [
     "the paint color is nice",
     "dealer coffee was good",
@@ -321,32 +401,64 @@ def feedback(seed: int = 7, per_theme: int = 24) -> list[FeedbackItem]:
     markets = ["DE", "FR", "CN"]
     n = 0
     for theme, _attr, _pol, phrases in THEMES:
-        for _ in range(per_theme):
+        area, terms, issue, ftype, engines = THEME_ASPECTS[theme]
+        for j in range(per_theme):
             n += 1
-            parts = rng.sample(phrases, 2) + [f"{rng.choice(FILLER)} near {rng.choice(PLACES)}"]
+            item_id = f"fb-{n:04d}"
+            picked = rng.sample(phrases, 2)
+            parts = picked + [f"{rng.choice(FILLER)} near {rng.choice(PLACES)}"]
             rng.shuffle(parts)
+            text = ". ".join(parts).capitalize() + "."
+            quote = picked[0] if j % 3 == 0 else None  # every third aspect came from the LLM pass
             items.append(
                 FeedbackItem(
-                    item_id=f"fb-{n:04d}",
-                    text=". ".join(parts).capitalize() + ".",
+                    item_id=item_id,
+                    text=text,
                     channel=rng.choice(channels),
                     market="CN" if theme == CN_ONLY_THEME else rng.choice(markets),
                     date=date(2025, rng.randint(1, 12), rng.randint(1, 28)),
                     rating=float(rng.randint(1, 5)),
                     model=REF_CODE,
+                    engine_type=rng.choice(engines),
+                    aspects=[_aspect(item_id, 1, area, terms[j % len(terms)], issue, ftype, quote)],
                 )
             )
     for text in NOISE:
         n += 1
+        item_id = f"fb-{n:04d}"
         items.append(
             FeedbackItem(
-                item_id=f"fb-{n:04d}",
+                item_id=item_id,
                 text=text.capitalize() + ".",
                 channel="forum",
                 market=rng.choice(markets),
                 date=date(2025, 5, 1),
                 rating=3.0,
                 model=REF_CODE,
+                engine_type="ICE",
+                aspects=[
+                    _aspect(
+                        item_id, 1, "Unclassified", text.split(" ")[1], "Unclassified", None, text
+                    )
+                ],
+            )
+        )
+    for text in OPEN_TOPIC_TEXTS:
+        n += 1
+        item_id = f"fb-{n:04d}"
+        items.append(
+            FeedbackItem(
+                item_id=item_id,
+                text=text.capitalize() + ".",
+                channel="forum",
+                market=rng.choice(["DE", "FR"]),
+                date=date(2025, 6, 1),
+                rating=2.0,
+                model=REF_CODE,
+                engine_type="ICE",
+                aspects=[
+                    _aspect(item_id, 1, "Unclassified", OPEN_TOPIC, "Unclassified", None, text)
+                ],
             )
         )
     # exact duplicates (reposts)

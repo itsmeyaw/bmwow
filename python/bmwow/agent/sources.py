@@ -15,7 +15,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from bmwow.agent.models.evidence import EXCERPT_MAX_CHARS, Source
 
-from .tools.knowledge import AttributeValue, DocChunk, FeedbackItem, ModelNode
+from .tools.knowledge import AttributeValue, DocChunk, FeedbackItem, ModelNode, StudyScore
 
 _WS = re.compile(r"\s+")
 _TRACKING_PARAMS = re.compile(r"^(utm_.*|gclid|fbclid|mc_cid|mc_eid|ref|ref_src)$", re.I)
@@ -124,6 +124,35 @@ def doc_source(chunk: DocChunk) -> Source:
         limitations=chunk.limitations,
         measurement=chunk.measurement,
         publication_label=chunk.publication_label,
+    )
+
+
+def render_study_score(score: StudyScore) -> str:
+    m = score.measurement
+    value = "n/a" if score.value is None else f"{score.value:g}"
+    unit = f" {m.unit}" if m.unit else ""
+    category = f" ({score.response_category})" if score.response_category else ""
+    sample = (
+        f"; sample size {m.sample_size}" if m.sample_size is not None else "; sample size unknown"
+    )
+    return (
+        f"{score.study} | {score.model} | {score.region} | {score.question or 'overall'}: "
+        f"{score.statistic} = {value}{unit}{category}{sample}"
+    )
+
+
+def study_source(score: StudyScore) -> Source:
+    return Source(
+        id=f"kg:{score.node_id}",
+        kind="ontology",
+        ref=score.node_id,
+        title=score.study,
+        excerpt=clip(render_study_score(score)),
+        retrieved_at=utcnow(),
+        references=score.references,
+        context=score.context,
+        limitations=score.limitations,
+        measurement=score.measurement,
     )
 
 

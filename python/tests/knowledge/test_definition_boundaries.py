@@ -6,7 +6,7 @@ from typing import get_args
 import pytest
 from pydantic import ValidationError
 
-from bmwow.agent.models.evidence import Confidence, Finding, SearchLocale, Source
+from bmwow.agent.models.evidence import Availability, Confidence, Finding, SearchLocale, Source
 from bmwow.knowledge.config import SearchLocale as ConfiguredSearchLocale
 from bmwow.knowledge.records import AttributeValue, FeedbackClassification
 from bmwow.knowledge.types import SearchLocale as LocaleRecord
@@ -65,6 +65,16 @@ def test_unknown_ontology_qualifications_are_not_accepted_as_free_text(field, in
             excerpt="Synthetic capability.",
             retrieved_at="2026-10-11T00:00:00Z",
             **{field: invalid},
+        )
+
+
+def test_unavailable_data_does_not_supply_a_capability_status():
+    assert Availability(source="catalog", status="unavailable").status == "unavailable"
+    with pytest.raises(ValidationError, match="literal_error"):
+        Availability(source="catalog", status="optional")
+    with pytest.raises(ValidationError, match="literal_error"):
+        AttributeValue(
+            node_id="signal:synthetic", attribute="parking", value="x", availability="ok"
         )
 
 

@@ -8,13 +8,14 @@ from langchain_core.tools import BaseTool, StructuredTool
 
 from bmwow.agent.models.evidence import Source
 
-from ..sources import Budget, SourceRegistry, doc_source, model_source
+from ..sources import Budget, SourceRegistry, doc_source, model_source, study_source
 from .knowledge import (
     AttributeValue,
     DocChunk,
     FeedbackFilter,
     FeedbackItem,
     ModelNode,
+    StudyScore,
     get_backend,
 )
 
@@ -52,6 +53,11 @@ async def get_attribute_values(
 async def get_feedback_items(filters: FeedbackFilter) -> Retrieved[list[FeedbackItem]]:
     # Sources for feedback are created per representative item by the feedback agent.
     return Retrieved(await get_backend().get_feedback_items(filters))
+
+
+async def get_study_scores(models: list[str], regions: list[str]) -> Retrieved[list[StudyScore]]:
+    scores = await get_backend().get_study_scores(models, regions)
+    return Retrieved(scores, [study_source(score) for score in scores])
 
 
 async def search_documents(

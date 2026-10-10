@@ -109,6 +109,29 @@ def validate_report(report: AgentReport) -> AgentReport:
     return report.model_copy(update={"findings": kept, "stats": stats})
 
 
+def merge_reports(base: AgentReport, extra: AgentReport) -> AgentReport:
+    """Append a follow-up report of the same agent: new findings continue the id sequence, sources and
+    availability are merged, counters add up."""
+    offset = len(base.findings)
+    added = [
+        f.model_copy(update={"id": f"F-{base.agent}-{offset + i}"})
+        for i, f in enumerate(extra.findings, 1)
+    ]
+    known = {s.id for s in base.sources}
+    stats = dict(base.stats)
+    for key, value in extra.stats.items():
+        stats[f"gap_fill:{key}"] = value
+    return base.model_copy(
+        update={
+            "findings": base.findings + added,
+            "sources": base.sources + [s for s in extra.sources if s.id not in known],
+            "stats": stats,
+            "errors": base.errors + extra.errors,
+            "availability": base.availability + extra.availability,
+        }
+    )
+
+
 def assign_ids(agent: AgentName, findings: list[Finding]) -> list[Finding]:
     return [
         f.model_copy(update={"id": f"F-{agent}-{i}", "agent": agent})

@@ -1,14 +1,19 @@
 """trends_agent: which product and global trends matter? (SPEC §6.4).
 
 Knowledge-layer studies first, then one bounded tool loop (strong model) over stored documents and the
-web. Each trend becomes findings on taxonomy attributes with a horizon.
+web. Each trend becomes findings on taxonomy attributes with a typed horizon and direction. Code counts
+the independent sources behind each trend (distinct web domains and stored documents); a trend with a
+single source is thin. Stored documents that are not connected are reported, the web loop still runs.
 """
 
 from __future__ import annotations
 
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field
+
+from bmwow.agent.models.evidence import Direction, TrendHorizon
 
 from .. import router
 from ..llm import get_chat_model
@@ -22,7 +27,7 @@ MAX_CANDIDATES = 12
 
 
 class TrendFinding(DraftFinding):
-    horizon: Literal["now", "1-2y", "3y+"]
+    horizon: TrendHorizon
 
 
 class Trend(BaseModel):
@@ -33,6 +38,29 @@ class Trend(BaseModel):
 
 class TrendsOutput(BaseModel):
     trends: list[Trend]
+
+
+_DIRECTION: dict[str, Direction] = {"demand": "request", "negative": "problem"}
+
+
+def independent_sources(ctx: AgentContext, source_ids: list[str]) -> int:
+    """Distinct web domains and distinct stored documents among the sources a trend cites."""
+    keys: set[str] = set()
+    for sid in source_ids:
+        src = ctx.registry.get(sid)
+        if src is None:
+            continue
+        if src.kind == "web":
+            host = urlsplit(src.ref).netloc.lower().removeprefix("www.")
+            keys.add(f"web:{host}")
+        else:
+            keys.add(f"doc:{src.title or src.ref}")
+    return len(keys)
+
+
+def _region(ctx: AgentContext, qualifier: str) -> str | None:
+    found = [r for r in ctx.brief.regions if r in qualifier.split() or f" {r}" in f" {qualifier}"]
+    return found[0] if len(found) == 1 else None
 
 
 def brief_queries(ctx: AgentContext) -> list[str]:
@@ -48,7 +76,11 @@ async def run(ctx: AgentContext) -> None:
     # 1. Candidate sources from the knowledge layer.
     candidates: dict[str, DocChunk] = {}
     for query in brief_queries(ctx):
-        got = await router.fetch("studies", query, ["study", "report"], ctx.brief.regions, 5)
+        try:
+            got = await router.fetch("studies", query, ["study", "report"], ctx.brief.regions, 5)
+        except Exception as exc:  # noqa: BLE001 - missing data is reported, the web loop still runs
+            ctx.mark("documents", "unavailable", f"{type(exc).__name__}: {exc}")
+            break
         for chunk in got.data:
             if chunk.node_id not in candidates and len(candidates) < MAX_CANDIDATES:
                 candidates[chunk.node_id] = chunk
@@ -70,16 +102,33 @@ async def run(ctx: AgentContext) -> None:
     )
     out = await run_tool_loop(get_chat_model("strong"), tools, prompt, TrendsOutput, calls)
 
-    # 3. Trends → findings on taxonomy attributes, horizon in the qualifier or the claim.
+    # 3. Trends → findings on taxonomy attributes, with horizon, direction, region and the number of
+    #    independent sources (counted by code over the whole trend).
     trends = out.trends if out else []
     for trend in trends:
+        n_sources = independent_sources(ctx, [sid for d in trend.findings for sid in d.source_ids])
         for draft in trend.findings:
             if draft.value is not None and draft.unit:
-                ctx.add_draft(draft, qualifier_suffix=f"horizon {draft.horizon}")
+                finding = ctx.from_draft(draft, qualifier_suffix=f"horizon {draft.horizon}")
             else:
-                ctx.add_draft(
+                finding = ctx.from_draft(
                     draft, claim_suffix=f"(trend: {trend.name}; horizon: {draft.horizon})"
                 )
+            finding = finding.model_copy(
+                update={
+                    "horizon": draft.horizon,
+                    "direction": _DIRECTION.get(draft.polarity, "neutral"),
+                    "region": _region(ctx, draft.qualifier),
+                    "n_independent_sources": n_sources,
+                }
+            )
+            ctx.add(finding, llm_claim=draft.claim)
+    if candidates or "documents" not in {a.source for a in ctx.availability}:
+        ctx.mark(
+            "documents",
+            "ok" if candidates else "unavailable",
+            "" if candidates else "no stored studies or reports for these regions",
+        )
 
     ctx.stats.update(
         n_trends=len(trends), n_pages_scraped=ctx.budget.pages, n_tool_calls=ctx.budget.tool_calls

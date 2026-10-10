@@ -17,12 +17,19 @@ from pydantic import BaseModel, Field
 from bmwow.agent.models.evidence import (
     AgentName,
     AgentReport,
+    Availability,
+    AvailabilityStatus,
+    CandidateFeature,
     Confidence,
+    Direction,
     Finding,
+    FindingStats,
     Polarity,
     ProductBrief,
     Quantity,
     Source,
+    SubTheme,
+    TrendHorizon,
 )
 
 from ..config import get_settings
@@ -82,6 +89,13 @@ class AgentContext:
     llm_claims: dict[int, str] = field(default_factory=dict)
     # stat name -> source kinds; counts validated findings citing at least one source of those kinds.
     kind_stats: dict[str, set[str]] = field(default_factory=dict)
+    availability: list[Availability] = field(default_factory=list)
+    sub_themes: list[SubTheme] = field(default_factory=list)
+    candidates: list[CandidateFeature] = field(default_factory=list)
+
+    def mark(self, source: str, status: AvailabilityStatus, reason: str = "") -> None:
+        """Record whether a data source could be used; missing data is reported, not an error."""
+        self.availability.append(Availability(source=source, status=status, reason=reason))
 
     def add_source(self, source: Source, full_text: str | None = None) -> Source:
         return self.registry.add(source, full_text)
@@ -108,6 +122,11 @@ class AgentContext:
         confidence: Confidence,
         quantity: Quantity | None = None,
         weight: float = 1.0,
+        region: str | None = None,
+        direction: Direction | None = None,
+        stats: FindingStats | None = None,
+        horizon: TrendHorizon | None = None,
+        n_independent_sources: int | None = None,
     ) -> Finding:
         """A finding without its final id (ids are assigned after validation)."""
         return Finding(
@@ -121,6 +140,11 @@ class AgentContext:
             source_ids=source_ids,
             confidence=confidence,
             weight=weight,
+            region=region,
+            direction=direction,
+            stats=stats,
+            horizon=horizon,
+            n_independent_sources=n_independent_sources,
         )
 
     def from_draft(
@@ -173,6 +197,18 @@ class AgentContext:
         dropped += n_unsupported
         kept = assign_ids(self.agent, kept)
         cited = {sid for f in kept for sid in f.source_ids}
+        known = {s.id for s in sources}
+        # Sub-themes and candidates cite representative items; keep only ids that resolve.
+        sub_themes = [
+            t.model_copy(update={"source_ids": [i for i in t.source_ids if i in known]})
+            for t in self.sub_themes
+        ]
+        candidates = [
+            c.model_copy(update={"source_ids": [i for i in c.source_ids if i in known]})
+            for c in self.candidates
+        ]
+        cited |= {i for t in sub_themes for i in t.source_ids}
+        cited |= {i for c in candidates for i in c.source_ids}
         kinds = {s.id: s.kind for s in sources}
         for name, wanted in self.kind_stats.items():
             self.stats[name] = sum(
@@ -186,10 +222,12 @@ class AgentContext:
             "n_findings": len(kept),
             "n_sources": len(cited),
         }
-        if not self.errors and not crashed:
-            status = "ok"
-        else:
+        if self.errors or crashed:
             status = "partial" if kept else "failed"
+        elif not kept and any(a.status == "unavailable" for a in self.availability):
+            status = "partial"  # nothing to report because data is missing, not because of an error
+        else:
+            status = "ok"
         return AgentReport(
             agent=self.agent,
             status=status,
@@ -198,6 +236,9 @@ class AgentContext:
             summary=summarize(self.agent, kept, stats, self.errors),
             stats=stats,
             errors=self.errors,
+            availability=self.availability,
+            sub_themes=sub_themes,
+            candidates=candidates,
         )
 
 

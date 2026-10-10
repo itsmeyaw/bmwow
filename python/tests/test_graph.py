@@ -57,15 +57,25 @@ async def test_full_run_then_offline_rerun_all_sources_resolve(analysis_request,
     assert fake_ontology.stored_analyses[-1].run_id == "offline"
 
 
-async def test_validator_strips_invented_numbers_in_competition(analysis_request):
+async def test_competition_rejects_invented_numbers_and_quotes(analysis_request, fake_env):
     report = (await build_graph().ainvoke({"run_id": "c", "request": analysis_request}))[
         "analysis"
     ].reports["competition"]
-    assert (
-        report.stats["dropped_findings"] >= 4
-    )  # 999-km claims and dangling web:deadbeef citations
-    web_ids = {s.id for s in report.sources if s.kind == "web"}
-    assert "web:deadbeef" not in web_ids
+    # the fake extractor plants a 999 km value missing from its quote and a quote not on the page
+    assert report.stats["n_rejected_extractions"] >= 2
+    assert not any("999" in f.claim or "not on the page" in f.claim for f in report.findings)
+    # web values carry their quote's competitor and test standard; WLTP stays in the qualifier
+    web = [f for f in report.findings if any(s.startswith("web:") for s in f.source_ids)]
+    assert web and all(f.subject.startswith("Competitor") for f in web)
+    assert any(f.quantity and "WLTP" in f.quantity.qualifier for f in web)
+    # code writes the queries: competitor x feature, in the competitor's region locale
+    competitor_queries = [
+        (q, loc) for q, loc in fake_env["provider"].searches if q.startswith("Competitor ")
+    ]
+    assert competitor_queries and all(loc is not None for _, loc in competitor_queries)
+    assert ("Competitor C Sedan range WLTP km", "cn") in {
+        (q, loc.country) for q, loc in competitor_queries
+    }
     for f in report.findings:
         if f.quantity and f.quantity.origin == "source_text":
             excerpt = " ".join(s.excerpt for s in report.sources if s.id in f.source_ids)

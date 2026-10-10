@@ -12,12 +12,11 @@ from bmwow.agent.sources import attribute_source, doc_source, feedback_source
 from bmwow.agent.supervisor import build_graph
 from bmwow.agent.taxonomy import Taxonomy
 from bmwow.agent.tools import graph_rag, sql_rag
-from bmwow.agent.tools.feedback_stats import analyze_feedback, exact_dedupe
+from bmwow.agent.tools.feedback_stats import exact_dedupe
 from bmwow.agent.tools.knowledge import ModuleBackend
 from bmwow.knowledge import AttributeValue, FeedbackFilter
 from bmwow.knowledge import records as canonical_records
 from bmwow.ontology import validate_bundle
-from tests.fakes.llm import HashEmbeddings
 
 
 def test_legacy_imports_reexport_one_record_definition():
@@ -90,9 +89,7 @@ async def test_identical_comments_from_distinct_records_remain_distinct(bridge):
     another.references[0].record_key = "other-comment"
     another.references[0].locator.range = "A3"
     assert len(exact_dedupe([original, original.model_copy(deep=True), another])) == 2
-    result = await analyze_feedback([original, another], HashEmbeddings())
-    assert result.n_items == result.n_after_dedupe == 2
-    assert len(result.clusters) == 1 and result.share(result.clusters[0]) == 1
+    assert len(exact_dedupe([original, another])) == 2
 
 
 async def test_resolver_uses_curated_competitor_regions(bridge):
@@ -135,9 +132,6 @@ async def test_future_group_never_becomes_model_sales_or_growth(bridge, knowledg
 async def test_real_graph_wiring_with_synthetic_readers(bridge, knowledge_service, monkeypatch):
     before = knowledge_service.snapshot().model_dump(mode="json")
 
-    async def no_positioning(ctx, models):
-        pass  # This test checks storage and graph wiring, not LLM interpretation.
-
     async def read_feedback(ctx):
         for item in await bridge.get_feedback_items(FeedbackFilter(models=["G60"], markets=["US"])):
             source = ctx.add_source(feedback_source(item))
@@ -167,7 +161,6 @@ async def test_real_graph_wiring_with_synthetic_readers(bridge, knowledge_servic
                 )
             )
 
-    monkeypatch.setattr(baseline, "_positioning", no_positioning)
     request = AnalysisRequest(model_code="G60", regions=["US"])
     graph = build_graph(
         agents={"feedback": read_feedback, "competition": read_study, "trends": read_study}

@@ -150,8 +150,6 @@ _UNITS = [
     ("mm", r"(\d[\d,.]*)\s*mm"),
     ("percent", r"(\d[\d,.]*)\s*percent"),
 ]
-_POSITIVE = ["precise", "fun", "best", "superb", "loves", "sharp", "quickly"]
-_DEMAND = ["wish", "need", "should", "please", "expect", "demand", "increasingly"]
 
 
 def _attribute(text: str) -> str:
@@ -160,15 +158,6 @@ def _attribute(text: str) -> str:
         if any(k in low for k in kws):
             return attr
     return "unmapped:other"
-
-
-def _polarity(text: str) -> str:
-    low = text.lower()
-    if any(w in low for w in _DEMAND):
-        return "demand"
-    if any(w in low for w in _POSITIVE):
-        return "positive"
-    return "negative"
 
 
 def _call(name: str, args: dict[str, Any], i: int = 0) -> AIMessage:
@@ -238,8 +227,12 @@ class FakeAnalyst:
         self.prompts.append(prompt)
         if "PositioningOutput" in tools:
             return self._positioning(prompt)
-        if "ClusterLabel" in tools:
-            return self._label(prompt)
+        if "SubThemeOutput" in tools:
+            return self._sub_themes(prompt)
+        if "JudgeOutput" in tools:
+            return self._judge(prompt)
+        if "ExtractionOutput" in tools:
+            return self._extract(prompt)
         if "ExplainOutput" in tools:
             return self._explain(prompt)
         if "DraftFindings" in tools:
@@ -263,20 +256,113 @@ class FakeAnalyst:
         ]
         return _call("PositioningOutput", {"findings": findings})
 
-    def _label(self, prompt: str) -> AIMessage:
-        texts = re.findall(r"^\[T(\d+)\] (.+)$", prompt, flags=re.M)
-        joined = " ".join(t for _, t in texts)
-        attr = _attribute(joined)
+    def _extract(self, prompt: str) -> AIMessage:
+        """Copy values from the page like a careful model, plus two planted mistakes that code must
+        reject: a number missing from its quote, and a quote that is not on the page."""
+        features = re.findall(r"^- (\w+): ", prompt.split("# Task", 1)[1], flags=re.M)
+        page = prompt.split("# Page", 1)[1].split("# Stopping rule", 1)[0]
+        values = []
+        for feature in features:
+            for sentence in _sentences(page):
+                if _attribute(sentence) != feature:
+                    continue
+                value, unit = None, None
+                for u, pat in _UNITS:
+                    m = re.search(pat, sentence)
+                    if m and u != "percent":
+                        value, unit = float(m.group(1).replace(",", "")), u
+                        break
+                standard = (
+                    "WLTP" if "WLTP" in sentence else ("10-80%" if "10-80%" in sentence else None)
+                )
+                values.append(
+                    {
+                        "feature": feature,
+                        "found": True,
+                        "value": value,
+                        "unit": unit,
+                        "test_standard": standard,
+                        "region": None,
+                        "variant": None,
+                        "quote": sentence,
+                    }
+                )
+                break
+        if values:
+            bad = dict(values[0], value=999.0, unit="km")  # number not in the quote: value dropped
+            values.append(bad)
+            values.append(dict(values[0], quote="This sentence is not on the page at all."))
+        return _call("ExtractionOutput", {"values": values})
+
+    def _judge(self, prompt: str) -> AIMessage:
+        """First answer breaks the guard (invented number, unsupported 'widespread', unknown id);
+        after the revision prompt it answers from the package. reliable_software stays wrong."""
+        feature = re.search(r"^# Feature: .+? \((.+?)\)$", prompt, flags=re.M).group(1)
+        customers = prompt.split("## Customers", 1)[1].split("\n## ", 1)[0]
+        lines = re.findall(r"^- \[(F-[\w-]+)\] (\w+), (.+)$", customers, flags=re.M)
+        revised = "Guard violations" in prompt
+        if not revised or feature == "reliable_software":
+            return _call(
+                "JudgeOutput",
+                {
+                    "assessment": "gap",
+                    "what_exactly": "Everything",
+                    "widespread": "widespread",
+                    "certainty": "high",
+                    "brand_or_safety_relevant": False,
+                    "reasoning": [
+                        {"text": "99% of customers complain.", "cited_ids": ["F-feedback-999"]}
+                    ],
+                },
+            )
+        if not lines:
+            return _call(
+                "JudgeOutput",
+                {
+                    "assessment": "unclear",
+                    "what_exactly": "No customer evidence",
+                    "widespread": "unclear",
+                    "certainty": "low",
+                    "brand_or_safety_relevant": False,
+                    "reasoning": [
+                        {"text": "The package has no customer evidence.", "cited_ids": []}
+                    ],
+                },
+            )
+        fid, direction, rest = lines[0]
+        assessment = {"problem": "gap", "request": "demand", "strength": "strength"}.get(
+            direction, "unclear"
+        )
+        thin = ", thin" in rest
+        text = f"Customers report a {direction} here" + (
+            " but the sample is thin." if thin else "."
+        )
         return _call(
-            "ClusterLabel",
+            "JudgeOutput",
             {
-                "attribute": attr,
-                "polarity": _polarity(joined),
-                "claim": f"Customers comment on {attr.replace('_', ' ')}.",
-                "source_keys": [f"T{i}" for i, _ in texts[:3]],
-                "confidence": "high",
+                "assessment": assessment,
+                "what_exactly": f"{direction} about {feature}",
+                "widespread": "limited",
+                "certainty": "low" if thin else "medium",
+                "brand_or_safety_relevant": False,
+                "reasoning": [{"text": text, "cited_ids": [fid]}],
             },
         )
+
+    def _sub_themes(self, prompt: str) -> AIMessage:
+        texts = re.findall(r"^\[(T\d+)\] (.+)$", prompt, flags=re.M)
+        topics = {
+            "Rear legroom for passengers 2": ["legroom", "rear", "back seat", "knee", "cramped"],
+            "Seat ventilation in summer": ["ventilat", "cool", "sweaty"],
+        }
+        groups = []
+        for name, words in topics.items():
+            keys = [k for k, t in texts if any(w in t.lower() for w in words)]
+            if keys:
+                groups.append({"name": name, "keys": keys + ["T999"]})  # T999 must be dropped
+        if texts:
+            groups.append({"name": "Single text", "keys": [texts[0][0]]})  # < 2 keys: dropped
+        return _call("SubThemeOutput", {"groups": groups})
 
     def _competition(self, messages: list[BaseMessage], prompt: str) -> AIMessage:
         name = re.search(r"# Competitor\n\n(.+)", prompt)

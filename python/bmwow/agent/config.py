@@ -51,6 +51,9 @@ class Settings:
     data_dir: Path
     feedback_max_items: int
     llm_concurrency: int
+    # BMW data may not be sent to an LLM until cleared; steps that would (feedback sub-themes, the
+    # structure_agent judgment) are skipped and reported as unavailable while this is false.
+    allow_llm_on_internal_data: bool
 
     @property
     def checkpoint_db(self) -> Path:
@@ -84,4 +87,5 @@ def get_settings() -> Settings:
         data_dir=Path(_str("DATA_DIR", str(Path(__file__).resolve().parents[3] / "data"))),
         feedback_max_items=_int("FEEDBACK_MAX_ITEMS", 5000),
         llm_concurrency=_int("LLM_CONCURRENCY", 8),
+        allow_llm_on_internal_data=_bool("ALLOW_LLM_ON_INTERNAL_DATA", False),
     )

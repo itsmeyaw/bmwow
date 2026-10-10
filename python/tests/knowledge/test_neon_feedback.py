@@ -18,6 +18,7 @@ from bmwow.agent.nodes import feedback
 from bmwow.agent.nodes.common import AgentContext
 from bmwow.agent.registry import load_registry
 from bmwow.agent.resolve import resolve_request
+from bmwow.agent.rules import load_rules
 from bmwow.agent.sources import feedback_source
 from bmwow.agent.taxonomy import load_taxonomy
 from bmwow.agent.tools.knowledge import ModuleBackend, set_backend
@@ -626,9 +627,11 @@ async def test_inspection_exercises_sql_projection_bridge_and_citation_resolutio
 
 
 async def test_real_feedback_agent_consumes_projected_sql_aspects_with_fake_providers(
-    feedback_bridge,
+    feedback_bridge, monkeypatch
 ):
     service, _ = feedback_bridge
+    # The fixture holds one item; the agent normally reports features mentioned by >= 3 items.
+    monkeypatch.setattr(load_rules().feedback, "min_k", 1)
     brief = await resolve_request(AnalysisRequest(model_code="G70", regions=["US"]))
     ctx = AgentContext("feedback", brief, await load_taxonomy())
     await feedback.run(ctx)

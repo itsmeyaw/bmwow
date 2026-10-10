@@ -1,37 +1,25 @@
-"""baseline_agent: where does our own product stand today? (SPEC §6.1, no web)."""
+"""baseline_agent: where does our own product stand today? (SPEC §6.1, no web, no LLM).
+
+Facts only, computed by code from the knowledge layer: catalog values of the reference model (with
+standard / optional availability), sales per market and region (forecasts and combined groups kept as
+reported), portfolio share, and customer-study scores mapped to features. A data source that is not
+connected is reported as unavailable; the agent continues with the rest. Judgments (e.g. portfolio
+overlaps) belong to structure_agent, which sees all four views.
+"""
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from typing import Literal
 
-from pydantic import BaseModel, Field
-
-from bmwow.agent.models.evidence import Confidence, Polarity, Quantity
+from bmwow.agent.models.evidence import Quantity
 
 from .. import router
-from ..llm import get_chat_model
-from ..prompting import render_prompt
+from ..rules import feature_for_term
 from ..sources import attribute_source, model_source
 from ..tools.knowledge import ModelNode, SalesRow
-from .common import AgentContext, structured_call
-
-MAX_POSITIONING_FINDINGS = 8
-
-
-class PositioningFinding(BaseModel):
-    attribute: str = Field(description="taxonomy key or unmapped:<snake_case_name>")
-    claim: str = Field(description="one sentence, one claim")
-    polarity: Polarity
-    subject: str = Field(
-        description="model code or name of the model the finding is about, or 'portfolio'"
-    )
-    source_keys: list[str] = Field(description="keys P1, P2, ... (at least one)")
-    confidence: Confidence
-
-
-class PositioningOutput(BaseModel):
-    findings: list[PositioningFinding]
+from .common import AgentContext
 
 
 async def run(ctx: AgentContext) -> None:
@@ -39,19 +27,20 @@ async def run(ctx: AgentContext) -> None:
     reference = brief.reference_model
     code = brief.model_code
 
-    # 1. Reference-model attribute values (loaded by resolve_request): one finding per value, no LLM.
+    # 1. Reference-model catalog values (loaded by resolve_request): one finding per value.
     ctx.add_source(model_source(reference))
     for av in reference.attributes:
         src = ctx.add_source(attribute_source(reference, av))
         numeric = isinstance(av.value, (int, float)) and not isinstance(av.value, bool)
         unit = f" {av.unit}" if av.unit else ""
         note = f" ({av.source_note})" if av.source_note else ""
+        offered = f", {av.availability}" if av.availability and av.availability != "unknown" else ""
         prefix = "The source reports" if av.references else "The reference model"
         ctx.add(
             ctx.finding(
                 attribute=av.attribute,
                 claim=f"{prefix} {code} ({reference.name}) with {av.attribute.replace('_', ' ')} "
-                f"of {av.value}{unit}{note}.",
+                f"of {av.value}{unit}{note}{offered}.",
                 polarity="neutral",
                 subject=code,
                 source_ids=[src.id],
@@ -64,25 +53,86 @@ async def run(ctx: AgentContext) -> None:
                 )
                 if numeric and av.unit
                 else None,
+                direction="neutral",
             )
         )
     ctx.stats["n_attributes"] = len(reference.attributes)
+    ctx.mark(
+        "catalog",
+        "ok" if reference.attributes else "unavailable",
+        "" if reference.attributes else f"no catalog values for {code}",
+    )
 
-    # 3. Portfolio in the requested regions (fetched before sales so the share can be computed).
-    portfolio_got = await router.fetch("portfolio", brief.segment, brief.regions)
-    portfolio = [
-        m for m in portfolio_got.data if m.node_id != reference.node_id and _code(m) != code
-    ]
+    # 2. Portfolio in the requested regions (fetched before sales so the share can be computed).
+    portfolio: list[ModelNode] = []
+    try:
+        portfolio_got = await router.fetch("portfolio", brief.segment, brief.regions)
+        portfolio = [
+            m for m in portfolio_got.data if m.node_id != reference.node_id and _code(m) != code
+        ]
+        ctx.mark("portfolio", "ok")
+    except Exception as exc:  # noqa: BLE001 - missing data is reported, the run continues
+        ctx.mark("portfolio", "unavailable", f"{type(exc).__name__}: {exc}")
     for model in portfolio:
         ctx.add_source(model_source(model))
     ctx.stats["n_portfolio_models"] = len(portfolio)
 
-    # 2. Sales volume in the requested markets: computed findings.
-    await _sales_findings(ctx, portfolio)
+    # 3. Sales volume in the requested markets: computed findings.
+    try:
+        await _sales_findings(ctx, portfolio)
+        ctx.mark("sales", "ok")
+    except Exception as exc:  # noqa: BLE001
+        ctx.mark("sales", "unavailable", f"{type(exc).__name__}: {exc}")
 
-    # 4. LLM: positioning findings citing portfolio sources only.
-    if portfolio:
-        await _positioning(ctx, [reference, *portfolio])
+    # 4. Customer-study scores of the reference model, mapped to features.
+    try:
+        await _study_findings(ctx)
+    except Exception as exc:  # noqa: BLE001
+        ctx.mark("studies", "unavailable", f"{type(exc).__name__}: {exc}")
+
+
+async def _study_findings(ctx: AgentContext) -> None:
+    """One finding per study question, model and region; each score keeps its own scale, statistic
+    and answer category (study scales are never harmonized)."""
+    got = await router.fetch("study_scores", [ctx.brief.model_code], ctx.brief.regions)
+    for score, source in zip(got.data, got.sources, strict=True):
+        if score.value is None:
+            continue
+        src = ctx.add_source(source)
+        question = score.question or "overall"
+        feature = feature_for_term(question)
+        attribute = (
+            feature
+            if feature and feature in ctx.taxonomy.area_of
+            else f"unmapped:study_{re.sub(r'[^a-z0-9]+', '_', question.lower()).strip('_')}"
+        )
+        unit = score.measurement.unit or ""
+        category = f" answering {score.response_category!r}" if score.response_category else ""
+        ctx.add(
+            ctx.finding(
+                attribute=attribute,
+                claim=f"In {score.study} ({score.region}), {score.model} has a {score.statistic} of "
+                f"{score.value:g}{(' ' + unit) if unit else ''}{category} on {question!r}.",
+                polarity="neutral",
+                subject=score.model,
+                source_ids=[src.id],
+                confidence="high",
+                quantity=Quantity(
+                    value=score.value,
+                    unit=unit or score.statistic,
+                    qualifier=f"{score.study}; {score.statistic}; {score.region}",
+                    origin="record",
+                ),
+                region=score.region,
+                direction="neutral",
+            )
+        )
+    ctx.stats["n_study_scores"] = len(got.data)
+    ctx.mark(
+        "studies",
+        "ok" if got.data else "unavailable",
+        "" if got.data else "no study scores for the model in these regions",
+    )
 
 
 def _code(model: ModelNode) -> str:
@@ -250,38 +300,3 @@ def _volume_findings(ctx: AgentContext, rows: list[SalesRow], fallback: str, sco
                 ),
             )
         )
-
-
-async def _positioning(ctx: AgentContext, models: list[ModelNode]) -> None:
-    """`models` = the reference model (P1) followed by the portfolio in the requested regions."""
-    keys = {f"P{i}": model_source(m).id for i, m in enumerate(models, 1)}
-    sources_text = "\n\n".join(
-        f"[{key}]\n{ctx.registry.get(sid).excerpt}" for key, sid in keys.items()
-    )  # type: ignore[union-attr]
-    prompt = render_prompt(
-        "baseline_positioning",
-        brief=ctx.brief,
-        taxonomy=ctx.taxonomy,
-        sources=sources_text,
-        max_findings=MAX_POSITIONING_FINDINGS,
-    )
-    try:
-        out = await structured_call(get_chat_model("cheap"), PositioningOutput, prompt)
-    except Exception as exc:  # the deterministic findings stand on their own
-        ctx.errors.append(f"positioning LLM step failed: {type(exc).__name__}: {exc}")
-        return
-    for p in out.findings[:MAX_POSITIONING_FINDINGS]:
-        # Unknown keys map to an id that cannot resolve, so the validator drops and counts the finding.
-        source_ids = [keys.get(k.strip(), f"unknown:{k}") for k in p.source_keys]
-        ctx.add(
-            ctx.finding(
-                attribute=p.attribute,
-                claim=p.claim,
-                polarity=p.polarity,
-                subject=p.subject,
-                source_ids=source_ids,
-                confidence=p.confidence,
-            ),
-            llm_claim=p.claim,
-        )
-    ctx.stats["n_positioning_findings"] = len(out.findings[:MAX_POSITIONING_FINDINGS])

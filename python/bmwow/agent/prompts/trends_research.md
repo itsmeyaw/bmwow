@@ -21,6 +21,10 @@ For each trend, write one or more findings on **taxonomy attributes** (e.g. "meg
 - `subject`: `market` (technology, regulation, market) or `customers` (customer behavior),
 - `horizon`: `now`, `1-2y` or `3y+` — when the trend matters for the product,
 - `polarity`: usually `demand` (customers/market will expect more) or `negative` (a constraint or risk).
+- Cite every source that supports a trend, preferably from different publishers: code counts the
+  independent sources behind each trend, and a trend backed by one source only is marked as thin. Do
+  not state in the claim how many sources support it.
+- If a trend applies to one region only, put that region code in `qualifier`.
 
 {{common_rules}}
 

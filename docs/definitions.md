@@ -21,9 +21,11 @@ names and generated contracts remain stable.
   analysis uses the shared permissive DTO. Their fields have one definition,
   while their existing unknown-field validation policies stay distinct.
 - `python/bmwow/agent/models/evidence.py` owns analysis-only Source, Quantity,
-  Finding, ProductBrief, AgentReport, and SituationAnalysis. It imports shared
-  knowledge definitions and ontology vocabulary. Nodes import Polarity from
-  this module; the old `nodes/common.py` import remains compatible.
+  Finding, ProductBrief, AgentReport, SituationAnalysis, and the v2 evidence
+  packages and assessments. It imports shared knowledge definitions and ontology
+  vocabulary. Polarity, Direction, TrendHorizon and AvailabilityStatus are shared
+  within orchestration from this module; the old `nodes/common.py` Polarity import
+  remains compatible.
 
 ## Similar names with different meanings
 
@@ -51,13 +53,35 @@ Feature Request is Neutral under the preprocessing policy. Preserve request
 intent in the interpreted statement/CustomerNeed; do not cast demand into graph
 sentiment or infer negative sentiment from a request alone.
 
+**Direction and polarity.** The v2 feedback analysis uses problem/request/strength/
+neutral Direction to describe the customer's intent. It maps those values to
+negative/demand/positive/neutral Polarity for the existing Finding contract.
+Direction does not replace the imported aspect's sentiment. TrendHorizon is the
+analysis's now/1-2y/3y+ bucket; it does not supply the graph's scoped forecast dates,
+assumptions or uncertainty.
+
 **Confidence and priority.** Analysis Confidence uses the ontology's assessed
-low/medium/high vocabulary. Ontology ConfidenceLevel additionally permits
-unassessed. The graph's extraction-confidence reason and uncertainty limitations
-still need to be supplied; an assessed analysis label cannot supply them.
+low/medium/high labels. Finding.confidence and FeatureAssessment.certainty use
+these labels for an analysis claim or judgment; they do not establish extraction
+confidence. Ontology ConfidenceLevel additionally permits unassessed. The graph's
+extraction-confidence reason and uncertainty limitations still need to be supplied;
+an assessed analysis label cannot supply them.
 Feedback intensity, signed Sentiment Score, occurrence share, extraction
 confidence, uncertainty and requirement priority remain different quantities.
 An unassessed graph value must not silently become low confidence in analysis.
+
+**Availability and CapabilityAvailability.** AgentReport.availability records whether
+a data source was usable in the run: ok/partial/unavailable. CapabilityAvailability
+describes the evidenced offering: standard/optional/announced and the other ontology
+states. An unavailable dataset does not prove that a vehicle lacks a capability.
+
+**Evidence packages and graph objects.** The v2 EvidencePackage assembles report-local
+facts, comparisons, CustomerSignals, TrendSignals, quotes and coverage for one feature.
+Despite their names, CustomerSignal and TrendSignal are analysis summaries referencing
+Finding IDs, not persisted ontology Signals. FeatureAssessment is a guarded agent
+judgment, not a Requirement or authenticated human Decision. Its importance ranking
+and assessment do not assign requirement priority or approval. The graph conversion
+and requirement/review write paths remain separate integration work.
 
 **Quantity and Measurement.** Quantity is the analysis summary of a number and
 its origin. Measurement retains original statistic, units, interval, period,
@@ -92,6 +116,10 @@ FeedbackAspect.vfc_category and issue_type are coarse buckets. Original labels,
 coarse buckets, ontology Feature IDs and analysis attribute keys are distinct;
 only an exact reviewed mapping establishes their association. `CONTEXT.md` owns
 the preprocessing glossary.
+
+The v2 feedback agent also uses interim aliases from `agent/rules.yaml`, restricted
+to the active taxonomy, when a reviewed classification attribute is absent. Those
+analysis guesses do not create reviewed Feature mappings in the knowledge layer.
 
 Ontology Feature.domain, coarse VFC categories and the fallback analysis
 taxonomy's areas are different groupings. For example, the fallback area's

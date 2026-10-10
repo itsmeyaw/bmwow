@@ -18,6 +18,8 @@ def fake_env(tmp_path, monkeypatch):
     monkeypatch.setenv("KNOWLEDGE_BACKEND", "fake")
     monkeypatch.setenv("OFFLINE_MODE", "false")
     monkeypatch.setenv("AGENT_TIMEOUT_S", "60")
+    # Synthetic data only: the LLM steps that would see BMW data run against the fake models.
+    monkeypatch.setenv("ALLOW_LLM_ON_INTERNAL_DATA", "true")
     get_settings.cache_clear()
     knowledge.set_backend(FakeKnowledge())
     provider = FakePageProvider()
