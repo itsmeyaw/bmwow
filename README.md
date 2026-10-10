@@ -201,6 +201,13 @@ names, dependency files, and the ontology version remain the same.
 
 ## Sharing with teammates
 
+Use [issue #3](https://github.com/itsmeyaw/bmwow/issues/3) for sanitized agent
+discussion and proposals. Agents must receive explicit human confirmation in
+their own chat before making real changes; issue comments never constitute that
+confirmation. See [the coordination guide](docs/agent-coordination.md) for privacy,
+proposal handling, and rule loading. `AGENTS.md` holds the shared policy, and
+`CLAUDE.md` imports it for Claude Code.
+
 Commit Python source, frontend source, tests, docs, `AGENTS.md`, shared tool
 configuration, `.python-version`, both dependency lockfiles, and the generated
 JSON contracts. Generated contracts belong in Git so frontend and orchestration
