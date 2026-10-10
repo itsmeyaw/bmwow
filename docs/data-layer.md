@@ -8,7 +8,7 @@ ontology contracts are unchanged.
 
 ## Run without Neon
 
-From the repository root:
+From `python/`:
 
 ```sh
 uv sync --locked
@@ -23,23 +23,14 @@ v1 and prints capabilities, feedback, study measurements, and combined future
 sales with their original qualifications. Synthetic setup is explicit: the factory
 rejects any snapshot containing a non-synthetic SourceDocument.
 
-On this macOS checkout, a hidden editable-install `.pth` can prevent imports from
-`.venv`. Use a temporary environment prefix in zsh when needed:
-
-```sh
-UV_PROJECT_ENVIRONMENT=venv uv sync --locked
-UV_PROJECT_ENVIRONMENT=venv uv run python -m scripts.inspect_knowledge
-```
-
-Apply that prefix to each `uv` command using this environment. It changes no shell
-configuration and requires no permanent export. See README troubleshooting for
-the alternative of clearing the local hidden flag.
+If `import bmwow` fails on macOS, see the troubleshooting note in
+[`python/README.md`](../python/README.md).
 
 ## Boundaries and ownership
 
-- `backend/bmwow/ontology/` remains the source of truth for graph objects,
+- `python/bmwow/ontology/` remains the source of truth for graph objects,
   relationships, validation, and generated JSON contracts. Its version stays 0.2.0.
-- `backend/bmwow/knowledge/records.py` defines **read projections**, not additional
+- `python/bmwow/knowledge/records.py` defines **read projections**, not additional
   graph node types. It reuses ontology Context, Locator, Measurement, and NumericRange.
 - `repository.py` defines `SnapshotRepository.load_snapshot() -> GraphBundle`.
   `InMemoryRepository` validates a complete snapshot and returns isolated copies.
@@ -54,16 +45,13 @@ the alternative of clearing the local hidden flag.
   market search locales, feature keys, reviewed VFC mappings, and combined sales
   group labels. It does not guess missing product metadata.
 - `synthetic.py` supplies invented configuration for the tracked fixture only.
-- `src/models/knowledge.py` reexports the read models for existing imports.
-  `src/knowledge/` is a thin temporary v1 compatibility boundary. New backend
-  logic belongs in `backend/bmwow/`; the existing `src/agent/` layout is retained
-  while the orchestration owner evolves v1. Run it from the checkout: `src` is
-  not included in the installed `bmwow` wheel.
+- `bmwow.agent.models.knowledge` reexports the read models for v1 imports.
+  `bmwow.agent.knowledge_bridge` is a thin temporary v1 compatibility boundary.
 
-All Python dependencies, including the existing LangChain/LangGraph, OpenAI,
-Firecrawl, SQLite checkpoint, and clustering integrations, are declared and locked
-at the root. `pyproject.toml.bak` is historical and is not an installation input.
-Tests use fake LLM/search providers; installing these integrations does not call them.
+All Python dependencies, including the LangChain/LangGraph, OpenAI, Firecrawl,
+SQLite checkpoint, and clustering integrations, are declared and locked in
+`python/pyproject.toml`. Tests use fake LLM/search providers; installing these
+integrations does not call them.
 
 ## Inject the service
 
@@ -71,14 +59,14 @@ The application startup code owns configuration, storage, and injection:
 
 ```python
 from bmwow.knowledge import KnowledgeService
-from src.knowledge import configure_service
+from bmwow.agent.knowledge_bridge import configure_service
 
 # repository and config are supplied by the application, not created by the agents.
 configure_service(KnowledgeService(repository, config))
 ```
 
 With `KNOWLEDGE_BACKEND=real` (v1's default), `ModuleBackend` imports
-`src.knowledge.ontology` and `src.knowledge.sql_client`; both delegate to that
+`bmwow.agent.knowledge_bridge.ontology` and `.sql_client`; both delegate to that
 service. Existing signatures and imports are preserved. The bridge accepts sync
 or async functions, including iterable feedback results. An unconfigured real
 backend raises an actionable error; it never silently substitutes synthetic data.
@@ -179,12 +167,12 @@ partial coverage. A reported future value is not relabeled as a verified forecas
 ### Run the feedback slice
 
 Put `DATABASE_URL` in an ignored local environment file. Keep it server-side.
-From the repository root:
+From `python/`:
 
 ```sh
-UV_PROJECT_ENVIRONMENT=venv uv sync --locked
-UV_PROJECT_ENVIRONMENT=venv uv run python -m scripts.inspect_neon_feedback \
-  --env-file .env --derivate G70 --country US --limit 50
+uv sync --locked
+uv run python -m scripts.inspect_neon_feedback \
+  --env-file ../.env --derivate G70 --country US --limit 50
 ```
 
 The command temporarily injects the SQL read service, uses the real v1
@@ -198,7 +186,7 @@ Application startup, after loading its private environment, uses:
 
 ```python
 from bmwow.knowledge.neon import create_neon_feedback_service
-from src.knowledge import configure_service
+from bmwow.agent.knowledge_bridge import configure_service
 
 configure_service(create_neon_feedback_service())  # reads DATABASE_URL; lazy connection
 ```
@@ -267,7 +255,7 @@ a query hash. The virtual `vehicle:feedback:<Derivate>` IDs are likewise read
 identities; reconcile them explicitly with canonical VehicleModel IDs on ingestion.
 
 The live registry derives Derivates and ISO-country coverage from SQL, then groups
-EU member countries under `EU` using `backend/bmwow/knowledge/geography.py`.
+EU member countries under `EU` using `python/bmwow/knowledge/geography.py`.
 The policy uses the [27 EU member states](https://european-union.europa.eu/easy-read_en),
 verified on 2026-10-10; it is not a definition of all European markets. GB, NO, CH,
 and other nonmembers retain their own region codes. Membership changes require
@@ -288,10 +276,11 @@ about Verbatim. Equipment, sale availability, and competitive selection remain u
 Registry errors propagate through the teammate's existing failure-reporting path;
 empty coverage does not activate the YAML fallback.
 
-Inspect a region with this command (apply the macOS environment prefix when needed):
+From `python/`, inspect a region with this command (apply the macOS environment
+prefix when needed):
 
 ```sh
-uv run python -m scripts.inspect_neon_feedback --env-file .env --region EU --limit 50
+uv run python -m scripts.inspect_neon_feedback --env-file ../.env --region EU --limit 50
 ```
 
 The existing `--country` option still accepts individual countries or the EU alias.
@@ -362,7 +351,7 @@ ontology models inside the agent or frontend layer.
 
 ## Verification
 
-`tests/knowledge/` checks complete graph validation, copy isolation, metadata
+`python/tests/knowledge/` checks complete graph validation, copy isolation, metadata
 preservation, conditional/ranged capabilities, classification grouping, explicit
 country membership, zero and future/group sales, unknown study metadata, partial
 dates, citation resolution, async bridge support, identity-based feedback dedupe,
@@ -371,35 +360,5 @@ The graph test uses the real baseline node; its positioning LLM step and the oth
 three interpretation agents are replaced with controlled readers. Existing v1
 tests separately exercise all four agents with fake LLM/search providers.
 
-Run the root checks from AGENTS.md: pytest, Ruff lint/format, schema freshness, and
-synthetic graph validation. This validates the integration behavior, not the merit
-of real BMW proposals, actual SQL ingestion, or live provider calls.
-
-Initial bridge validation on 2026-10-10: **249 tests passed**, including 29 knowledge integration
-tests. All 24 new/modified Python files pass Ruff lint and format checks; generated
-contracts are current and the synthetic graph validates (57 nodes, 74 edges).
-The inspection script works in both text and JSON modes. Root-wide Ruff checks
-still fail on 22 pre-existing lint issues and 27 unformatted files outside this
-change. The lint codes were compared with HEAD and the format failures checked
-against the changed-file list. Those unrelated v1 cleanup items remain for a
-separate change; no checks were disabled or relaxed.
-
-Failure-reporting validation on 2026-10-10: **262 tests passed**, including 13 new
-cases for optional write outcomes, restart recovery, legacy analyses, local write
-failures, and registry/taxonomy errors and empty responses. All eight changed
-Python files pass Ruff lint and format checks. Generated contracts remain current
-and the synthetic graph validates. Root-wide checks retain 19 pre-existing lint
-issues and 21 unformatted files; comparison with the pre-change baseline found
-no new lint failures.
-
-Neon feedback integration validation on 2026-10-10: **284 tests passed**, including
-22 new synthetic cases for SQL projection, parent counts and limits, Source/Engine
-Type filters, quote grounding, missing data, sanitized failures, citation resolution,
-configuration isolation, and the real feedback agent with fake providers. All 13
-changed/new Python files pass Ruff lint and format checks. Generated contracts are
-current and the synthetic graph validates (57 nodes, 74 edges). Repository-wide
-checks still report the same 19 pre-existing lint issues and 21 unformatted files
-outside this change; no checks were disabled. The opt-in live G70/US inspection
-passed coverage discovery, typed read/source round trips, and sampled SQL citation
-checks using read-only transactions. No real-data results or credentials are stored
-in tracked files, and no LLM, embedding, or web provider calls were made.
+Run the Python checks from AGENTS.md. They validate integration behavior, not the
+merit of real BMW proposals, actual SQL ingestion, or live provider calls.

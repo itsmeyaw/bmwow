@@ -6,8 +6,11 @@
     ".entire",
     ".factory",
     ".opencode",
+    ".worktrees",
     ".next",
+    "contracts",
     "data",
+    "python",
     "pnpm-lock.yaml",
     "skills-lock.json"
   ]

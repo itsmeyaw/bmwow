@@ -12,7 +12,7 @@ import {
   feedbackEntries,
   type NewFeedbackAspect,
   type NewFeedbackEntry,
-} from "../src/db/schema";
+} from "../src/server/db/schema";
 
 const VFC_CATEGORIES = [
   "Infotainment & Connectivity",

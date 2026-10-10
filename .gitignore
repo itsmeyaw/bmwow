@@ -13,18 +13,18 @@
 # testing
 /coverage
 
-# Python (one uv project at the repository root)
-/.venv/
-/venv/
+# Python (one uv project in python/)
+.venv/
+venv/
 __pycache__/
 *.py[cod]
-/.pytest_cache/
-/.ruff_cache/
+.pytest_cache/
+.ruff_cache/
 .mypy_cache/
 .coverage
 .coverage.*
-/htmlcov/
-/dist/
+htmlcov/
+dist/
 *.egg-info/
 
 # next.js
@@ -34,10 +34,16 @@ __pycache__/
 # production
 /build
 
+# Agent worktrees (see AGENTS.md)
+/.worktrees/
+
 # misc
 .DS_Store
 *.pem
 raw_data/
+
+# Local data inputs and agent caches (feedback CSVs, checkpoints, web cache)
+/data/
 
 # debug
 *.log
@@ -70,5 +76,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-data/feedbacks
