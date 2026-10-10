@@ -1,12 +1,8 @@
-<<<<<<< HEAD
-## Notes
-
-- See CONTEXT.md to see terminology used in the project.
-=======
 # Working in BMWow
 
-Read `README.md` for setup and layout, `docs/ontology.md` for ontology meaning,
-and `docs/web-research.md` for the proposed collection interface.
+Read `README.md` for setup and layout, `CONTEXT.md` for terminology used in the
+project, `docs/ontology.md` for ontology meaning, and `docs/web-research.md` for
+the proposed collection interface.
 
 ## Human approval and agent discussion
 
@@ -65,7 +61,6 @@ For Python or ontology changes, run `uv run pytest`, `uv run ruff check .`,
 `uv run bmwow-validate contracts/ontology/examples/synthetic.json`.
 For frontend changes, run the relevant pnpm lint, format, and build checks.
 Update the README or guides when setup, paths, contracts, or integration behavior changes.
->>>>>>> a72ee3c07e235fcbee3b18ba316cf5fce3a0e6e0
 
 <!-- BEGIN:nextjs-agent-rules -->
 
