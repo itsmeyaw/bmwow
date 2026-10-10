@@ -130,6 +130,56 @@ def repository(*responses, config=None):
     return repo, conn, kwargs_seen
 
 
+def test_transient_connection_failure_is_retried_before_transaction_only():
+    conn = Connection([])
+    calls = []
+
+    def connect(*args, **kwargs):
+        calls.append(True)
+        if len(calls) == 1:
+            raise psycopg.OperationalError("Invented network timeout")
+        return conn
+
+    repo = NeonFeedbackRepository(
+        "postgresql://synthetic-only",
+        NeonFeedbackConfig(connection_retry_delay_seconds=0),
+        connect=connect,
+    )
+    assert repo.coverage() == []
+    assert len(calls) == 2 and conn.closed
+
+
+def test_authentication_failure_is_not_retried():
+    calls = []
+
+    def connect(*args, **kwargs):
+        calls.append(True)
+        raise psycopg.errors.InvalidPassword("Invented private credentials")
+
+    repo = NeonFeedbackRepository("postgresql://synthetic-only", connect=connect)
+    with pytest.raises(FeedbackStorageError, match="connectivity"):
+        repo.coverage()
+    assert len(calls) == 1
+
+
+def test_query_failure_is_not_replayed():
+    conn = Connection()
+    calls = []
+
+    def connect(*args, **kwargs):
+        calls.append(True)
+        return conn
+
+    def execute(*args, **kwargs):
+        raise psycopg.OperationalError("Invented failure after connecting")
+
+    conn.execute = execute
+    repo = NeonFeedbackRepository("postgresql://synthetic-only", connect=connect)
+    with pytest.raises(FeedbackStorageError):
+        repo.coverage()
+    assert len(calls) == 1
+
+
 def test_projection_preserves_verbatim_original_labels_and_distinct_aspects():
     inferred = aspect(
         id=UUID("00000000-0000-4000-8000-000000000011"),

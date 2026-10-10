@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import time
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from typing import Any
@@ -51,6 +52,8 @@ class NeonFeedbackConfig(Configuration):
     max_limit: int = Field(default=5000, ge=1)
     connect_timeout_seconds: int = Field(default=10, ge=1)
     statement_timeout_ms: int = Field(default=15000, ge=1)
+    connection_attempts: int = Field(default=2, ge=1, le=3)
+    connection_retry_delay_seconds: float = Field(default=0.25, ge=0, le=5)
 
 
 class FeedbackStorageError(RuntimeError):
@@ -218,12 +221,7 @@ class NeonFeedbackRepository:
     @contextmanager
     def _read(self) -> Iterator[Any]:
         try:
-            with self._connect(
-                self._database_url.get_secret_value(),
-                connect_timeout=self._config.connect_timeout_seconds,
-                row_factory=dict_row,
-                prepare_threshold=None,
-            ) as conn:
+            with self._connect_for_read() as conn:
                 conn.read_only = True
                 conn.isolation_level = psycopg.IsolationLevel.REPEATABLE_READ
                 conn.execute(
@@ -238,6 +236,26 @@ class NeonFeedbackRepository:
             ) from None
         except (ValidationError, KeyError, TypeError):
             raise FeedbackStorageError("Feedback data does not match the read contract.") from None
+
+    def _connect_for_read(self):
+        for attempt in range(self._config.connection_attempts):
+            try:
+                return self._connect(
+                    self._database_url.get_secret_value(),
+                    connect_timeout=self._config.connect_timeout_seconds,
+                    row_factory=dict_row,
+                    prepare_threshold=None,
+                )
+            except psycopg.OperationalError as error:
+                transient = (
+                    error.sqlstate is None
+                    or error.sqlstate.startswith("08")
+                    or error.sqlstate == "57P03"
+                )
+                if not transient or attempt + 1 == self._config.connection_attempts:
+                    raise
+                time.sleep(self._config.connection_retry_delay_seconds)
+        raise AssertionError("Connection attempts must be positive")
 
     def dataset(self) -> FeedbackDataset:
         return FeedbackDataset(

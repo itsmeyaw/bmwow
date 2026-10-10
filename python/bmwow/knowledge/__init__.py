@@ -1,6 +1,8 @@
 """Database-independent knowledge contracts and validated snapshot projections."""
 
+from .combined import CombinedKnowledgeService
 from .config import KnowledgeConfig, ModelProfile, SearchLocale, VfcMapping
+from .factory import create_knowledge_service
 from .feedback import (
     DataAvailability,
     FeedbackCoverage,
@@ -24,11 +26,14 @@ from .records import (
     SalesRow,
     StudyScore,
 )
-from .repository import InMemoryRepository, SnapshotRepository
+from .repository import FileSnapshotRepository, InMemoryRepository, SnapshotRepository
 from .service import KnowledgeService
 from .synthetic import create_synthetic_service
 
 __all__ = [
+    "CombinedKnowledgeService",
+    "FileSnapshotRepository",
+    "create_knowledge_service",
     "AttributeValue",
     "DocChunk",
     "DataAvailability",

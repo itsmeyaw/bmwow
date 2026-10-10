@@ -1,5 +1,6 @@
 """Replaceable snapshot storage boundary; no database driver or schema assumptions."""
 
+from pathlib import Path
 from typing import Protocol
 
 from bmwow.ontology import GraphBundle, validate_bundle
@@ -7,6 +8,20 @@ from bmwow.ontology import GraphBundle, validate_bundle
 
 class SnapshotRepository(Protocol):
     def load_snapshot(self) -> GraphBundle: ...
+
+
+class FileSnapshotRepository:
+    """Read a private closed snapshot; source records never belong in tracked fixtures."""
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def load_snapshot(self) -> GraphBundle:
+        bundle = GraphBundle.model_validate_json(self.path.read_text(encoding="utf-8"))
+        errors = validate_bundle(bundle)
+        if errors:
+            raise ValueError("Invalid knowledge snapshot:\n" + "\n".join(errors))
+        return bundle
 
 
 class InMemoryRepository:

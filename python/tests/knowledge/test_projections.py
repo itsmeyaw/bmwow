@@ -11,7 +11,7 @@ from bmwow.knowledge import (
     create_synthetic_service,
 )
 from bmwow.ontology import validate_bundle
-from bmwow.ontology.models import Classification, SpreadsheetLocator
+from bmwow.ontology.models import Classification, Edge, SpreadsheetLocator
 
 MODEL = "vehicle:bmw-g60"
 VARIANT = "vehicle:bmw-g60-fixture-ev"
@@ -97,6 +97,36 @@ def test_capabilities_preserve_range_variants_and_conditions(knowledge_service):
         value.context.vehicle_model_ids == [MODEL]
         for value in knowledge_service.get_attribute_values("G60")
     )
+
+
+def test_attribute_view_excludes_superseded_claims_preserving_history(bundle, knowledge_service):
+    old = node(bundle, "signal:fixture-range")
+    current = old.model_copy(deep=True)
+    current.id = "signal:fixture-range-v2"
+    current.revision = 2
+    current.properties.capability.measurement.value_range.minimum = 450.0
+    bundle.nodes.append(current)
+    for edge in list(bundle.edges):
+        if edge.source_id == old.id:
+            copied = edge.model_copy(deep=True)
+            copied.id += "-v2"
+            copied.source_id = current.id
+            bundle.edges.append(copied)
+    bundle.edges.append(
+        Edge(
+            id="edge:fixture-range-history",
+            type="SUPERSEDES",
+            source_id=current.id,
+            target_id=old.id,
+            rationale="Invented revised range claim",
+            context_transfer=None,
+        )
+    )
+    service = KnowledgeService(InMemoryRepository(bundle), knowledge_service.config)
+    values = service.get_attribute_values(VARIANT, ["electric_range"])
+    assert len(values) == 1 and values[0].node_id == current.id
+    assert values[0].value_range.minimum == 450.0
+    assert old.id in {value.id for value in service.snapshot().nodes}
 
 
 def test_combined_future_sales_remain_one_original_observation(knowledge_service):

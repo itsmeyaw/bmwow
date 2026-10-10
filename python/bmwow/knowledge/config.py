@@ -32,5 +32,8 @@ class KnowledgeConfig(Configuration):
     feature_keys: dict[str, str] = Field(default_factory=dict)
     search_locales: dict[str, SearchLocale] = Field(default_factory=dict)
     vfc_mappings: dict[str, VfcMapping] = Field(default_factory=dict)
+    # Exact original labels, reviewed independently of the source's classification.
+    study_mappings: dict[str, VfcMapping] = Field(default_factory=dict)
+    aspect_mappings: dict[str, VfcMapping] = Field(default_factory=dict)
     # Required for combined-model observations; keys are original Evidence IDs.
     sales_groups: dict[str, str] = Field(default_factory=dict)

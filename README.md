@@ -59,6 +59,7 @@ filters remain available, and each feedback keeps its original country.
 - [Ontology](docs/ontology.md): object meanings, validation, agent tools, and v0.1 migration.
 - [Ontology consumers](docs/ontology-consumers.md): a worked requirement dossier with frontend and orchestration recipes.
 - [Knowledge layer](docs/data-layer.md): synthetic snapshot reads, read-only Neon feedback, the v1 bridge, and the SQL adapter handoff.
+- [Knowledge ingestion](docs/knowledge-ingestion.md): combined reads, private sales/study imports, reviewed mappings, and validated candidate writes.
 - [Feedback preprocessing](docs/preprocess-pipeline-spec.md): the TypeScript CSV-to-Neon pipeline. Its terms are in [CONTEXT.md](CONTEXT.md).
 - [Web research](docs/web-research.md): the proposed evidence collection contract.
 - [Agent coordination](docs/agent-coordination.md): issue #3, human approval, and privacy.

@@ -67,10 +67,14 @@ class KnowledgeService:
         for node_id in self._config.feature_keys:
             if not isinstance(self._nodes.get(node_id), Feature):
                 raise ValueError(f"Unknown Feature: {node_id}")
-        for mapping in self._config.vfc_mappings.values():
+        for mapping in (
+            *self._config.vfc_mappings.values(),
+            *self._config.study_mappings.values(),
+            *self._config.aspect_mappings.values(),
+        ):
             if mapping.feature_id not in self._config.feature_keys:
                 raise ValueError(
-                    f"VFC mapping needs a configured Feature key: {mapping.feature_id}"
+                    f"Feature mapping needs a configured Feature key: {mapping.feature_id}"
                 )
         codes = {market.properties.code for market in self._markets.values()}
         if set(self._config.search_locales) - codes:
@@ -277,8 +281,11 @@ class KnowledgeService:
         if model is None:
             raise KeyError(f"Unknown model: {model_id}")
         result = []
+        superseded = {edge.target_id for edge in self._edges if edge.type == "SUPERSEDES"}
         for signal in sorted(self._bundle.nodes, key=lambda node: node.id):
             if not isinstance(signal, Signal) or signal.properties.capability is None:
+                continue
+            if signal.id in superseded:
                 continue
             properties = signal.properties
             if model.id not in properties.context.vehicle_model_ids:
@@ -413,7 +420,7 @@ class KnowledgeService:
         region_filter: set[str] = set()
         for market in self._markets.values():
             if markets and (
-                market.properties.code in markets
+                market.properties.code.casefold() in {value.casefold() for value in markets}
                 or set(markets) & set(market.properties.country_codes)
             ):
                 region_filter.add(market.properties.code)
@@ -494,7 +501,7 @@ class KnowledgeService:
                 if model_id not in wanted:
                     continue
                 for region in self._regions(context):
-                    if region not in regions:
+                    if region.casefold() not in {value.casefold() for value in regions}:
                         continue
                     result.append(
                         StudyScore(

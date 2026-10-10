@@ -304,6 +304,12 @@ approved import/migration scope. This slice creates no Neon resources or schema 
 
 ## Write path and next milestone
 
+The combined snapshot/Neon read service, workbook import commands, reviewed mapping
+configuration, and separate local candidate store are described in
+[the implementation plan](knowledge-ingestion.md). They preserve the v1 record
+contracts. A private curation manifest supplies source-specific markets and explicit
+Derivate identities; missing mappings and segment decisions remain visible.
+
 `store_findings` is intentionally absent from the read service. The v1 optional
 bridge returns `False`: an analysis may be saved to v1's ignored/local analysis
 directory, but it is not stored in Neon or accepted into the ontology.

@@ -20,6 +20,11 @@ uv run python -m scripts.inspect_neon_feedback --env-file ../.env  # private Neo
 The Neon check needs `DATABASE_URL` and makes no LLM, embedding, or web calls; see
 [the knowledge layer guide](../docs/data-layer.md#run-the-feedback-slice).
 
+For private sales/study imports and the combined snapshot/Neon service, follow
+[the ingestion plan](../docs/knowledge-ingestion.md). The analysis CLI accepts
+`--snapshot`, `--knowledge-config`, and `--env-file`; `--resolve-only` checks the
+brief without provider calls. Run its aggregate inspection command before analysis.
+
 Add dependencies with `uv add <pkg>` or `uv add --dev <pkg>`, and commit
 `pyproject.toml` and `uv.lock` together.
 
