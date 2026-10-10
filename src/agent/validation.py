@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 from src.models.evidence import AgentName, AgentReport, Confidence, Finding, Source
 
@@ -58,7 +58,10 @@ def _quantity_supported(finding: Finding, cited: list[Source]) -> bool:
     q = finding.quantity
     assert q is not None
     if q.origin == "record":
-        return any(s.kind in {"ontology", "sql"} and number_in_text(q.value, s.excerpt, q.unit) for s in cited)
+        return any(
+            s.kind in {"ontology", "sql"} and number_in_text(q.value, s.excerpt, q.unit)
+            for s in cited
+        )
     if q.origin == "computed":
         return any(s.kind in {"ontology", "sql", "feedback"} for s in cited)
     return any(number_in_text(q.value, s.excerpt, q.unit) for s in cited)
@@ -72,11 +75,15 @@ def check_finding(finding: Finding, sources: dict[str, Source]) -> tuple[Finding
     if any(s is None or not s.excerpt.strip() for s in cited):
         return None, False
     if finding.quantity is not None and not _quantity_supported(finding, cited):  # type: ignore[arg-type]
-        return finding.model_copy(update={"quantity": None, "confidence": _LOWER[finding.confidence]}), True
+        return finding.model_copy(
+            update={"quantity": None, "confidence": _LOWER[finding.confidence]}
+        ), True
     return finding, False
 
 
-def validate_findings(findings: Iterable[Finding], sources: Iterable[Source]) -> tuple[list[Finding], int, int]:
+def validate_findings(
+    findings: Iterable[Finding], sources: Iterable[Source]
+) -> tuple[list[Finding], int, int]:
     """Return (kept findings, dropped findings, dropped quantities)."""
     by_id = {s.id: s for s in sources}
     kept: list[Finding] = []
@@ -103,7 +110,10 @@ def validate_report(report: AgentReport) -> AgentReport:
 
 
 def assign_ids(agent: AgentName, findings: list[Finding]) -> list[Finding]:
-    return [f.model_copy(update={"id": f"F-{agent}-{i}", "agent": agent}) for i, f in enumerate(findings, 1)]
+    return [
+        f.model_copy(update={"id": f"F-{agent}-{i}", "agent": agent})
+        for i, f in enumerate(findings, 1)
+    ]
 
 
 def claim_numbers_supported(claim: str, cited: list[Source]) -> bool:
@@ -116,7 +126,9 @@ def claim_numbers_supported(claim: str, cited: list[Source]) -> bool:
     return True
 
 
-def sentence_supported(text: str, cited_ids: list[str], allowed_ids: set[str], context_text: str) -> bool:
+def sentence_supported(
+    text: str, cited_ids: list[str], allowed_ids: set[str], context_text: str
+) -> bool:
     """Check one explanation sentence: it cites only allowed ids and invents no numbers."""
     if not text.strip() or not cited_ids or any(cid not in allowed_ids for cid in cited_ids):
         return False

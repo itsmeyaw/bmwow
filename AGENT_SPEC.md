@@ -91,47 +91,54 @@ duplicate them in `agent/`. Field names are fixed; add fields only as optional o
 
 ```python
 Confidence = Literal["low", "medium", "high"]
-AgentName  = Literal["baseline", "competition", "feedback", "trends"]
+AgentName = Literal["baseline", "competition", "feedback", "trends"]
+
 
 class Source(BaseModel):
-    id: str                     # "kg:<node_id>", "sql:<query_hash>", "web:<url_hash8>", "fb:<item_id>"
+    id: str  # "kg:<node_id>", "sql:<query_hash>", "web:<url_hash8>", "fb:<item_id>"
     kind: Literal["ontology", "sql", "web", "feedback"]
-    ref: str                    # node id / SQL text / URL / feedback item id
+    ref: str  # node id / SQL text / URL / feedback item id
     title: str = ""
-    excerpt: str                # exact text or rendered row the claim relies on (<= 1200 chars). REQUIRED.
+    excerpt: str  # exact text or rendered row the claim relies on (<= 1200 chars). REQUIRED.
     retrieved_at: datetime
+
 
 class Quantity(BaseModel):
     value: float
-    unit: str                   # canonical: "km", "kW", "min", "EUR", "units", "share", ...
-    qualifier: str = ""         # "WLTP", "10-80%", "2024 DE", "median", ...
+    unit: str  # canonical: "km", "kW", "min", "EUR", "units", "share", ...
+    qualifier: str = ""  # "WLTP", "10-80%", "2024 DE", "median", ...
+
 
 class Finding(BaseModel):
-    id: str                     # "F-<agent>-<n>", assigned by code, never by the LLM
+    id: str  # "F-<agent>-<n>", assigned by code, never by the LLM
     agent: AgentName
-    attribute: str              # taxonomy key (§4.3) or "unmapped:<proposed_name>"
-    claim: str                  # one sentence, one claim
-    polarity: Literal["positive", "negative", "neutral", "demand"]   # demand = customers want more
-    subject: str                # whose attribute: "previous_model", "<competitor model>", "market", "customers"
+    attribute: str  # taxonomy key (§4.3) or "unmapped:<proposed_name>"
+    claim: str  # one sentence, one claim
+    polarity: Literal["positive", "negative", "neutral", "demand"]  # demand = customers want more
+    subject: str  # whose attribute: "previous_model", "<competitor model>", "market", "customers"
     quantity: Quantity | None = None
-    source_ids: list[str]       # >= 1, must resolve to Sources in the same report
+    source_ids: list[str]  # >= 1, must resolve to Sources in the same report
     confidence: Confidence
-    weight: float = 1.0         # set by code only (e.g. share of feedback items)
+    weight: float = 1.0  # set by code only (e.g. share of feedback items)
+
 
 class AgentReport(BaseModel):
     agent: AgentName
     status: Literal["ok", "partial", "failed"]
     findings: list[Finding]
     sources: list[Source]
-    summary: str                # <= 120 words, for the UI
+    summary: str  # <= 120 words, for the UI
     stats: dict[str, float | int] = {}
     errors: list[str] = []
 
-class SituationAnalysis(BaseModel):          # the hand-off object
+
+class SituationAnalysis(BaseModel):  # the hand-off object
     run_id: str
-    request: AnalysisRequest                 # what the PM typed (§3.1)
-    brief: ProductBrief                      # what the run actually used
-    reports: dict[AgentName, AgentReport]    # all four keys always present (failed agents: status="failed")
+    request: AnalysisRequest  # what the PM typed (§3.1)
+    brief: ProductBrief  # what the run actually used
+    reports: dict[
+        AgentName, AgentReport
+    ]  # all four keys always present (failed agents: status="failed")
     created_at: datetime
 ```
 
@@ -141,22 +148,24 @@ The PM enters only this:
 
 ```python
 class AnalysisRequest(BaseModel):
-    model_code: str                 # reference model; must be in the model registry (§4.5): currently G60, F70, G68
+    model_code: (
+        str  # reference model; must be in the model registry (§4.5): currently G60, F70, G68
+    )
     regions: list[str] | None = None  # optional, codes from §4.4, e.g. ["EU"], ["EU", "US"];
-                                      # None/empty = all regions the model supports in the registry
+    # None/empty = all regions the model supports in the registry
 ```
 
 The `resolve_request` node (§5.1) turns it into the brief every agent works from:
 
 ```python
 class ProductBrief(BaseModel):
-    reference_model: ModelNode      # from get_model(model_code): name, segment, powertrain, attributes
-    regions: list[str]              # validated region codes
-    markets: list[str]              # countries/markets each region expands to (§4.4)
-    segment: str                    # from reference_model
-    competitors: list[ModelNode]    # list_competitor_models(segment, regions)
-    focus_areas: list[str] = []     # empty = all areas; the PM may set them in a corrected brief
-    search_locale: dict[str, str]   # region -> {"country": ..., "lang": ...} for web search
+    reference_model: ModelNode  # from get_model(model_code): name, segment, powertrain, attributes
+    regions: list[str]  # validated region codes
+    markets: list[str]  # countries/markets each region expands to (§4.4)
+    segment: str  # from reference_model
+    competitors: list[ModelNode]  # list_competitor_models(segment, regions)
+    focus_areas: list[str] = []  # empty = all areas; the PM may set them in a corrected brief
+    search_locale: dict[str, str]  # region -> {"country": ..., "lang": ...} for web search
 ```
 
 Resolution rules:
@@ -197,11 +206,49 @@ def search_documents(query: str, kinds: list[str] | None = None, regions: list[s
 Minimum fields the agents rely on (placeholder, the team may extend):
 
 ```python
-class AttributeValue(BaseModel): node_id: str; attribute: str; value: float | str; unit: str | None; source_note: str = ""
-class ModelNode(BaseModel):      node_id: str; model_code: str | None; name: str; brand: str; segment: str; powertrain: str | None; regions: list[str] = []; attributes: list[AttributeValue] = []
-class FeedbackItem(BaseModel):   item_id: str; text: str; channel: str; market: str | None; date: date | None; rating: float | None; model: str | None
-class DocChunk(BaseModel):       node_id: str; doc_title: str; text: str; url: str | None; published: date | None; regions: list[str] = []
-class FeedbackFilter(BaseModel): models: list[str] = []; markets: list[str] = []; since: date | None = None; limit: int | None = None
+class AttributeValue(BaseModel):
+    node_id: str
+    attribute: str
+    value: float | str
+    unit: str | None
+    source_note: str = ""
+
+
+class ModelNode(BaseModel):
+    node_id: str
+    model_code: str | None
+    name: str
+    brand: str
+    segment: str
+    powertrain: str | None
+    regions: list[str] = []
+    attributes: list[AttributeValue] = []
+
+
+class FeedbackItem(BaseModel):
+    item_id: str
+    text: str
+    channel: str
+    market: str | None
+    date: date | None
+    rating: float | None
+    model: str | None
+
+
+class DocChunk(BaseModel):
+    node_id: str
+    doc_title: str
+    text: str
+    url: str | None
+    published: date | None
+    regions: list[str] = []
+
+
+class FeedbackFilter(BaseModel):
+    models: list[str] = []
+    markets: list[str] = []
+    since: date | None = None
+    limit: int | None = None
 ```
 
 ### 4.2 `src/knowledge/sql_client.py` (relational)
@@ -296,7 +343,7 @@ class AnalysisState(TypedDict, total=False):
     request: AnalysisRequest
     brief: ProductBrief
     resolve_error: str | None
-    reports: Annotated[dict[AgentName, AgentReport], merge_dict]   # each agent writes its own key
+    reports: Annotated[dict[AgentName, AgentReport], merge_dict]  # each agent writes its own key
     analysis: SituationAnalysis
 ```
 
@@ -395,8 +442,10 @@ channel, so a reducer is **required** (LangGraph raises `InvalidUpdateError` oth
 
 ```python
 class SearchBackend(Protocol):
-    async def search(self, query: str, limit: int = 5) -> list[Source]: ...   # excerpt = best-matching chunk
-    async def scrape(self, url: str) -> Source: ...                             # full page markdown → chunked
+    async def search(
+        self, query: str, limit: int = 5
+    ) -> list[Source]: ...  # excerpt = best-matching chunk
+    async def scrape(self, url: str) -> Source: ...  # full page markdown → chunked
 ```
 
 - Default: **Firecrawl** (search with markdown scrape options; separate scrape for known URLs). The

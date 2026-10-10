@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 
 from src.agent.sources import canonical_url, utcnow
-from src.models.evidence import SearchLocale
 from src.agent.tools.web_search import WebPage
+from src.models.evidence import SearchLocale
 
 from .data import WEB_PAGES
 
@@ -20,7 +20,9 @@ class FakePageProvider:
         title, text = WEB_PAGES[url]
         return WebPage(url=url, title=title, markdown=text, retrieved_at=utcnow().isoformat())
 
-    async def search_pages(self, query: str, limit: int, locale: SearchLocale | None = None) -> list[WebPage]:
+    async def search_pages(
+        self, query: str, limit: int, locale: SearchLocale | None = None
+    ) -> list[WebPage]:
         self.calls.append(f"search:{query}")
         self.searches.append((query, locale))
         terms = set(re.findall(r"[a-z0-9]+", query.lower())) - {"sedan", "the", "of", "in"}
@@ -43,7 +45,9 @@ class FakePageProvider:
 class NoNetworkProvider:
     """Fails loudly if anything tries to go past the cache."""
 
-    async def search_pages(self, query: str, limit: int, locale: SearchLocale | None = None) -> list[WebPage]:
+    async def search_pages(
+        self, query: str, limit: int, locale: SearchLocale | None = None
+    ) -> list[WebPage]:
         raise AssertionError(f"network search attempted: {query}")
 
     async def scrape_page(self, url: str) -> WebPage:

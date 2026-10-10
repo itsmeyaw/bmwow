@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 from src.models.evidence import ProductBrief
@@ -14,14 +14,16 @@ PROMPT_DIR = Path(__file__).with_name("prompts")
 _PLACEHOLDER = re.compile(r"\{\{(\w+)\}\}")
 
 
-@lru_cache(maxsize=None)
+@cache
 def _read(name: str) -> str:
     return (PROMPT_DIR / f"{name}.md").read_text()
 
 
 def render_regions(brief: ProductBrief, regions: list[str] | None = None) -> str:
-    return ", ".join(f"{r} (markets: {', '.join(brief.region_markets.get(r, [])) or 'n/a'})"
-                     for r in regions or brief.regions)
+    return ", ".join(
+        f"{r} (markets: {', '.join(brief.region_markets.get(r, [])) or 'n/a'})"
+        for r in regions or brief.regions
+    )
 
 
 def render_brief(brief: ProductBrief) -> str:

@@ -1,10 +1,15 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from src.agent.validation import (claim_numbers_supported, number_in_text, sentence_supported,
-                                  validate_findings, validate_report)
+from src.agent.validation import (
+    claim_numbers_supported,
+    number_in_text,
+    sentence_supported,
+    validate_findings,
+    validate_report,
+)
 from src.models.evidence import AgentReport, Finding, Quantity, Source
 
-NOW = datetime.now(timezone.utc)
+NOW = datetime.now(UTC)
 
 
 def src(id_, excerpt, kind="web"):
@@ -12,20 +17,37 @@ def src(id_, excerpt, kind="web"):
 
 
 def finding(source_ids, quantity=None, confidence="high", agent="competition"):
-    return Finding(id="", agent=agent, attribute="real_world_range", claim="Competitor has long range.",
-                   polarity="neutral", subject="Competitor A", quantity=quantity, source_ids=source_ids,
-                   confidence=confidence)
+    return Finding(
+        id="",
+        agent=agent,
+        attribute="real_world_range",
+        claim="Competitor has long range.",
+        polarity="neutral",
+        subject="Competitor A",
+        quantity=quantity,
+        source_ids=source_ids,
+        confidence=confidence,
+    )
 
 
-SOURCES = [src("web:aaaa0001", "WLTP range of 1.234,5 km and 10-80% in 25 min."),
-           src("kg:av-1", "Competitor A: real_world_range = 520 km (WLTP)", kind="ontology"),
-           src("web:empty001", "   ")]
+SOURCES = [
+    src("web:aaaa0001", "WLTP range of 1.234,5 km and 10-80% in 25 min."),
+    src("kg:av-1", "Competitor A: real_world_range = 520 km (WLTP)", kind="ontology"),
+    src("web:empty001", "   "),
+]
 
 
 def test_drops_dangling_and_empty_citations():
     kept, dropped, _ = validate_findings(
-        [finding(["web:aaaa0001"]), finding(["web:missing1"]), finding(["web:aaaa0001", "web:missing1"]),
-         finding(["web:empty001"]), finding([])], SOURCES)
+        [
+            finding(["web:aaaa0001"]),
+            finding(["web:missing1"]),
+            finding(["web:aaaa0001", "web:missing1"]),
+            finding(["web:empty001"]),
+            finding([]),
+        ],
+        SOURCES,
+    )
     assert len(kept) == 1 and dropped == 4
 
 
@@ -40,8 +62,14 @@ def test_supported_quantities_survive():
     ok_web = Quantity(value=1234.5, unit="km")  # European number format in the excerpt
     ok_min = Quantity(value=25, unit="min", qualifier="10-80%")
     ok_rec = Quantity(value=520, unit="km", origin="record")
-    kept, _, dropped_q = validate_findings([finding(["web:aaaa0001"], ok_web), finding(["web:aaaa0001"], ok_min),
-                                            finding(["kg:av-1"], ok_rec)], SOURCES)
+    kept, _, dropped_q = validate_findings(
+        [
+            finding(["web:aaaa0001"], ok_web),
+            finding(["web:aaaa0001"], ok_min),
+            finding(["kg:av-1"], ok_rec),
+        ],
+        SOURCES,
+    )
     assert dropped_q == 0 and all(f.quantity for f in kept)
 
 
@@ -59,9 +87,16 @@ def test_computed_quantity_needs_stored_data():
 
 
 def test_validate_report_counts_and_is_idempotent():
-    report = AgentReport(agent="competition", status="ok", sources=SOURCES,
-                         findings=[finding(["web:aaaa0001"]), finding(["web:nope0000"]),
-                                   finding(["web:aaaa0001"], agent="trends")])
+    report = AgentReport(
+        agent="competition",
+        status="ok",
+        sources=SOURCES,
+        findings=[
+            finding(["web:aaaa0001"]),
+            finding(["web:nope0000"]),
+            finding(["web:aaaa0001"], agent="trends"),
+        ],
+    )
     once = validate_report(report)
     twice = validate_report(once)
     assert len(once.findings) == 1 and once.stats["dropped_findings"] == 2

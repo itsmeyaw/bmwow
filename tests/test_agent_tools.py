@@ -18,8 +18,10 @@ LOCALES = {"EU": SearchLocale(country="de", lang="en"), "CN": SearchLocale(count
 async def test_graph_rag_returns_ontology_sources():
     got = await graph_rag.search_documents("charging", ["study"], ["EU"], 3)
     assert got.data and len(got.sources) == len(got.data)
-    for chunk, src in zip(got.data, got.sources):
-        assert src.id == f"kg:{chunk.node_id}" and src.kind == "ontology" and src.ref == chunk.node_id
+    for chunk, src in zip(got.data, got.sources, strict=True):
+        assert (
+            src.id == f"kg:{chunk.node_id}" and src.kind == "ontology" and src.ref == chunk.node_id
+        )
         assert src.excerpt and len(src.excerpt) <= EXCERPT_MAX_CHARS
 
 

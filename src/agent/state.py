@@ -4,7 +4,13 @@ from __future__ import annotations
 
 from typing import Annotated, TypedDict
 
-from src.models.evidence import AgentName, AgentReport, AnalysisRequest, ProductBrief, SituationAnalysis
+from src.models.evidence import (
+    AgentName,
+    AgentReport,
+    AnalysisRequest,
+    ProductBrief,
+    SituationAnalysis,
+)
 
 
 def merge_dict(a: dict | None, b: dict | None) -> dict:

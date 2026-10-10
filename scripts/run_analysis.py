@@ -24,8 +24,10 @@ from src.models.evidence import AnalysisRequest
 async def main(path: str) -> None:
     request = AnalysisRequest.model_validate(json.loads(Path(path).read_text()))
     brief = await service.resolve(request)
-    print(f"brief: {brief.model_code} {brief.reference_model.name} | {brief.segment} | regions {brief.regions} "
-          f"| markets {brief.markets} | competitors {[c.name for c in brief.competitors]}")
+    print(
+        f"brief: {brief.model_code} {brief.reference_model.name} | {brief.segment} | regions {brief.regions} "
+        f"| markets {brief.markets} | competitors {[c.name for c in brief.competitors]}"
+    )
     for warning in brief.warnings:
         print(f"  warning: {warning}")
     run_id = await service.start_analysis(request, brief_override=brief)

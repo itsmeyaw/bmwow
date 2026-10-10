@@ -3,20 +3,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
 
 from langchain_core.tools import BaseTool, StructuredTool
 
 from src.models.evidence import Source
 
 from ..sources import Budget, SourceRegistry, doc_source, model_source
-from .knowledge import AttributeValue, DocChunk, FeedbackFilter, FeedbackItem, ModelNode, get_backend
-
-T = TypeVar("T")
+from .knowledge import (
+    AttributeValue,
+    DocChunk,
+    FeedbackFilter,
+    FeedbackItem,
+    ModelNode,
+    get_backend,
+)
 
 
 @dataclass
-class Retrieved(Generic[T]):
+class Retrieved[T]:
     data: T
     sources: list[Source] = field(default_factory=list)
 
@@ -31,13 +35,16 @@ async def list_portfolio(segment: str | None, regions: list[str]) -> Retrieved[l
     return Retrieved(models, [model_source(m) for m in models])
 
 
-async def list_competitor_models(segment: str, regions: list[str],
-                                 names: list[str] | None = None) -> Retrieved[list[ModelNode]]:
+async def list_competitor_models(
+    segment: str, regions: list[str], names: list[str] | None = None
+) -> Retrieved[list[ModelNode]]:
     models = await get_backend().list_competitor_models(segment, regions, names or None)
     return Retrieved(models, [model_source(m) for m in models])
 
 
-async def get_attribute_values(model_id: str, attributes: list[str] | None = None) -> Retrieved[list[AttributeValue]]:
+async def get_attribute_values(
+    model_id: str, attributes: list[str] | None = None
+) -> Retrieved[list[AttributeValue]]:
     # Sources need the model name for rendering; callers build them with sources.attribute_source.
     return Retrieved(await get_backend().get_attribute_values(model_id, attributes))
 
@@ -47,8 +54,9 @@ async def get_feedback_items(filters: FeedbackFilter) -> Retrieved[list[Feedback
     return Retrieved(await get_backend().get_feedback_items(filters))
 
 
-async def search_documents(query: str, kinds: list[str] | None, regions: list[str],
-                           k: int = 10) -> Retrieved[list[DocChunk]]:
+async def search_documents(
+    query: str, kinds: list[str] | None, regions: list[str], k: int = 10
+) -> Retrieved[list[DocChunk]]:
     chunks = await get_backend().search_documents(query, kinds, regions, k)
     return Retrieved(chunks, [doc_source(c) for c in chunks])
 
@@ -64,13 +72,17 @@ def render_chunks(chunks: list[DocChunk], max_chars: int = 900) -> str:
     return "\n\n".join(parts)
 
 
-def make_graph_tools(registry: SourceRegistry, budget: Budget, regions: list[str]) -> list[BaseTool]:
+def make_graph_tools(
+    registry: SourceRegistry, budget: Budget, regions: list[str]
+) -> list[BaseTool]:
     """Tools for bounded agent loops, scoped to the run's regions. Results show citable source ids."""
 
     async def _search_documents(query: str, k: int = 6) -> str:
         if not budget.take("call"):
             return "BUDGET EXHAUSTED: stop calling tools and return your final answer now."
-        chunks = await get_backend().search_documents(query, ["study", "report"], regions, min(k, 10))
+        chunks = await get_backend().search_documents(
+            query, ["study", "report"], regions, min(k, 10)
+        )
         for c in chunks:
             registry.add(doc_source(c), full_text=c.text)
         return render_chunks(chunks)

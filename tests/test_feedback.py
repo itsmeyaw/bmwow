@@ -48,7 +48,10 @@ async def test_weights_equal_cluster_shares_and_sum_to_one_minus_noise(analysis_
     for f in report.findings:
         size, of = map(int, re.match(r"(\d+) of (\d+)", f.quantity.qualifier).groups())
         assert f.weight == pytest.approx(size / of)
-        assert f.quantity.value == pytest.approx(f.weight, abs=1e-4) and f.quantity.origin == "computed"
+        assert (
+            f.quantity.value == pytest.approx(f.weight, abs=1e-4)
+            and f.quantity.origin == "computed"
+        )
         assert all(s.startswith("fb:") for s in f.source_ids)
     for f in overall:
         assert int(f.quantity.qualifier.split(" of ")[1].split()[0]) == n
@@ -63,7 +66,9 @@ async def test_weights_equal_cluster_shares_and_sum_to_one_minus_noise(analysis_
 
 
 async def test_cn_only_theme_keeps_its_regional_share(analysis_request):
-    report = (await build_graph().ainvoke({"run_id": "fbr", "request": analysis_request}))["analysis"].reports["feedback"]
+    report = (await build_graph().ainvoke({"run_id": "fbr", "request": analysis_request}))[
+        "analysis"
+    ].reports["feedback"]
     items = {i.item_id: i for i in feedback()}
     theme = next(t for t in THEMES if t[0] == CN_ONLY_THEME)
     of_theme = [f for f in report.findings if f.attribute == theme[1]]
@@ -72,7 +77,9 @@ async def test_cn_only_theme_keeps_its_regional_share(analysis_request):
     assert not any(_regional(f) == "EU" for f in of_theme)
     assert cn.weight > 2 * overall.weight  # diluted overall, strong in CN
     assert "CN" in cn.claim and all(items[sid[3:]].market == "CN" for sid in cn.source_ids)
-    assert report.stats["region_share:CN"] + report.stats["region_share:EU"] == pytest.approx(1, abs=1e-3)
+    assert report.stats["region_share:CN"] + report.stats["region_share:EU"] == pytest.approx(
+        1, abs=1e-3
+    )
     # findings for themes present everywhere exist per region, each citing items from that region only
     for f in report.findings:
         region = _regional(f)
@@ -83,7 +90,9 @@ async def test_cn_only_theme_keeps_its_regional_share(analysis_request):
 
 async def test_single_region_run_has_no_regional_split():
     request = AnalysisRequest(model_code=REF_CODE, regions=["EU"])
-    report = (await build_graph().ainvoke({"run_id": "fbeu", "request": request}))["analysis"].reports["feedback"]
+    report = (await build_graph().ainvoke({"run_id": "fbeu", "request": request}))[
+        "analysis"
+    ].reports["feedback"]
     assert report.findings and not any(_regional(f) for f in report.findings)
     assert CN_ONLY_THEME not in {f.attribute for f in report.findings}
     assert report.stats["region_share:EU"] == 1.0

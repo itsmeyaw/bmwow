@@ -35,5 +35,7 @@ def route(need: str) -> ToolName:
 async def fetch(need: str, *args: Any, **kwargs: Any) -> graph_rag.Retrieved[Any]:
     tool, fn_name = ROUTES[need]
     if tool not in _MODULES:
-        raise ValueError(f"data need {need!r} is served by an agent tool loop ({tool}), not fetch()")
+        raise ValueError(
+            f"data need {need!r} is served by an agent tool loop ({tool}), not fetch()"
+        )
     return await getattr(_MODULES[tool], fn_name)(*args, **kwargs)

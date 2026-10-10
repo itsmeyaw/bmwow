@@ -43,8 +43,9 @@ def _markets(regions: list[str]) -> set[str]:
 
 @pytest.mark.parametrize("regions", [["CN"], ["EU", "CN"]])
 async def test_every_data_call_is_region_scoped(regions, calls, fake_env):
-    out = await build_graph().ainvoke({"run_id": "scope", "request": AnalysisRequest(model_code=REF_CODE,
-                                                                                    regions=regions)})
+    out = await build_graph().ainvoke(
+        {"run_id": "scope", "request": AnalysisRequest(model_code=REF_CODE, regions=regions)}
+    )
     assert {r.status for r in out["analysis"].reports.values()} == {"ok"}
     assert {name for name, _ in calls} == {name for _, name in SCOPED}
     allowed = set(regions) | _markets(regions)
@@ -52,12 +53,15 @@ async def test_every_data_call_is_region_scoped(regions, calls, fake_env):
         assert scope and set(scope) <= allowed, (name, scope)
     searches = fake_env["provider"].searches
     assert searches and all(locale is not None for _, locale in searches)
-    assert {locale.country for _, locale in searches} <= {REGIONS[r]["search"]["country"] for r in regions}
+    assert {locale.country for _, locale in searches} <= {
+        REGIONS[r]["search"]["country"] for r in regions
+    }
 
 
 async def test_cn_run_never_touches_eu_only_competitors(fake_env):
-    out = await build_graph().ainvoke({"run_id": "cn", "request": AnalysisRequest(model_code=REF_CODE,
-                                                                                 regions=["CN"])})
+    out = await build_graph().ainvoke(
+        {"run_id": "cn", "request": AnalysisRequest(model_code=REF_CODE, regions=["CN"])}
+    )
     brief = out["brief"]
     assert {c.name for c in brief.competitors} == {"Competitor A Sedan", "Competitor C Sedan"}
     assert brief.markets == ["CN"]
@@ -68,4 +72,8 @@ async def test_cn_run_never_touches_eu_only_competitors(fake_env):
         assert all(f.subject != name for f in report.findings)
     assert report.stats["n_competitors"] == 2 and report.stats["n_competitors:CN"] == 2
     baseline = out["analysis"].reports["baseline"]
-    assert not any(q.qualifier.endswith(("DE", "FR", "EU")) for q in (f.quantity for f in baseline.findings) if q)
+    assert not any(
+        q.qualifier.endswith(("DE", "FR", "EU"))
+        for q in (f.quantity for f in baseline.findings)
+        if q
+    )

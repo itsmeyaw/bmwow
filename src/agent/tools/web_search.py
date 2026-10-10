@@ -18,7 +18,16 @@ from langchain_core.tools import BaseTool, StructuredTool
 from src.models.evidence import SearchLocale, Source
 
 from ..config import get_settings
-from ..sources import Budget, SourceRegistry, canonical_url, clip, normalize_ws, short_hash, utcnow, web_source_id
+from ..sources import (
+    Budget,
+    SourceRegistry,
+    canonical_url,
+    clip,
+    normalize_ws,
+    short_hash,
+    utcnow,
+    web_source_id,
+)
 
 SEARCH_EXCERPT_CHARS = 700
 SCRAPE_TOOL_CHARS = 3500
@@ -28,7 +37,9 @@ _TOKEN = re.compile(r"[a-z0-9]+")
 
 class SearchBackend(Protocol):
     # excerpt = best-matching chunk; `locale` = the region's search locale (AGENT_SPEC §6.0.10)
-    async def search(self, query: str, limit: int = 5, locale: SearchLocale | None = None) -> list[Source]: ...
+    async def search(
+        self, query: str, limit: int = 5, locale: SearchLocale | None = None
+    ) -> list[Source]: ...
     async def scrape(self, url: str) -> Source: ...  # full page markdown → chunked
 
 
@@ -47,7 +58,9 @@ class WebPage:
 class PageProvider(Protocol):
     """Provider-level fetcher (Firecrawl, …). Only the cache layer talks to it."""
 
-    async def search_pages(self, query: str, limit: int, locale: SearchLocale | None) -> list[WebPage]: ...
+    async def search_pages(
+        self, query: str, limit: int, locale: SearchLocale | None
+    ) -> list[WebPage]: ...
     async def scrape_page(self, url: str) -> WebPage: ...
 
 
@@ -80,7 +93,9 @@ def rank_chunks(text: str, query: str) -> list[str]:
     terms = set(_TOKEN.findall(query.lower()))
     if not terms:
         return chunks
-    scored = sorted(enumerate(chunks), key=lambda ic: (-len(terms & set(_TOKEN.findall(ic[1].lower()))), ic[0]))
+    scored = sorted(
+        enumerate(chunks), key=lambda ic: (-len(terms & set(_TOKEN.findall(ic[1].lower()))), ic[0])
+    )
     return [c for _, c in scored]
 
 
@@ -110,20 +125,30 @@ class FirecrawlProvider:
     @staticmethod
     def _page(doc: Any, fallback_url: str = "") -> WebPage:
         meta = getattr(doc, "metadata", None)
-        url = (getattr(meta, "source_url", None) or getattr(meta, "url", None) or getattr(doc, "url", None)
-               or fallback_url)
+        url = (
+            getattr(meta, "source_url", None)
+            or getattr(meta, "url", None)
+            or getattr(doc, "url", None)
+            or fallback_url
+        )
         title = getattr(meta, "title", None) or getattr(doc, "title", None) or ""
         text = getattr(doc, "markdown", None) or getattr(doc, "description", None) or ""
         return WebPage(url=url, title=title, markdown=text, retrieved_at=utcnow().isoformat())
 
-    async def search_pages(self, query: str, limit: int, locale: SearchLocale | None) -> list[WebPage]:
+    async def search_pages(
+        self, query: str, limit: int, locale: SearchLocale | None
+    ) -> list[WebPage]:
         from firecrawl.v2.types import Location, ScrapeOptions
 
         country = locale.country.upper() if locale else None
         location = Location(country=country, languages=[locale.lang]) if locale else None
         data = await self.client.search(
-            query, limit=limit, country=country,
-            scrape_options=ScrapeOptions(formats=["markdown"], only_main_content=True, location=location),
+            query,
+            limit=limit,
+            country=country,
+            scrape_options=ScrapeOptions(
+                formats=["markdown"], only_main_content=True, location=location
+            ),
         )
         return [p for p in (self._page(d) for d in (data.web or [])) if p.url and p.markdown]
 
@@ -162,17 +187,23 @@ class CachedSearchBackend:
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=1))
         return pages
 
-    async def search_pages(self, query: str, limit: int = 5, locale: SearchLocale | None = None) -> list[WebPage]:
+    async def search_pages(
+        self, query: str, limit: int = 5, locale: SearchLocale | None = None
+    ) -> list[WebPage]:
         where = f"{locale.country}-{locale.lang}:" if locale else ""
         key = f"search:{limit}:{where}{normalize_ws(query).lower()}"
-        return await self._cached("search", key, lambda: self.provider.search_pages(query, limit, locale))  # type: ignore[union-attr]
+        return await self._cached(
+            "search", key, lambda: self.provider.search_pages(query, limit, locale)
+        )  # type: ignore[union-attr]
 
     async def scrape_page(self, url: str) -> WebPage:
         key = f"scrape:{canonical_url(url)}"
         pages = await self._cached("scrape", key, lambda: _one(self.provider.scrape_page(url)))  # type: ignore[union-attr]
         return pages[0]
 
-    async def search(self, query: str, limit: int = 5, locale: SearchLocale | None = None) -> list[Source]:
+    async def search(
+        self, query: str, limit: int = 5, locale: SearchLocale | None = None
+    ) -> list[Source]:
         return [page_to_source(p, query) for p in await self.search_pages(query, limit, locale)]
 
     async def scrape(self, url: str) -> Source:
@@ -200,7 +231,9 @@ def get_search_backend() -> CachedSearchBackend:
             if s.search_backend == "firecrawl":
                 provider = FirecrawlProvider(s.firecrawl_api_key)
             else:
-                raise NotImplementedError(f"SEARCH_BACKEND={s.search_backend} is not implemented yet")
+                raise NotImplementedError(
+                    f"SEARCH_BACKEND={s.search_backend} is not implemented yet"
+                )
         _backend = CachedSearchBackend(provider, s.web_cache_dir, s.offline_mode)
     return _backend
 
@@ -208,8 +241,9 @@ def get_search_backend() -> CachedSearchBackend:
 # ---------------------------------------------------------------- LangChain tools
 
 
-def make_web_tools(registry: SourceRegistry, budget: Budget, errors: list[str],
-                   locales: dict[str, SearchLocale]) -> list[BaseTool]:
+def make_web_tools(
+    registry: SourceRegistry, budget: Budget, errors: list[str], locales: dict[str, SearchLocale]
+) -> list[BaseTool]:
     """`web_search` and `scrape_url` tools. Results show source ids ([web:xxxxxxxx]) for citation.
 
     Every search runs in the locale of one of `locales` (region -> locale; AGENT_SPEC §6.0.10). With
@@ -234,7 +268,9 @@ def make_web_tools(registry: SourceRegistry, budget: Budget, errors: list[str],
         out = []
         for page in pages:
             src = registry.add(page_to_source(page, query), full_text=page.markdown)
-            best = rank_chunks(page.markdown, query)[0][:SEARCH_EXCERPT_CHARS] if page.markdown else ""
+            best = (
+                rank_chunks(page.markdown, query)[0][:SEARCH_EXCERPT_CHARS] if page.markdown else ""
+            )
             out.append(f"[{src.id}] {page.title} — {src.ref}\n{best}")
         return "\n\n".join(out)
 
@@ -260,13 +296,18 @@ def make_web_tools(registry: SourceRegistry, budget: Budget, errors: list[str],
             coroutine=web_search,
             name="web_search",
             description="Search the web. Returns up to 5 results with citable ids [web:...] and the best-matching "
-                        "passage." + (f" `region` = one of {', '.join(locales)}: the market whose local results "
-                                      f"you want (default {default_region})." if len(locales) > 1 else ""),
+            "passage."
+            + (
+                f" `region` = one of {', '.join(locales)}: the market whose local results "
+                f"you want (default {default_region})."
+                if len(locales) > 1
+                else ""
+            ),
         ),
         StructuredTool.from_function(
             coroutine=scrape_url,
             name="scrape_url",
             description="Fetch a page as markdown. `focus` = words to rank passages by (e.g. 'range WLTP km'). "
-                        "Returns the page's citable id [web:...] and its most relevant passages.",
+            "Returns the page's citable id [web:...] and its most relevant passages.",
         ),
     ]
