@@ -1,0 +1,7 @@
+# Fallback attribute taxonomy (AGENT_SPEC §4.3). Used only when the ontology does not define one.
+Exterior:          [iconic_design, exterior_colors, sport_wheels, easy_entry]
+Interior:          [premium_feel, comfortable_seats, seat_ventilation, heated_seats, rear_space, flexible_storage, easy_child_seat_fit]
+Powertrain:        [real_world_range, fast_charging, efficiency, long_battery_life, smooth_ride, dynamic_handling]
+Digital_UX:        [intuitive_ux, clear_displays, physical_controls, reliable_software, fast_app_response, easy_updates, personalization, clear_navigation, great_sound]
+Driver_assistance: [safety, easy_parking]
+Business:          [affordable, low_running_costs, simple_maintenance, sustainability, data_privacy]
