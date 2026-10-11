@@ -1,7 +1,9 @@
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { assessmentLabel } from "@/lib/assessment";
 import { pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { Citation, Source } from "@/server/situation/queries";
 
 /**
  * What each assessment means; shown as badge title and in the legend. `bar` colours CSS bars,
@@ -188,25 +190,90 @@ export function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Reasoning text with its [id, id] citations rendered as small chips. */
-export function Cited({ text }: { text: string }) {
+/** Reasoning text with its [id, id] citations as small chips; with `citations`, a click shows them. */
+export function Cited({ text, citations }: { text: string; citations?: Record<string, Citation> }) {
   const parts = text.split(/(\[[^\]]+\])/g);
+  const chip =
+    "mx-0.5 inline-block rounded bg-muted px-1 align-baseline font-mono text-[10px] text-muted-foreground";
   return (
     <p className="text-sm leading-relaxed">
-      {parts.map((p, i) =>
-        p.startsWith("[") && p.endsWith("]") ? (
-          <span
-            key={i}
-            className="mx-0.5 inline-block rounded bg-muted px-1 align-baseline font-mono text-[10px] text-muted-foreground"
-            title={p.slice(1, -1)}
-          >
-            {p.slice(1, -1).split(",").length} src
-          </span>
-        ) : (
-          <span key={i}>{p}</span>
-        ),
-      )}
+      {parts.map((p, i) => {
+        if (!(p.startsWith("[") && p.endsWith("]"))) return <span key={i}>{p}</span>;
+        const ids = p
+          .slice(1, -1)
+          .split(",")
+          .map((x) => x.trim());
+        const label = `${ids.length} src`;
+        if (!citations)
+          return (
+            <span key={i} className={chip} title={ids.join(", ")}>
+              {label}
+            </span>
+          );
+        return (
+          <Popover key={i}>
+            <PopoverTrigger className={cn(chip, "cursor-pointer hover:bg-accent")}>
+              {label}
+            </PopoverTrigger>
+            <PopoverContent className="max-h-96 w-96 gap-3 overflow-y-auto">
+              {ids.map((id) => {
+                const c = citations[id];
+                return (
+                  <div key={id} className="flex flex-col gap-1.5">
+                    {c?.claim && <p className="text-sm leading-snug">{unjargon(c.claim)}</p>}
+                    {c?.sources.map((s) => (
+                      <SourceItem key={s.sourceId} s={s} />
+                    ))}
+                    {!c?.claim && !c?.sources.length && (
+                      <p className="font-mono text-xs text-muted-foreground">{id}</p>
+                    )}
+                  </div>
+                );
+              })}
+            </PopoverContent>
+          </Popover>
+        );
+      })}
     </p>
+  );
+}
+
+export const SOURCE_TYPE: Record<string, string> = {
+  customer_feedback: "customer feedback",
+  product_catalog: "BMW price list",
+  customer_study: "customer study",
+  sales_dataset: "sales data",
+  web_page: "web page",
+  ontology: "competitor data",
+  model_record: "model record",
+};
+
+/** A stored record excerpt ("A: x = 1 (statement; key=value; …)") as its readable statement. */
+function readable(excerpt: string) {
+  const m = excerpt.match(/\((.+?)[;)]/);
+  return m ? m[1] : excerpt;
+}
+
+/** One source: linked title, its type, and a two-line excerpt (verbatim unless a stored record). */
+export function SourceItem({ s }: { s: Source }) {
+  return (
+    <div className="rounded-md bg-muted/40 p-2 text-xs">
+      <p className="font-medium">
+        {s.url ? (
+          <a href={s.url} target="_blank" rel="noreferrer" className="hover:underline">
+            {s.title || s.url}
+          </a>
+        ) : (
+          (s.title ?? s.sourceId)
+        )}{" "}
+        <span className="font-normal text-muted-foreground">
+          · {SOURCE_TYPE[s.sourceType ?? ""] ?? s.kind}
+        </span>
+      </p>
+      <p className="mt-1 line-clamp-2 text-muted-foreground">
+        {s.kind === "ontology" ? readable(s.excerpt) : s.excerpt}
+      </p>
+    </div>
   );
 }
 

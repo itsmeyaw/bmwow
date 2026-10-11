@@ -19,6 +19,7 @@ import {
   INTENTS,
   Section,
   ShareBar,
+  SourceItem,
   Stat,
   num,
   sentence,
@@ -37,21 +38,6 @@ const OPTION_LABEL: Record<string, string> = {
   competitor_median: "Competitor median",
   best_in_class: "Best in class",
 };
-
-const SOURCE_TYPE: Record<string, string> = {
-  product_catalog: "BMW price list",
-  customer_study: "customer study",
-  sales_dataset: "sales data",
-  web_page: "web page",
-  ontology: "competitor data",
-  model_record: "model record",
-};
-
-/** A stored record excerpt ("A: x = 1 (statement; key=value; …)") as its readable statement. */
-function readable(excerpt: string) {
-  const m = excerpt.match(/\((.+?)[;)]/);
-  return m ? m[1] : excerpt;
-}
 
 const BASELINE_STATUS: Record<string, string> = {
   known_present: "Present today",
@@ -146,7 +132,7 @@ export async function FeatureDetailView({
           }
         >
           {f.whatExactly && <p className="text-sm font-medium">{unjargon(f.whatExactly)}</p>}
-          {f.reasoning && <Cited text={unjargon(f.reasoning)} />}
+          {f.reasoning && <Cited text={unjargon(f.reasoning)} citations={d.citations} />}
           <dl className="grid grid-cols-3 gap-2 text-sm">
             <Stat label="Certainty" value={f.certainty ?? "–"} />
             <Stat label="Widespread" value={f.widespread ?? "–"} />
@@ -317,22 +303,10 @@ export async function FeatureDetailView({
             <summary className="cursor-pointer px-3 py-2 text-sm text-muted-foreground select-none">
               {d.sources.length} sources behind the catalog, competitor and trend findings
             </summary>
-            <ul className="flex flex-col gap-2 p-3 pt-0 text-xs">
+            <ul className="flex flex-col gap-2 p-3 pt-0">
               {d.sources.map((s) => (
-                <li key={s.sourceId} className="rounded-md bg-muted/40 p-2">
-                  <p className="font-medium">
-                    {s.url ? (
-                      <a href={s.url} target="_blank" rel="noreferrer" className="hover:underline">
-                        {s.title || s.url}
-                      </a>
-                    ) : (
-                      (s.title ?? s.sourceId)
-                    )}{" "}
-                    <span className="font-normal text-muted-foreground">
-                      · {SOURCE_TYPE[s.sourceType ?? ""] ?? s.kind}
-                    </span>
-                  </p>
-                  <p className="mt-1 line-clamp-2 text-muted-foreground">{readable(s.excerpt)}</p>
+                <li key={s.sourceId}>
+                  <SourceItem s={s} />
                 </li>
               ))}
             </ul>

@@ -137,6 +137,8 @@ export type Source = {
   url: string | null;
   excerpt: string;
 };
+/** What one id cited in the reasoning stands for: a finding's claim and its sources, or a source. */
+export type Citation = { claim: string | null; sources: Source[] };
 
 export type FeatureDetail = {
   feature: FeatureRow & {
@@ -156,6 +158,7 @@ export type FeatureDetail = {
   quotes: Quote[];
   trends: Trend[];
   sources: Source[];
+  citations: Record<string, Citation>;
 };
 
 /** "US", "EU", "CN" for a one-region run; "ALL" for a run over all regions the car is sold in. */
@@ -238,7 +241,7 @@ export async function getFeatureDetail(
     where o.run_id = ${runId} and o.attribute = ${attribute}`);
   if (!feature) return null;
   const at = sql`run_id = ${runId} and attribute = ${attribute}`;
-  const [requirements, findings, competitorValues, signals, subThemes, quotes, trends] =
+  const [requirements, findings, competitorValues, signals, subThemes, quotes, trends, cites] =
     await Promise.all([
       rows<Requirement>(sql`
         select req_id as "reqId", title, statement, customer_value as "customerValue",
@@ -282,6 +285,20 @@ export async function getFeatureDetail(
       rows<Trend>(sql`
         select finding_id as "findingId", claim, horizon, thin
         from analysis_trends where ${at}`),
+      // A cited id is a finding (its sources via analysis_finding_sources) or a source itself.
+      rows<Citation & { id: string }>(sql`
+        select c.id, a.claim,
+          coalesce(jsonb_agg(jsonb_build_object('sourceId', s.source_id, 'kind', s.kind,
+            'sourceType', s.source_type, 'title', s.title, 'url', s.url, 'excerpt', s.excerpt)
+            order by s.source_id) filter (where s.source_id is not null), '[]') as sources
+        from analysis_features f
+        cross join unnest(f.cited_ids) as c(id)
+        left join analysis_findings a on a.run_id = f.run_id and a.finding_id = c.id
+        left join analysis_finding_sources fs on fs.run_id = f.run_id and fs.finding_id = c.id
+        left join analysis_sources s
+          on s.run_id = f.run_id and s.source_id = coalesce(fs.source_id, c.id)
+        where f.run_id = ${runId} and f.attribute = ${attribute}
+        group by c.id, a.claim`),
     ]);
   const cited = [
     ...findings.map((f) => f.findingId),
@@ -313,5 +330,6 @@ export async function getFeatureDetail(
     quotes,
     trends,
     sources,
+    citations: Object.fromEntries(cites.map(({ id, ...c }) => [id, c])),
   };
 }
