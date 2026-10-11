@@ -1,0 +1,1 @@
+Change the /analysis page title to "Feedback" and /feedback isntead of "Analysis". Change the "Situation Analysis" to "Analysis" and /analysis. And swap the icons between Feedback and Analysis.
