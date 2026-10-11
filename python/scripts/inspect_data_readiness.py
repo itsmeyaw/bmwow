@@ -20,6 +20,12 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=200)
     parser.add_argument("--sales-region")
     parser.add_argument("--study-region")
+    parser.add_argument(
+        "--catalog-scope-policy",
+        choices=["target_market", "qualified_reference"],
+        default="target_market",
+        help="Require target-market catalog coverage, or allow reviewed reference evidence with its original scope.",
+    )
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     service = create_knowledge_service(
@@ -33,6 +39,7 @@ def main() -> int:
         limit=args.limit,
         sales_region=args.sales_region,
         study_region=args.study_region,
+        catalog_scope_policy=args.catalog_scope_policy,
     )
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

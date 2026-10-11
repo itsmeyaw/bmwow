@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src blob:; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>BMWow local source review</title>
+<style>
+  :root { color-scheme: light; font: 15px/1.5 system-ui,sans-serif; color:#18222c; background:#f5f7f9; }
+  * { box-sizing:border-box; }
+  body { margin:0; }
+  header { padding:24px 32px; background:white; border-bottom:1px solid #d8dfe5; }
+  h1 { font-size:24px; margin:0 0 8px; } h2 { font-size:20px; margin:0 0 12px; }
+  h3 { font-size:16px; margin:0 0 8px; } p { margin:8px 0; }
+  main { max-width:1500px; margin:auto; padding:24px; }
+  nav { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+  button { font:inherit; padding:8px 14px; border:1px solid #aab7c3; border-radius:5px; color:#173b59; background:white; cursor:pointer; }
+  nav button.active, button.primary { background:#173b59; color:white; border-color:#173b59; }
+  label { display:block; font-size:13px; font-weight:600; margin:10px 0; }
+  input:not([type=checkbox]), select, textarea { display:block; width:100%; font:15px/1.4 system-ui,sans-serif; margin-top:5px; border:1px solid #b9c3cd; padding:8px; border-radius:4px; background:white; color:inherit; }
+  textarea { min-height:68px; resize:vertical; } input[type=checkbox] { margin-right:8px; }
+  .row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  .card { padding:18px; margin:14px 0; background:white; border:1px solid #d8dfe5; border-radius:6px; }
+  .muted { color:#596977; font-size:13px; } .error { color:#9a291e; }
+  .catalog-layout { display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start; }
+  .pdf { position:sticky; top:16px; } iframe { width:100%; height:80vh; border:1px solid #d8dfe5; background:white; }
+  pre { white-space:pre-wrap; word-break:break-word; font:14px/1.5 system-ui,sans-serif; background:#f1f4f6; padding:12px; }
+  footer { padding:18px 32px; background:white; border-top:1px solid #d8dfe5; }
+  #message { min-height:22px; } .actions { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
+  [hidden] { display:none !important; }
+  @media (max-width:900px) { .row,.catalog-layout { grid-template-columns:1fr; } .pdf { position:static; } iframe { height:65vh; } }
+</style>
+<header>
+  <h1>Local data and ontology review</h1>
+  <p>Check the original source, then record each decision. Proposed items are not accepted associations.</p>
+  <p class="muted">This file contains private BMW data. It works offline, makes no network calls, and must stay outside GitHub.</p>
+  <label style="max-width:400px">Your reviewer name or ID<input id="reviewer" autocomplete="off"></label>
+</header>
+<main>
+  <nav id="tabs"></nav>
+  <section id="definitions"></section>
+  <section id="mappings" hidden></section>
+  <section id="catalog" hidden></section>
+  <section id="exports" hidden></section>
+  <p id="message" role="status" aria-live="polite"></p>
+</main>
+<footer>Exports are review inputs. The staging command rechecks the original file hash, exact quotations, review checks, and complete ontology graph.</footer>
+<script id="payload" type="application/json">__BMWOW_REVIEW_PAYLOAD__</script>
+<script>
+"use strict";
+const {manifest, catalog, availability, pdf} = JSON.parse(document.getElementById("payload").textContent);
+const features = manifest.context_nodes.filter(node => node.type === "Feature");
+const models = manifest.context_nodes.filter(node => node.type === "VehicleModel");
+const reviewer = document.getElementById("reviewer");
+const message = document.getElementById("message");
+const removedMappings = new Set();
+const definitionChecks = new Set();
+const receipt = {definitions: []};
+const statusControls = new Map();
+const checkControls = new Map();
+function element(tag, text, parent) {
+  const node = document.createElement(tag);
+  if (text !== undefined) node.textContent = text;
+  if (parent) parent.append(node);
+  return node;
+}
+function field(parent, title, value, changed, kind = "input") {
+  const label = element("label", title, parent);
+  const control = element(kind, undefined, label);
+  control.value = value ?? "";
+  control.addEventListener("change", () => changed(control.value));
+  return control;
+}
+function choices(parent, title, value, options, changed) {
+  const control = field(parent, title, value, changed, "select");
+  for (const [key, label] of options) {
+    const option = element("option", label, control); option.value = key;
+  }
+  control.value = value ?? "";
+  return control;
+}
+function checkbox(parent, title, value, changed) {
+  const label = element("label", undefined, parent);
+  const control = element("input", undefined, label); control.type = "checkbox"; control.checked = value;
+  label.append(document.createTextNode(title));
+  control.addEventListener("change", () => changed(control.checked));
+  return control;
+}
+function card(parent, title) { const box = element("div", undefined, parent); box.className = "card"; element("h3", title, box); return box; }
+function notice(text, error = false) { message.textContent = text; message.className = error ? "error" : ""; }
+function identity() { if (!reviewer.value.trim()) throw Error("Enter your reviewer name or ID before approving an item."); return reviewer.value.trim(); }
+function resetReview(record, control) {
+  if (record.status === "reviewed") { record.status = "proposed"; record.reviewed_by = record.reviewed_at = null; if (control) control.value = "proposed"; }
+}
+function resetCatalogScope() {
+  for (const claim of catalog.claims) {
+    resetReview(claim,statusControls.get(claim));
+    for (const name of ["visual_checked","scope_checked","conditions_checked"]) {
+      claim[name] = false;
+      const control = checkControls.get(claim)?.get(name); if (control) control.checked = false;
+    }
+  }
+}
+function resetFeatureMappings(id) {
+  for (const group of ["vfc_mappings","study_mappings","aspect_mappings"]) for (const mapping of Object.values(manifest.knowledge[group])) if (mapping.feature_id === id) resetReview(mapping,statusControls.get(mapping));
+  for (const claim of catalog.claims) if (claim.feature_id === id) resetReview(claim,statusControls.get(claim));
+}
+function recordStatus(record, value, control, validate) {
+  try {
+    if (value === "reviewed") { validate(); record.reviewed_by = identity(); record.reviewed_at = new Date().toISOString(); }
+    else { record.reviewed_by = record.reviewed_at = null; }
+    record.status = value; notice("Decision recorded in this page. Download the reviewed files when finished.");
+  } catch (error) { control.value = record.status; notice(error.message, true); }
+}
+for (const [id, label] of [["definitions","1. Model and Features"],["mappings","2. Label mappings"],["catalog","3. Catalog pages"],["exports","4. Save decisions"]]) {
+  const button = element("button", label, document.getElementById("tabs"));
+  button.className = id === "definitions" ? "active" : "";
+  button.onclick = () => { for (const other of ["definitions","mappings","catalog","exports"]) document.getElementById(other).hidden = other !== id; for (const sibling of button.parentElement.children) sibling.className = ""; button.className = "active"; notice(""); };
+}
+const definitions = document.getElementById("definitions");
+element("h2", "Model metadata and canonical meanings", definitions);
+element("p", "Keep unknown powertrain and sold-market metadata unknown. These fields describe the model; they do not assert equipment availability.", definitions);
+const modelBox = card(definitions, "Selected model");
+const profileBox = element("div", undefined, modelBox);
+function showProfile(id) {
+  profileBox.replaceChildren(); const profile = manifest.knowledge.model_profiles[id];
+  field(profileBox, "Segment (review against an authoritative source)", profile.segment, value => profile.segment = value);
+  field(profileBox, "Source and reason for the model profile", profile.curation_note, value => profile.curation_note = value, "textarea");
+}
+const selectedModel = models.find(node => node.properties.generation_code === "G70")?.id ?? models[0]?.id;
+choices(modelBox, "Model", selectedModel, models.map(node => [node.id,node.label]), showProfile);
+showProfile(selectedModel);
+for (const feature of features) {
+  const box = card(definitions, feature.label);
+  element("p", `${feature.id} · ${manifest.knowledge.feature_keys[feature.id]}`, box).className = "muted";
+  let check;
+  field(box, "Canonical definition", feature.properties.definition, value => { feature.properties.definition = value; check.checked = false; definitionChecks.delete(feature.id); resetFeatureMappings(feature.id); }, "textarea");
+  check = checkbox(box, "I reviewed this definition and its distinction from other Features", false, checked => {
+    try { if (checked) { identity(); definitionChecks.add(feature.id); } else definitionChecks.delete(feature.id); }
+    catch (error) { check.checked = false; notice(error.message, true); }
+  });
+}
+const mappings = document.getElementById("mappings");
+element("h2", "Exact source labels → canonical Features", mappings);
+element("p", "Check each label in its original workbook. Heating, massage, ventilation, front/rear seating, and overall comfort require separate judgment. Leave uncertainty proposed or remove an unrelated suggestion.", mappings);
+for (const [group, title] of [["vfc_mappings","Feedback Aspect Terms"],["study_mappings","Study questions"],["aspect_mappings","Inferred Aspect Terms"]]) {
+  const entries = Object.entries(manifest.knowledge[group]); if (!entries.length) continue;
+  element("h3", title, mappings);
+  for (const [original, mapping] of entries) {
+    const key = `${group}:${original}`;
+    const box = card(mappings, original); let status;
+    const edit = () => { removedMappings.delete(key); resetReview(mapping,status); status.value = mapping.status; };
+    choices(box, "Canonical Feature", mapping.feature_id, features.map(node => [node.id,node.label]), value => { mapping.feature_id = value; edit(); });
+    field(box, "Reason for this mapping (source meaning and boundaries)", mapping.rationale, value => { mapping.rationale = value; edit(); }, "textarea");
+    status = choices(box, "Your decision", mapping.status, [["proposed","Leave proposed"],["reviewed","Reviewed association"],["remove","Unrelated — remove suggestion"]], value => {
+      if (value === "remove") { removedMappings.add(key); notice("Suggestion will be removed from the exported configuration."); }
+      else { removedMappings.delete(key); recordStatus(mapping,value,status,() => { if (!mapping.rationale.trim()) throw Error("Record the source-based reason for the mapping."); }); }
+    });
+    statusControls.set(mapping,status);
+  }
+}
+const catalogSection = document.getElementById("catalog");
+element("h2", "Original catalog and proposed claims", catalogSection);
+element("p", "Use the source's original country, edition, model/variant columns, symbols, and footnotes. A German catalog does not establish US availability or the equipment on a feedback vehicle.", catalogSection);
+const scopeBox = card(catalogSection,"Original catalog scope");
+choices(scopeBox,"Model covered by the catalog",catalog.model_id,[["","Select after checking the source"],...models.map(node => [node.id,node.label])],value => { catalog.model_id = value || null; resetCatalogScope(); });
+field(scopeBox,"Original country codes (comma separated)",catalog.country_codes.join(", "),value => { catalog.country_codes = value.split(",").map(code => code.trim()).filter(Boolean); resetCatalogScope(); });
+field(scopeBox,"Edition and source scope note",catalog.edition_note,value => { catalog.edition_note = value || null; resetCatalogScope(); },"textarea");
+field(scopeBox,"Publication date, if reported",catalog.publication_date,value => { catalog.publication_date = value || null; resetCatalogScope(); });
+const layout = element("div",undefined,catalogSection); layout.className = "catalog-layout";
+const claimsBox = element("div",undefined,layout);
+const pdfBox = element("div",undefined,layout); pdfBox.className = "pdf";
+const bytes = Uint8Array.from(atob(pdf),character => character.charCodeAt(0));
+const pdfUrl = URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+const frame = element("iframe",undefined,pdfBox); frame.title = "Original local catalog PDF"; frame.src = pdfUrl;
+element("p","The original PDF stays in this browser. Page links use the PDF viewer's page navigation.",pdfBox).className = "muted";
+for (const claim of catalog.claims) {
+  const box = card(claimsBox,`Page ${claim.page}`); let status;
+  const page = element("button","Show original page",box); page.onclick = () => frame.src = `${pdfUrl}#page=${claim.page}`;
+  element("pre",claim.quote,box);
+  const update = (name,value) => { claim[name] = value; resetReview(claim,status); };
+  field(box,"Precise statement supported by this page",claim.statement,value => update("statement",value),"textarea");
+  choices(box,"Canonical Feature",claim.feature_id,[["","Select Feature"],...features.map(node => [node.id,node.label])],value => update("feature_id",value || null));
+  choices(box,"Availability in the original scope",claim.capability.availability,availability.map(value => [value,value]),value => { claim.capability.availability = value; resetReview(claim,status); });
+  field(box,"Exact model/variant column, if reported",claim.capability.variant,value => { claim.capability.variant = value || null; resetReview(claim,status); });
+  field(box,"Conditions and footnotes (one per line; unresolved dependencies remain explicit)",claim.capability.conditions.map(value => value.description).join("\n"),value => {
+    const previous = claim.capability.conditions;
+    claim.capability.conditions = value.split("\n").filter(line => line.trim()).map((description,index) => ({...(previous[index] ?? {kind:"unknown",catalog_item_ids:[]}),description})); resetReview(claim,status);
+  },"textarea");
+  field(box,"Capability notes (one per line)",claim.capability.notes.join("\n"),value => { claim.capability.notes = value.split("\n").filter(line => line.trim()); resetReview(claim,status); },"textarea");
+  field(box,"Review reason and source limitations",claim.review_note,value => update("review_note",value || null),"textarea");
+  const checks = new Map(); checkControls.set(claim,checks);
+  for (const [name,title] of [["visual_checked","Checked table columns and equipment symbols"],["scope_checked","Checked model, country, variant, and edition"],["conditions_checked","Checked packages, dependencies, and footnotes"]]) checks.set(name,checkbox(box,title,claim[name],value => update(name,value)));
+  status = choices(box,"Your decision",claim.status,[["proposed","Leave proposed"],["reviewed","Reviewed source claim"],["rejected","Reject candidate"]],value => recordStatus(claim,value,status,() => {
+    if (!catalog.model_id || !catalog.country_codes.length || !catalog.edition_note?.trim()) throw Error("Record the catalog's original model, country, and edition first.");
+    if (!claim.feature_id || !claim.review_note?.trim() || !claim.statement.trim()) throw Error("Record the Feature, precise statement, and review reason.");
+    if (!claim.visual_checked || !claim.scope_checked || !claim.conditions_checked) throw Error("Complete all three source checks before reviewing this claim.");
+  }));
+  statusControls.set(claim,status);
+}
+const exports = document.getElementById("exports");
+element("h2","Save reviewed inputs",exports);
+element("p","Decisions stay in this page until you download them. Copy the downloaded files into the ignored data/knowledge directory, then run catalog staging and reimport. Keep the originals for comparison. Nothing is accepted automatically.",exports);
+element("p","Editing a reviewed mapping or claim returns it to proposed. Each reviewed item records a reviewer and time. Unchanged prior reviews keep their original audit metadata.",exports).className = "muted";
+function download(name,value) {
+  const url = URL.createObjectURL(new Blob([JSON.stringify(value,null,2)+"\n"],{type:"application/json"}));
+  const link = element("a"); link.href = url; link.download = name; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url),1000);
+}
+const actions = element("div",undefined,exports); actions.className = "actions";
+element("button","Download reviewed mappings",actions).onclick = () => {
+  try {
+    const result = structuredClone(manifest);
+    for (const key of removedMappings) { const separator = key.indexOf(":"); delete result.knowledge[key.slice(0,separator)][key.slice(separator+1)]; }
+    result.pending_decisions = result.pending_decisions.filter(value => ![...definitionChecks].some(id => value === `Review proposed canonical definition: ${id}`));
+    for (const group of ["vfc_mappings","study_mappings","aspect_mappings"]) for (const mapping of Object.values(result.knowledge[group])) if (mapping.status === "reviewed" && (!mapping.reviewed_by || !mapping.reviewed_at || !mapping.rationale.trim())) throw Error("A reviewed mapping needs a reviewer, time, and source-based rationale.");
+    if (definitionChecks.size) identity();
+    download("curation-reviewed.json",result); notice("Mappings downloaded. They remain review inputs until reimport and validation.");
+  } catch (error) { notice(error.message,true); }
+};
+element("button","Download reviewed catalog",actions).onclick = () => {
+  try {
+    for (const claim of catalog.claims) if (claim.status === "reviewed" && (!claim.reviewed_by || !claim.reviewed_at || !claim.review_note?.trim() || !claim.visual_checked || !claim.scope_checked || !claim.conditions_checked || !claim.feature_id)) throw Error("Complete the review fields and all three source checks for each reviewed catalog claim.");
+    download("catalog-reviewed.json",catalog); notice("Catalog decisions downloaded. Staging will recheck their source and graph.");
+  } catch (error) { notice(error.message,true); }
+};
+element("button","Download definition review receipt",actions).onclick = () => {
+  try { receipt.reviewed_by = identity(); receipt.reviewed_at = new Date().toISOString(); receipt.definitions = features.filter(node => definitionChecks.has(node.id)); download("definition-review-receipt.json",receipt); notice("Private definition review receipt downloaded."); }
+  catch (error) { notice(error.message,true); }
+};
+</script>
+</html>

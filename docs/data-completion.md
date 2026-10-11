@@ -90,6 +90,23 @@ conditions checks. Reject ambiguous/unrelated candidates or leave them proposed.
 Extraction cannot verify table semantics or widen a German catalog to US availability.
 Scanned PDFs without usable text require a separate permitted transcription/OCR workflow.
 
+For review without sending private sources to a model or editing JSON, prepare an
+offline browser form:
+
+```sh
+uv run python -m scripts.prepare_local_review --config ../data/knowledge/curation-review.json --catalog-review ../data/knowledge/catalog-review.json --output ../data/knowledge/local-review.html
+```
+
+Open that HTML file in a local browser. It embeds the original PDF locally and
+blocks network calls. Review model metadata, canonical definitions, exact mappings,
+and each catalog page. Enter a reviewer ID and source-based rationale for each
+reviewed item. Editing a reviewed claim, catalog scope, or canonical definition
+returns affected associations to proposed. Download the reviewed configuration,
+catalog decisions, and private definition review receipt into ignored storage.
+The form never writes or accepts the graph; pass its downloaded JSON files to the
+normal staging/import commands. It has no autosave, so download decisions before
+closing it. The generated HTML contains private data and must never be committed.
+
 ```sh
 uv run python -m scripts.review_catalog stage --review ../data/knowledge/catalog-review.json --config ../data/knowledge/curation-review.json --output ../data/knowledge/catalog-staging.json --as-of 2026-10-11
 ```
@@ -129,6 +146,14 @@ Future labels, combined-model rows, zero values, and missing population/sample
 metadata remain qualified. Readiness is false while required selected-scope data,
 theme mappings, model metadata, or citations are missing. A connected catalog from
 another country remains reference context rather than a target-market capability.
+The default `--catalog-scope-policy target_market` requires catalog coverage in the
+selected region. For the project plan's qualified German catalog reference, use
+`--catalog-scope-policy qualified_reference`. This still requires a reviewed theme
+claim with a known original scope and valid citations. The report records
+`catalog_theme_coverage: reference_only`, leaves target-market availability unknown,
+and requires explicit applicability assumptions for interpretation. This policy does
+not change any claim's country scope, availability, or graph evidence. Missing or
+unreviewed catalog claims fail either policy.
 
 The combined read projection adds `feature_id`, `attribute`, mapping status and
 rationale to aspects without replacing original labels. New feedback references

@@ -10,7 +10,7 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "preprocess": "tsx scripts/preprocess.ts",
-    "test:imports": "node --import tsx --test scripts/feedback-provenance.test.ts"
+    "test:imports": "node --import tsx --test scripts/feedback-provenance.test.ts scripts/local-review.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

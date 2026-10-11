@@ -21,8 +21,11 @@ class CombinedKnowledgeService(KnowledgeService):
         config: KnowledgeConfig,
         feedback_repository: FeedbackRepository,
         feedback_models: dict[str, str],
+        *,
+        pending_decisions: list[str] | None = None,
     ) -> None:
         super().__init__(repository, config)
+        self._pending_decisions = list(pending_decisions or [])
         self._feedback = FeedbackKnowledgeService(feedback_repository)
         self._feedback_models = dict(feedback_models)
         self._feedback_coverage = [
@@ -41,6 +44,10 @@ class CombinedKnowledgeService(KnowledgeService):
             for node_id in graph_ids
         ):
             raise ValueError("Graph and SQL citation namespaces overlap")
+
+    @property
+    def pending_decisions(self) -> list[str]:
+        return list(self._pending_decisions)
 
     def _coverage(self, model_id: str) -> dict[str, list[str]]:
         result = super()._coverage(model_id)

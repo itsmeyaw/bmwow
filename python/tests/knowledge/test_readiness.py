@@ -1,5 +1,7 @@
 from datetime import date
 
+import pytest
+
 from bmwow.knowledge import CombinedKnowledgeService, FeedbackFilter, InMemoryRepository, VfcMapping
 from bmwow.knowledge.catalog import prepare_catalog, stage_catalog
 from bmwow.knowledge.ingestion import merge_candidate
@@ -71,7 +73,18 @@ def test_reviewed_aspects_carry_feature_ids_without_rewriting_original_labels(kn
     assert service.resolve_citation(aspect.aspect_id).attribute == aspect.attribute
 
 
-def test_raw_workbooks_catalog_and_versioned_feedback_reach_ready_boundary(tmp_path):
+@pytest.mark.parametrize(
+    ("catalog_country", "catalog_policy", "expected_ready", "expected_coverage"),
+    [
+        ("US", "target_market", True, "target_market"),
+        ("DE", "target_market", False, "reference_only"),
+        ("DE", "qualified_reference", True, "reference_only"),
+        (None, "qualified_reference", False, "unknown"),
+    ],
+)
+def test_raw_workbooks_catalog_and_versioned_feedback_reach_ready_boundary(
+    tmp_path, catalog_country, catalog_policy, expected_ready, expected_coverage
+):
     workbook_inputs = make_inputs(tmp_path)
     manifest = make_manifest()
     path = tmp_path / "invented.pdf"
@@ -88,11 +101,15 @@ def test_raw_workbooks_catalog_and_versioned_feedback_reach_ready_boundary(tmp_p
     bundle, config, _ = imported(workbook_inputs, manifest)
     review = reviewed(catalog_review)
     review.model_id = "vehicle:bmw-g60"
-    review.country_codes = ["US"]
-    review.edition_note = "Invented synthetic US edition"
+    review.country_codes = [catalog_country or "DE"]
+    review.edition_note = "Invented synthetic edition with its original country scope"
     bundle = merge_candidate(
         bundle, stage_catalog(review, manifest, as_of=date(2026, 10, 11), origin="synthetic")
     )
+    if catalog_country is None:
+        for node in bundle.nodes:
+            if node.id.startswith(("evidence:catalog:", "signal:catalog:")):
+                node.properties.context.country_codes = []
     feedback = MemoryFeedback()
     feedback.items = [
         project_feedback(
@@ -114,12 +131,28 @@ def test_raw_workbooks_catalog_and_versioned_feedback_reach_ready_boundary(tmp_p
     service = CombinedKnowledgeService(
         InMemoryRepository(bundle), config, archive, manifest.feedback_models
     )
-    report = inspect_readiness(service, model="G60", region="US", feature_keys=["invented_seat"])
-    assert report.ready_for_agents and report.blockers == []
+    report = inspect_readiness(
+        service,
+        model="G60",
+        region="US",
+        feature_keys=["invented_seat"],
+        catalog_scope_policy=catalog_policy,
+    )
+    assert report.ready_for_agents == expected_ready
+    assert report.catalog_theme_coverage == expected_coverage
+    assert report.catalog_scope_policy == catalog_policy
+    if expected_ready:
+        assert report.blockers == []
     assert report.feedback_versioned == report.feedback_with_theme_aspects == 1
     assert report.study_theme_measurements == 2 and report.sales_rows == 3
-    assert report.catalog_theme_claims_in_region == 1 and report.citations_unresolved == 0
+    assert report.catalog_theme_claims_in_region == int(catalog_country == "US")
+    assert report.citations_unresolved == 0
     assert report.study_unknown_sample_size == 2
+    if expected_coverage == "reference_only":
+        assert any("equipment availability" in limitation for limitation in report.limitations)
+        assert all(
+            value.context.country_codes == ["DE"] for value in service.get_attribute_values("G60")
+        )
 
 
 def test_invalid_inferred_quote_cannot_satisfy_theme_readiness(knowledge_service):
@@ -149,3 +182,19 @@ def test_invalid_inferred_quote_cannot_satisfy_theme_readiness(knowledge_service
     assert report.mapping_counts == {"reviewed": 1}
     assert report.rejected_inferred_aspects == 1 and report.usable_theme_aspects == 0
     assert "No reviewed feedback mapping for the selected theme" in report.blockers
+
+
+def test_imported_proposed_definition_remains_a_readiness_blocker(knowledge_service):
+    service = CombinedKnowledgeService(
+        InMemoryRepository(knowledge_service.snapshot()),
+        knowledge_service.config,
+        MemoryFeedback(),
+        {"G60": "vehicle:bmw-g60"},
+        pending_decisions=["Review proposed canonical definition: feature:parking-controls"],
+    )
+    report = inspect_readiness(
+        service, model="G60", region="US", feature_keys=["parking_control_usability"]
+    )
+    assert report.pending_theme_definitions == ["feature:parking-controls"]
+    assert "Theme Features await curation" in report.blockers
+    assert not report.ready_for_agents

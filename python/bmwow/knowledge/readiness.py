@@ -1,20 +1,25 @@
 """Aggregate, provider-free readiness at the data-to-agent boundary."""
 
 from collections import Counter
+from typing import Literal
 
 from pydantic import Field
 
 from bmwow.ontology import snapshot_fingerprint, validate_bundle
+from bmwow.ontology.models import Market
 
 from .combined import CombinedKnowledgeService
 from .config import Configuration
 from .records import FeedbackFilter
+
+CatalogScopePolicy = Literal["target_market", "qualified_reference"]
 
 
 class DataReadiness(Configuration):
     model: str
     region: str
     feature_keys: list[str]
+    pending_theme_definitions: list[str]
     graph_valid: bool
     snapshot_fingerprint: str
     segment_reviewed: bool
@@ -46,6 +51,8 @@ class DataReadiness(Configuration):
     catalog_claims: int
     catalog_theme_claims: int
     catalog_theme_claims_in_region: int
+    catalog_scope_policy: CatalogScopePolicy
+    catalog_theme_coverage: Literal["target_market", "reference_only", "unknown", "missing"]
     citations_checked: int
     citations_unresolved: int
     missing_datasets: list[str]
@@ -63,7 +70,10 @@ def inspect_readiness(
     limit: int = 200,
     sales_region: str | None = None,
     study_region: str | None = None,
+    catalog_scope_policy: CatalogScopePolicy = "target_market",
 ) -> DataReadiness:
+    if catalog_scope_policy not in {"target_market", "qualified_reference"}:
+        raise ValueError("Unknown catalog scope policy")
     selected_model = service.get_model(model)
     if selected_model is None:
         raise ValueError("Selected model has no configured canonical identity")
@@ -75,12 +85,34 @@ def inspect_readiness(
     capabilities = service.get_attribute_values(selected_model.node_id)
     catalog = [value for value in capabilities if value.availability is not None]
     theme_catalog = [value for value in catalog if value.attribute in feature_keys]
+    target_markets = {
+        node.id
+        for node in snapshot.nodes
+        if isinstance(node, Market) and node.properties.code == region
+    }
     theme_scope = [
         value
         for value in theme_catalog
         if value.context
-        and (region in value.context.country_codes or region in value.context.market_ids)
+        and (
+            region in value.context.country_codes
+            or target_markets.intersection(value.context.market_ids)
+        )
     ]
+    qualified_theme_catalog = [
+        value
+        for value in theme_catalog
+        if value.context and (value.context.country_codes or value.context.market_ids)
+    ]
+    catalog_coverage = (
+        "target_market"
+        if theme_scope
+        else "reference_only"
+        if qualified_theme_catalog
+        else "unknown"
+        if theme_catalog
+        else "missing"
+    )
     aspects = [aspect for item in page.items for aspect in item.aspects]
     mappings = Counter(aspect.mapping_status or "unmapped" for aspect in aspects)
     quote_counts = Counter(aspect.quote_status for aspect in aspects)
@@ -125,16 +157,28 @@ def inspect_readiness(
         if not present
     ]
     blockers = [f"Missing selected-scope dataset: {kind}" for kind in missing]
+    pending_theme_definitions = [
+        feature_id
+        for feature_id, key in sorted(config.feature_keys.items())
+        if key in feature_keys
+        and f"Review proposed canonical definition: {feature_id}" in service.pending_decisions
+    ]
     if selected_model.segment == "unknown":
         blockers.append("Model segment awaits human curation")
-    if not feature_keys or set(feature_keys) - set(config.feature_keys.values()):
+    if (
+        not feature_keys
+        or set(feature_keys) - set(config.feature_keys.values())
+        or pending_theme_definitions
+    ):
         blockers.append("Theme Features await curation")
     if not usable_theme:
         blockers.append("No reviewed feedback mapping for the selected theme")
     if not theme_studies:
         blockers.append("No reviewed study mapping for the selected theme")
-    if not theme_scope:
-        blockers.append("No reviewed catalog theme claim establishes the selected region")
+    if catalog_scope_policy == "target_market" and not theme_scope:
+        blockers.append("No reviewed catalog theme claim covers the selected region")
+    elif catalog_scope_policy == "qualified_reference" and not qualified_theme_catalog:
+        blockers.append("No reviewed catalog theme claim retains a known original scope")
     if sum(bool(item.provenance) for item in page.items) != len(page.items):
         blockers.append("Selected feedback includes imports without version provenance")
     if unresolved:
@@ -155,10 +199,16 @@ def inspect_readiness(
         limitations.append(
             "Catalog evidence from another region is available only with its original scope qualification."
         )
+    if catalog_coverage == "reference_only":
+        limitations.append(
+            "Target-market equipment availability and the equipment fitted to feedback vehicles remain unknown; "
+            "reference catalog claims require explicit applicability assumptions before use outside their source scope."
+        )
     return DataReadiness(
         model=model,
         region=region,
         feature_keys=feature_keys,
+        pending_theme_definitions=pending_theme_definitions,
         graph_valid=graph_valid,
         snapshot_fingerprint=snapshot_fingerprint(snapshot),
         segment_reviewed=selected_model.segment != "unknown",
@@ -197,6 +247,8 @@ def inspect_readiness(
         catalog_claims=len(catalog),
         catalog_theme_claims=len(theme_catalog),
         catalog_theme_claims_in_region=len(theme_scope),
+        catalog_scope_policy=catalog_scope_policy,
+        catalog_theme_coverage=catalog_coverage,
         citations_checked=len(citations),
         citations_unresolved=unresolved,
         missing_datasets=missing,
