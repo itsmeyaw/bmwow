@@ -1,7 +1,7 @@
 import "server-only";
 import { sql } from "drizzle-orm";
 import { cacheLife } from "next/cache";
-import { rows } from "@/server/analysis/queries";
+import { rows, type Evidence } from "@/server/analysis/queries";
 
 /**
  * Reads of the stored situation-analysis runs (tables analysis_*, written by
@@ -120,12 +120,16 @@ export type Signal = {
   differsFrom: string | null;
 };
 
-/** `snippets`: the aspect quotes of that feedback item matching the direction, for highlighting. */
-export type Quote = {
+/**
+ * A feedback item quoted for a feature, with its strongest aspect matching the direction.
+ * `snippets`: every aspect quote of that item matching the direction, for highlighting.
+ */
+export type Quote = Evidence & {
   sourceId: string;
   direction: string | null;
-  text: string;
   snippets: string[];
+  /** VFC category of the strongest matching aspect. */
+  category: string | null;
 };
 export type SubTheme = { direction: string; name: string; k: number; ofTotal: number };
 export type Trend = { findingId: string; claim: string; horizon: string | null; thin: boolean };
@@ -273,15 +277,32 @@ export async function getFeatureDetail(
       rows<SubTheme>(sql`
         select direction, name, k, of_total as "ofTotal"
         from analysis_sub_themes where ${at} order by direction, k desc limit 12`),
+      // The quote's strongest quoted aspect matching its direction; requests prefer Feature Requests.
       rows<Quote>(sql`
         select q.source_id as "sourceId", q.direction, q.text,
-          array(select distinct a.quote_snippet
-            from feedback_entries e join feedback_aspects a on a.feedback_entry_id = e.id
-            where e.feedback_explorer_id = regexp_replace(q.source_id, '^.*:', '')
-              and a.quote_snippet is not null
-              and (q.direction is distinct from 'problem' or a.sentiment = 'Negative')
-              and (q.direction is distinct from 'strength' or a.sentiment = 'Positive')) as snippets
-        from analysis_quotes q where ${at} order by q.ordinal`),
+          coalesce(e.feedback_explorer_id, regexp_replace(q.source_id, '^.*:', '')) as id,
+          e.derivate_code as derivate, e.country, e.engine_type as engine, e.source,
+          a.quote_snippet as quote, a.aspect_term as term, coalesce(a.issue_type, '–') as issue,
+          coalesce(abs(a.sentiment_score), 0)::float8 as score, a.vfc_category as category,
+          array(select distinct x.quote_snippet from feedback_aspects x
+            where x.feedback_entry_id = e.id and x.quote_snippet is not null
+              and (q.direction is distinct from 'problem' or x.sentiment = 'Negative')
+              and (q.direction is distinct from 'strength' or x.sentiment = 'Positive')) as snippets
+        from analysis_quotes q
+        left join lateral (
+          select * from feedback_entries
+          where feedback_explorer_id = regexp_replace(q.source_id, '^.*:', '') limit 1
+        ) e on true
+        left join lateral (
+          select * from feedback_aspects x
+          where x.feedback_entry_id = e.id
+            and (q.direction is distinct from 'problem' or x.sentiment = 'Negative')
+            and (q.direction is distinct from 'strength' or x.sentiment = 'Positive')
+          order by (q.direction = 'request' and x.issue_type = 'Feature Request') desc,
+            x.quote_snippet is null, abs(x.sentiment_score) desc nulls last
+          limit 1
+        ) a on true
+        where q.run_id = ${runId} and q.attribute = ${attribute} order by q.ordinal`),
       rows<Trend>(sql`
         select finding_id as "findingId", claim, horizon, thin
         from analysis_trends where ${at}`),

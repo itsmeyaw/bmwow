@@ -254,6 +254,7 @@ async function CarView({ params, searchParams }: PageProps<"/analysis/[derivate]
               runId={run.runId}
               attribute={selected.attribute}
               where={`${run.modelCode} · ${regionLabel(run.region)}`}
+              closeHref={hrefWith(sp, CLOSED)}
             />
           </Suspense>
         )}
