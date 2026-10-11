@@ -380,6 +380,7 @@ async function main() {
   const { values } = parseArgs({
     options: {
       limit: { type: "string" },
+      concurrency: { type: "string" },
       "self-check": { type: "boolean" },
       "no-enrichment": { type: "boolean" },
       migrate: { type: "boolean" },
@@ -397,6 +398,9 @@ async function main() {
   const limit = values.limit === undefined ? Infinity : Number(values.limit);
   if (!(Number.isInteger(limit) && limit > 0) && limit !== Infinity)
     throw new Error("--limit must be a positive integer");
+  const concurrency = values.concurrency === undefined ? 25 : Number(values.concurrency);
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 100)
+    throw new Error("--concurrency must be an integer from 1 to 100");
 
   // An explicit file is authoritative. Missing files must never fall back to an
   // ambient production URL; omitted keys in that file remain omitted.
@@ -416,7 +420,7 @@ async function main() {
   }
 
   const openai = noEnrichment ? null : new OpenAI({ apiKey: OPENAI_API_KEY, maxRetries: 5 });
-  const pool = new pg.Pool({ connectionString: DATABASE_URL, max: 25 });
+  const pool = new pg.Pool({ connectionString: DATABASE_URL, max: concurrency });
   pool.on("error", () => console.error("feedback database connection failed"));
   const csvDir = values["csv-dir"] ?? CSV_DIR;
   const taxonomyPath = values["taxonomy-file"] ?? TAXONOMY_PATH;
@@ -676,7 +680,7 @@ async function main() {
         for (const f of batch) fail(f.feedbackExplorerId, e);
         continue;
       }
-      await mapLimit(batch, 25, async (f, i) => {
+      await mapLimit(batch, concurrency, async (f, i) => {
         try {
           const { entry, aspects } = buildRecords(f, tax, await enrich(f), !noEnrichment);
           const client = await pool.connect();
