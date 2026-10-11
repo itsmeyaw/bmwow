@@ -24,6 +24,9 @@ export function Crumbs() {
       items.push({ label: car, href: `/feedback/${derivate}` });
       items.push({ label: countryName(region) });
     }
+  } else if (section === "analysis") {
+    items.push({ label: "Analysis", href: "/analysis" });
+    if (derivate) items.push({ label: decodeURIComponent(derivate) });
   }
   return (
     <Breadcrumb>
