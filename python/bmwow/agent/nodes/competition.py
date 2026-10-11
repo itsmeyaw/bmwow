@@ -172,7 +172,7 @@ def _ontology_finding(ctx: AgentContext, model: ModelNode, av: AttributeValue) -
     src = ctx.add_source(attribute_source(model, av))
     numeric = isinstance(av.value, (int, float)) and not isinstance(av.value, bool)
     unit = f" {av.unit}" if av.unit else ""
-    note = f" ({av.source_note})" if av.source_note else ""
+    note = f" ({av.source_note.split(';')[0]})" if av.source_note else ""  # readable statement only
     prefix = "The source reports" if av.references else ""
     variant = av.variant
     pt = (

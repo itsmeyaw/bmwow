@@ -63,7 +63,9 @@ async def run(ctx: AgentContext) -> None:
             )
             if x
         )
-        note = f" ({av.source_note})" if av.source_note else ""
+        note = (
+            f" ({av.source_note.split(';')[0]})" if av.source_note else ""
+        )  # readable statement only
         offered = f", {av.availability}" if av.availability and av.availability != "unknown" else ""
         prefix = "The source reports" if av.references else "The reference model"
         ctx.add(
