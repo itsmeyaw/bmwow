@@ -41,7 +41,7 @@ export function parseSituationPage(page: unknown): SituationPage | null {
 export const feedbackCountry = (region: SituationPage["region"]) =>
   region === "US" || region === "CN" ? region : null;
 
-/** "fb:evidence:bmw-feedback:G60-0309" → "G60-0309", the id form the chat cites. */
+/** "fb:evidence:bmw-feedback:G60-0042" → "G60-0042", the id form the chat cites. */
 export const shortFeedbackId = (sourceId: string) =>
   sourceId
     .replace(/^fb:/, "")

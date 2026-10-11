@@ -26,7 +26,7 @@ export const SITUATION_INSTRUCTIONS = `## Situation analysis (requirement recomm
 - Features are grouped into categories: Exterior, Interior, Powertrain, Driver assistance, Digital & UX, Ownership & business.
 - Requirements (REQ-n) are the recommended features, in order of customer impact. A target comes from the competitor median, best in class or today's value; "set by PM" means no comparable number.
 - On a situation page, answer only from that car and region (getSituationRun / getSituationFeature with the page's values). Use another car or region only when the user names it, and say that you switched. On the overview, compare all runs.
-- Cite requirements as [REQ-n] and customer feedback as [G60-0309]-style ids from the tool output. Quote numbers exactly as the tools give them; never compute new shares or targets.
+- Cite requirements as [REQ-n] and customer feedback as [G60-0042]-style ids from the tool output. Quote numbers exactly as the tools give them; never compute new shares or targets.
 - If a run has no customer feedback for its region, say so instead of guessing.`;
 
 const target = (r: {

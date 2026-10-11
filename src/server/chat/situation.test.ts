@@ -47,7 +47,7 @@ describe("helpers", () => {
   });
 
   it("shortens stored feedback ids to the cited form", () => {
-    expect(shortFeedbackId("fb:evidence:bmw-feedback:G60-0309")).toBe("G60-0309");
+    expect(shortFeedbackId("fb:evidence:bmw-feedback:G60-0042")).toBe("G60-0042");
   });
 });
 
