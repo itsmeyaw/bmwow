@@ -1,0 +1,132 @@
+# Competitor models for the knowledge layer (public information only). Status: PROPOSED (2026-10-11).
+# scripts/stage_competitors.py turns each entry into a VehicleModel node, a model profile (segment,
+# powertrains, sold regions) and COMPETES_WITH edges to the BMW models it is compared with.
+# A competitor relation is a scoped choice for a segment and its regions, not implied by the brand.
+
+- id: vehicle:mercedes-benz-e-class-w214
+  label: Mercedes-Benz E-Class
+  brand: Mercedes-Benz
+  vehicle_line: E-Class Sedan
+  generation_code: W214
+  aliases: [E-Class, Mercedes E-Class, Mercedes-Benz E-Class Sedan]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice/phev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g60, vehicle:bmw-g68]
+  rationale: Same segment (upper-midsize premium sedan), same price band, sold in the G60 regions.
+- id: vehicle:mercedes-benz-eqe-v295
+  label: Mercedes-Benz EQE
+  brand: Mercedes-Benz
+  vehicle_line: EQE Sedan
+  generation_code: V295
+  aliases: [EQE, Mercedes EQE, Mercedes-EQ EQE]
+  segment: premium_upper_midsize_sedan
+  powertrain: bev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g60, vehicle:bmw-g68]
+  rationale: Battery-electric upper-midsize premium sedan; the comparison for i5 variants.
+- id: vehicle:audi-a6-e-tron
+  label: Audi A6
+  brand: Audi
+  vehicle_line: A6 Sportback e-tron / A6
+  generation_code: null
+  aliases: [Audi A6 Sportback e-tron, A6 e-tron, A6 Sportback e-tron, Audi A6 e-tron]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice/phev/bev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g60, vehicle:bmw-g68]
+  rationale: Upper-midsize premium sedan / Sportback with combustion and electric variants.
+- id: vehicle:genesis-g80
+  label: Genesis G80
+  brand: Genesis
+  vehicle_line: G80
+  generation_code: RG3
+  aliases: [G80, Genesis G80 Electrified, Electrified G80]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice/bev
+  sold_regions: [EU, US]
+  competes_with: [vehicle:bmw-g60]
+  rationale: Upper-midsize premium sedan with combustion and electric variants in the US and EU.
+
+# ---- F70 (BMW 1 Series): premium compact, EU
+- id: vehicle:audi-a3-8y
+  label: Audi A3
+  brand: Audi
+  vehicle_line: A3 Sportback / Sedan
+  generation_code: 8Y
+  aliases: [A3, Audi A3 Sportback, A3 Sportback]
+  segment: premium_compact
+  powertrain: ice/phev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-f70]
+  rationale: Premium compact hatchback in the 1 Series price band, sold in the F70 region.
+- id: vehicle:mercedes-benz-a-class-w177
+  label: Mercedes-Benz A-Class
+  brand: Mercedes-Benz
+  vehicle_line: A-Class Hatchback
+  generation_code: W177
+  aliases: [A-Class, Mercedes A-Class, Mercedes-Benz A-Class Hatchback]
+  segment: premium_compact
+  powertrain: ice/phev
+  sold_regions: [EU, CN]
+  competes_with: [vehicle:bmw-f70]
+  rationale: Premium compact hatchback, the direct 1 Series rival in Europe.
+
+# ---- G70 (BMW 7 Series / i7): full-size luxury sedan, EU/US/CN
+- id: vehicle:mercedes-benz-s-class-w223
+  label: Mercedes-Benz S-Class
+  brand: Mercedes-Benz
+  vehicle_line: S-Class Sedan
+  generation_code: W223
+  aliases: [S-Class, Mercedes S-Class, S 450, S 580]
+  segment: premium_full_size_luxury_sedan
+  powertrain: ice/phev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g70]
+  rationale: Full-size luxury sedan, the benchmark rival of the 7 Series in all G70 regions.
+- id: vehicle:mercedes-benz-eqs-v297
+  label: Mercedes-Benz EQS
+  brand: Mercedes-Benz
+  vehicle_line: EQS Sedan
+  generation_code: V297
+  aliases: [EQS, Mercedes EQS, Mercedes-EQ EQS, EQS 450+]
+  segment: premium_full_size_luxury_sedan
+  powertrain: bev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g70]
+  rationale: Battery-electric luxury sedan; the comparison for the i7.
+- id: vehicle:audi-a8-d5
+  label: Audi A8
+  brand: Audi
+  vehicle_line: A8 / A8 L
+  generation_code: D5
+  aliases: [A8, A8 L, Audi A8 L]
+  segment: premium_full_size_luxury_sedan
+  powertrain: ice/phev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g70]
+  rationale: Full-size luxury sedan sold in all G70 regions.
+
+# ---- G68 (BMW 5 Series long wheelbase): China-market long-wheelbase executive sedans
+- id: vehicle:mercedes-benz-e-class-l
+  label: Mercedes-Benz E-Class L
+  brand: Mercedes-Benz
+  vehicle_line: E-Class L (long wheelbase, China)
+  generation_code: V214
+  aliases: [E-Class L, Mercedes E-Class L, E 260 L, E 300 L]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice
+  sold_regions: [CN]
+  competes_with: [vehicle:bmw-g68]
+  rationale: Long-wheelbase executive sedan built for China, the direct G68 rival.
+- id: vehicle:audi-a6l
+  label: Audi A6L
+  brand: Audi
+  vehicle_line: A6L / A6L e-tron (long wheelbase, China)
+  generation_code: null
+  aliases: [A6L, Audi A6L e-tron, A6L e-tron]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice/bev
+  sold_regions: [CN]
+  competes_with: [vehicle:bmw-g68]
+  rationale: Long-wheelbase executive sedan (combustion and electric) built for China.
