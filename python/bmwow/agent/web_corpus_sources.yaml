@@ -1,0 +1,3 @@
+# Approved URLs for the local web corpus (scripts/build_web_corpus.py). Public pages only.
+# Each entry: url, tags (competitor:<name> | feature keys | trend), region (EU | US | CN | GLOBAL), why.
+[]

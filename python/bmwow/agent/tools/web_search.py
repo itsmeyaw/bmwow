@@ -223,9 +223,16 @@ def set_search_backend(backend: CachedSearchBackend | None) -> None:
 
 
 def get_search_backend() -> CachedSearchBackend:
+    """The configured backend. SEARCH_BACKEND=corpus serves the saved web corpus (no network);
+    otherwise the live provider behind the on-disk cache (OFFLINE_MODE: cache only)."""
     global _backend
     if _backend is None:
         s = get_settings()
+        if s.search_backend == "corpus":
+            from .web_corpus import CorpusSearchBackend
+
+            _backend = CorpusSearchBackend(s.web_corpus_dir)  # type: ignore[assignment]
+            return _backend  # type: ignore[return-value]
         provider: PageProvider | None = None
         if not s.offline_mode:
             if s.search_backend == "firecrawl":

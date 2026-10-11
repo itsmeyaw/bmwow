@@ -40,7 +40,7 @@ class Settings:
     llm_cheap: str
     embedding_model: str
     firecrawl_api_key: str
-    search_backend: Literal["firecrawl", "openai", "brave"]
+    search_backend: Literal["firecrawl", "corpus", "openai", "brave"]
     offline_mode: bool
     max_competitors: int
     stale_after_days: int
@@ -62,6 +62,10 @@ class Settings:
     @property
     def web_cache_dir(self) -> Path:
         return self.data_dir / "processed" / "web_cache"
+
+    @property
+    def web_corpus_dir(self) -> Path:
+        return self.data_dir / "web_corpus"
 
     @property
     def analyses_dir(self) -> Path:
