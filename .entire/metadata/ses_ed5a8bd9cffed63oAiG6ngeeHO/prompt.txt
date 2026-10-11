@@ -1,0 +1,1 @@
+Breadcrumb for analysis ([<header class="flex h-16 sh..." /> in DashboardLayout (at src/app/(dashboard)/layout.tsx:15:11) in SidebarInset in SidebarProvider in ChatProvider]) is missing.

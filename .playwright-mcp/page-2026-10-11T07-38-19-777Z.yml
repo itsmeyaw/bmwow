@@ -1,0 +1,175 @@
+- generic [active] [ref=f15e1]:
+  - generic [ref=f15e2]:
+    - generic [ref=f15e5]:
+      - list [ref=f15e7]:
+        - listitem [ref=f15e8]:
+          - link "BMWow Customer feedback" [ref=f15e9] [cursor=pointer]:
+            - /url: /analysis
+            - generic [ref=f15e21]:
+              - generic [ref=f15e22]: BMWow
+              - generic [ref=f15e23]: Customer feedback
+      - list [ref=f15e26]:
+        - listitem [ref=f15e27]:
+          - link "Analysis" [ref=f15e28] [cursor=pointer]:
+            - /url: /analysis
+        - listitem [ref=f15e32]:
+          - link "Situation analysis" [ref=f15e33] [cursor=pointer]:
+            - /url: /situation
+      - list [ref=f15e40]:
+        - listitem [ref=f15e41]:
+          - button "PM Product Manager pm@bmw.example" [ref=f15e42]:
+            - generic [ref=f15e43]: PM
+            - generic [ref=f15e45]:
+              - generic [ref=f15e46]: Product Manager
+              - generic [ref=f15e47]: pm@bmw.example
+    - main [ref=f15e48]:
+      - generic [ref=f15e49]:
+        - button "Toggle Sidebar" [ref=f15e50]
+        - separator [ref=f15e52]
+        - navigation "breadcrumb":
+          - list
+      - generic [ref=f15e53]:
+        - generic [ref=f15e54]:
+          - generic [ref=f15e55]:
+            - heading "Situation analysis" [level=1] [ref=f15e56]
+            - paragraph [ref=f15e57]: Requirements for each car's successor, per market.
+          - list [ref=f15e58]:
+            - listitem "We fall short of what customers expect or competitors offer." [ref=f15e59]: Gap
+            - listitem "Customers or the market ask for more, regardless of competitors." [ref=f15e61]: Demand
+            - 'listitem "A basic expectation: customers complain, but competitors are no better. Keep the level, fix the complaints." [ref=f15e63]': Must-have
+            - listitem "We lead, or customers praise it. Keep it." [ref=f15e65]: Strength
+        - generic [ref=f15e67]:
+          - generic [ref=f15e68]:
+            - generic [ref=f15e69]:
+              - link "F70" [ref=f15e71] [cursor=pointer]:
+                - /url: /situation/F70?region=EU
+              - generic [ref=f15e72]:
+                - text: BMW 1 Series (F70)
+                - generic [ref=f15e73]: 2,128 feedback · Good
+            - generic [ref=f15e74]:
+              - list [ref=f15e75]:
+                - listitem [ref=f15e76]:
+                  - link "EU 4 req." [ref=f15e77] [cursor=pointer]:
+                    - /url: /situation/F70?region=EU
+                    - generic [ref=f15e78]: EU
+                    - 'generic "Gap: 3 · Demand: 1 · Must-have: 0 · Strength: 2 · Unclear: 34" [ref=f15e79]'
+                    - generic [ref=f15e83]: 4 req.
+              - paragraph [ref=f15e84]:
+                - generic [ref=f15e85]: "#1 (EU)"
+                - text: Infotainment connectivity
+          - generic [ref=f15e86]:
+            - generic [ref=f15e87]:
+              - link "G60" [ref=f15e89] [cursor=pointer]:
+                - /url: /situation/G60?region=US
+              - generic [ref=f15e90]:
+                - text: BMW 5 Series Sedan (G60)
+                - generic [ref=f15e91]: 4,000 feedback · Good
+            - generic [ref=f15e92]:
+              - list [ref=f15e93]:
+                - listitem [ref=f15e94]:
+                  - link "All 11 req." [ref=f15e95] [cursor=pointer]:
+                    - /url: /situation/G60?region=ALL
+                    - generic [ref=f15e96]: All
+                    - 'generic "Gap: 11 · Demand: 0 · Must-have: 3 · Strength: 5 · Unclear: 55" [ref=f15e97]'
+                    - generic [ref=f15e101]: 11 req.
+                - listitem [ref=f15e102]:
+                  - link "EU 9 req." [ref=f15e103] [cursor=pointer]:
+                    - /url: /situation/G60?region=EU
+                    - generic [ref=f15e104]: EU
+                    - 'generic "Gap: 4 · Demand: 1 · Must-have: 1 · Strength: 5 · Unclear: 32" [ref=f15e105]'
+                    - generic [ref=f15e110]: 9 req.
+                - listitem [ref=f15e111]:
+                  - link "US 12 req." [ref=f15e112] [cursor=pointer]:
+                    - /url: /situation/G60?region=US
+                    - generic [ref=f15e113]: US
+                    - 'generic "Gap: 14 · Demand: 0 · Must-have: 0 · Strength: 4 · Unclear: 49" [ref=f15e114]'
+                    - generic [ref=f15e117]: 12 req.
+              - paragraph [ref=f15e118]:
+                - generic [ref=f15e119]: "#1 (US)"
+                - text: Fast charging
+          - generic [ref=f15e120]:
+            - generic [ref=f15e121]:
+              - link "G68" [ref=f15e123] [cursor=pointer]:
+                - /url: /situation/G68?region=CN
+              - generic [ref=f15e124]:
+                - text: BMW 5 Series Sedan long wheelbase (G68)
+                - generic [ref=f15e125]: No customer feedback
+            - generic [ref=f15e126]:
+              - list [ref=f15e127]:
+                - listitem [ref=f15e128]:
+                  - link "CN 3 req." [ref=f15e129] [cursor=pointer]:
+                    - /url: /situation/G68?region=CN
+                    - generic [ref=f15e130]: CN
+                    - 'generic "Gap: 0 · Demand: 4 · Must-have: 0 · Strength: 0 · Unclear: 31" [ref=f15e131]'
+                    - generic [ref=f15e133]: 3 req.
+              - paragraph [ref=f15e134]:
+                - generic [ref=f15e135]: "#1 (CN)"
+                - text: Clear displays
+          - generic [ref=f15e136]:
+            - generic [ref=f15e137]:
+              - link "G70" [ref=f15e139] [cursor=pointer]:
+                - /url: /situation/G70?region=ALL
+              - generic [ref=f15e140]:
+                - text: BMW 7 Series (G70)
+                - generic [ref=f15e141]: 4,000 feedback · Good
+            - generic [ref=f15e142]:
+              - list [ref=f15e143]:
+                - listitem [ref=f15e144]:
+                  - link "All 12 req." [ref=f15e145] [cursor=pointer]:
+                    - /url: /situation/G70?region=ALL
+                    - generic [ref=f15e146]: All
+                    - 'generic "Gap: 12 · Demand: 0 · Must-have: 0 · Strength: 6 · Unclear: 55" [ref=f15e147]'
+                    - generic [ref=f15e150]: 12 req.
+                - listitem [ref=f15e151]:
+                  - link "CN 1 req." [ref=f15e152] [cursor=pointer]:
+                    - /url: /situation/G70?region=CN
+                    - generic [ref=f15e153]: CN
+                    - 'generic "Gap: 0 · Demand: 2 · Must-have: 0 · Strength: 0 · Unclear: 27" [ref=f15e154]'
+                    - generic [ref=f15e156]: 1 req.
+                - listitem [ref=f15e157]:
+                  - link "EU 1 req." [ref=f15e158] [cursor=pointer]:
+                    - /url: /situation/G70?region=EU
+                    - generic [ref=f15e159]: EU
+                    - 'generic "Gap: 0 · Demand: 1 · Must-have: 0 · Strength: 0 · Unclear: 34" [ref=f15e160]'
+                    - generic [ref=f15e162]: 1 req.
+                - listitem [ref=f15e163]:
+                  - link "US 12 req." [ref=f15e164] [cursor=pointer]:
+                    - /url: /situation/G70?region=US
+                    - generic [ref=f15e165]: US
+                    - 'generic "Gap: 12 · Demand: 0 · Must-have: 0 · Strength: 6 · Unclear: 49" [ref=f15e166]'
+                    - generic [ref=f15e169]: 12 req.
+              - paragraph [ref=f15e170]:
+                - generic [ref=f15e171]: "#1 (all)"
+                - text: Fast charging
+    - complementary [ref=f15e172]:
+      - separator "Resize chat" [ref=f15e173]
+      - generic [ref=f15e174]:
+        - button "Collapse chat" [expanded] [ref=f15e175]
+        - generic [ref=f15e176]: Ask about this view
+        - button "New chat" [disabled]
+      - generic [ref=f15e178]:
+        - button "Which car has the most pressing issue?" [ref=f15e179]
+        - button "What should be improved across all cars?" [ref=f15e180]
+        - button "What should be added to our cars?" [ref=f15e181]
+      - generic [ref=f15e182]:
+        - textbox "Chat message" [ref=f15e183]:
+          - /placeholder: Ask a question…
+        - button "Send" [disabled]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - button "Copy element"
+          - button "Collapse toolbar" [expanded]
+  - button "Open Next.js Dev Tools" [ref=f15e189] [cursor=pointer]:
+    - generic [ref=f15e192]:
+      - text: Compiling
+      - generic [ref=f15e193]:
+        - generic [ref=f15e194]: .
+        - generic [ref=f15e195]: .
+        - generic [ref=f15e196]: .
+  - alert [ref=f15e197]

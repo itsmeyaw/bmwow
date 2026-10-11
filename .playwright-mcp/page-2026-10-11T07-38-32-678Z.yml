@@ -1,0 +1,343 @@
+- generic [active] [ref=f16e1]:
+  - generic [ref=f16e2]:
+    - generic [ref=f16e5]:
+      - list [ref=f16e7]:
+        - listitem [ref=f16e8]:
+          - link "BMWow Customer feedback" [ref=f16e9] [cursor=pointer]:
+            - /url: /analysis
+            - generic [ref=f16e21]:
+              - generic [ref=f16e22]: BMWow
+              - generic [ref=f16e23]: Customer feedback
+      - list [ref=f16e26]:
+        - listitem [ref=f16e27]:
+          - link "Analysis" [ref=f16e28] [cursor=pointer]:
+            - /url: /analysis
+        - listitem [ref=f16e32]:
+          - link "Situation analysis" [ref=f16e33] [cursor=pointer]:
+            - /url: /situation
+      - list [ref=f16e40]:
+        - listitem [ref=f16e41]:
+          - button "PM Product Manager pm@bmw.example" [ref=f16e42]:
+            - generic [ref=f16e43]: PM
+            - generic [ref=f16e45]:
+              - generic [ref=f16e46]: Product Manager
+              - generic [ref=f16e47]: pm@bmw.example
+    - main [ref=f16e48]:
+      - generic [ref=f16e49]:
+        - button "Toggle Sidebar" [ref=f16e50]
+        - separator [ref=f16e52]
+        - navigation "breadcrumb":
+          - list
+      - generic [ref=f16e53]:
+        - generic [ref=f16e54]:
+          - generic [ref=f16e55]:
+            - heading "G70" [level=1] [ref=f16e56]
+            - generic [ref=f16e57]:
+              - generic [ref=f16e58]: BMW 7 Series (G70)
+              - generic [ref=f16e59]: premium full size luxury sedan
+          - generic [ref=f16e60]:
+            - navigation [ref=f16e61]:
+              - text: Market
+              - generic [ref=f16e62]:
+                - link "All" [ref=f16e63] [cursor=pointer]:
+                  - /url: "?region=ALL"
+                - link "CN" [ref=f16e64] [cursor=pointer]:
+                  - /url: "?region=CN"
+                - link "EU" [ref=f16e65] [cursor=pointer]:
+                  - /url: "?region=EU"
+                - link "US" [ref=f16e66] [cursor=pointer]:
+                  - /url: "?region=US"
+            - generic [ref=f16e67]:
+              - text: Feedback engine
+              - combobox "Feedback engine" [ref=f16e68]:
+                - generic [ref=f16e69]: All engines
+              - textbox [aria-hidden] [ref=f16e70]: all
+        - generic [ref=f16e71]:
+          - generic [ref=f16e73]:
+            - generic [ref=f16e74]: Customer feedback
+            - generic [ref=f16e75]: 4,000
+            - paragraph [ref=f16e77]: Good sentiment · +0.16
+          - generic [ref=f16e79]:
+            - generic [ref=f16e80]: Feedback with a problem
+            - generic [ref=f16e81]: 39%
+            - paragraph [ref=f16e83]: "Top: Infotainment & Connectivity"
+          - generic [ref=f16e85]:
+            - generic [ref=f16e86]: Recommended requirements
+            - generic [ref=f16e87]: "12"
+            - paragraph [ref=f16e89]: from 73 features analysed
+          - generic [ref=f16e91]:
+            - generic [ref=f16e92]: Evidence complete
+            - generic [ref=f16e93]: 4 of 4
+            - list [ref=f16e95]:
+              - 'listitem "catalog: unavailable no catalog values for G70" [ref=f16e96]': Our model
+              - listitem "Complete" [ref=f16e98]: Competitors
+              - 'listitem "feedback:CN: unavailable no feedback items (markets: CN)" [ref=f16e100]': Customers
+              - listitem "Complete" [ref=f16e102]: Trends
+        - generic [ref=f16e104]:
+          - generic [ref=f16e105]:
+            - generic [ref=f16e106]:
+              - generic [ref=f16e107]: Feature verdicts
+              - generic [ref=f16e108]: All categories · hover for meaning
+            - generic [ref=f16e110]:
+              - application [ref=f16e404]:
+                - generic [ref=f16e405]: 18features
+              - list [ref=f16e114]:
+                - listitem "We fall short of what customers expect or competitors offer." [ref=f16e115]:
+                  - generic [ref=f16e117]: Gap
+                  - generic [ref=f16e118]: "12"
+                - listitem "Customers or the market ask for more, regardless of competitors." [ref=f16e119]:
+                  - generic [ref=f16e121]: Demand
+                  - generic [ref=f16e122]: "0"
+                - 'listitem "A basic expectation: customers complain, but competitors are no better. Keep the level, fix the complaints." [ref=f16e123]':
+                  - generic [ref=f16e125]: Must-have
+                  - generic [ref=f16e126]: "0"
+                - listitem "We lead, or customers praise it. Keep it." [ref=f16e127]:
+                  - generic [ref=f16e129]: Strength
+                  - generic [ref=f16e130]: "6"
+          - generic [ref=f16e131]:
+            - generic [ref=f16e132]:
+              - generic [ref=f16e133]: Requirements by category
+              - generic [ref=f16e134]: Click a bar to filter
+            - application [ref=f16e415]:
+              - generic [ref=f16e416]:
+                - generic [ref=f16e417] [cursor=pointer]
+                - generic [ref=f16e438] [cursor=pointer]
+              - generic [ref=f16e445]:
+                - generic [ref=f16e446]: Exterior 3
+                - generic [ref=f16e448]: Interior 2
+                - generic [ref=f16e450]: Powertrain 3
+                - generic [ref=f16e452]: Driver assistance 1
+                - generic [ref=f16e454]: Digital & UX 2
+                - generic [ref=f16e456]: Ownership & business 1
+        - generic [ref=f16e139]:
+          - generic [ref=f16e140]:
+            - generic [ref=f16e141]: Recommended requirements
+            - generic [ref=f16e142]: By customer impact · click a row for the evidence
+          - table [ref=f16e145]:
+            - rowgroup [ref=f16e146]:
+              - row [ref=f16e147]:
+                - columnheader "#" [ref=f16e148]
+                - columnheader "Feature" [ref=f16e149]
+                - columnheader "Verdict" [ref=f16e150]
+                - columnheader "Requirement" [ref=f16e151]
+                - columnheader "Target" [ref=f16e152]
+                - columnheader "Customer problems" [ref=f16e153]
+            - rowgroup [ref=f16e154]:
+              - row [ref=f16e155]:
+                - cell "REQ-1" [ref=f16e156]
+                - cell [ref=f16e157]:
+                  - link "Fast charging" [ref=f16e158] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=fast_charging"
+                  - paragraph [ref=f16e159]: Powertrain
+                - cell "Gap" [ref=f16e160]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e161]: Gap
+                - cell [ref=f16e162]:
+                  - paragraph [ref=f16e163]: Public charging with external providers by achieving <= 31 min 10-80%; BEV, matching the competitor median.
+                - cell "<= 31 min" [ref=f16e164]
+                - cell "4.3%" [ref=f16e165]
+              - row [ref=f16e170]:
+                - cell "REQ-2" [ref=f16e171]
+                - cell [ref=f16e172]:
+                  - link "Exterior design body" [ref=f16e173] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=unmapped%3Aexterior_design_body"
+                  - paragraph [ref=f16e174]: Exterior
+                - cell "Gap" [ref=f16e175]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e176]: Gap
+                - cell [ref=f16e177]:
+                  - paragraph [ref=f16e178]: "Exterior design body, specifically the Panorama glass roof: 3.2% of US feedback items report a problem (120 of 3792)."
+                - cell "set by PM" [ref=f16e179]
+                - cell "3.2%" [ref=f16e180]
+              - row [ref=f16e185]:
+                - cell "REQ-3" [ref=f16e186]
+                - cell [ref=f16e187]:
+                  - link "Infotainment connectivity" [ref=f16e188] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=unmapped%3Ainfotainment_connectivity"
+                  - paragraph [ref=f16e189]: Digital & UX
+                - cell "Gap" [ref=f16e190]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e191]: Gap
+                - cell [ref=f16e192]:
+                  - paragraph [ref=f16e193]: Personal eSIM connectivity. In the US, 2.9% of feedback items report an infotainment-connectivity problem (109 of 3792), including 35 Personal eSIM problem items.
+                - cell "set by PM" [ref=f16e194]
+                - cell "2.9%" [ref=f16e195]
+              - row [ref=f16e200]:
+                - cell "REQ-4" [ref=f16e201]
+                - cell [ref=f16e202]:
+                  - link "Intuitive UX" [ref=f16e203] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=intuitive_ux"
+                  - paragraph [ref=f16e204]: Digital & UX
+                - cell "Gap" [ref=f16e205]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e206]: Gap
+                - cell [ref=f16e207]:
+                  - paragraph [ref=f16e208]: "The successor’s operating concept and operating system: 2.6% of US feedback items (100 of 3792) report an intuitive-UX problem, and operating concept/system accounts for 33 of 100 problem items."
+                - cell "set by PM" [ref=f16e209]
+                - cell "2.6%" [ref=f16e210]
+              - row [ref=f16e215]:
+                - cell "REQ-5" [ref=f16e216]
+                - cell [ref=f16e217]:
+                  - link "Driver assistance" [ref=f16e218] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=driver_assistance"
+                  - paragraph [ref=f16e219]: Driver assistance
+                - cell "Gap" [ref=f16e220]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e221]: Gap
+                - cell [ref=f16e222]:
+                  - paragraph [ref=f16e223]: (Active) cruise control to reach >= 80 mph, matching the competitor median (80 mph).
+                - cell ">= 80 mph" [ref=f16e224]
+                - cell "2.5%" [ref=f16e225]
+              - row [ref=f16e230]:
+                - cell "REQ-6" [ref=f16e231]
+                - cell [ref=f16e232]:
+                  - link "Climate comfort" [ref=f16e233] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=climate_comfort"
+                  - paragraph [ref=f16e234]: Interior
+                - cell "Gap" [ref=f16e235]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e236]: Gap
+                - cell [ref=f16e237]:
+                  - paragraph [ref=f16e238]: "Vehicle climatization, particularly reaching and maintaining the desired cabin temperature: 2.5% of feedback items in US report a problem (94 of 3792)."
+                - cell "set by PM" [ref=f16e239]
+                - cell "2.5%" [ref=f16e240]
+              - row [ref=f16e245]:
+                - cell "REQ-7" [ref=f16e246]
+                - cell [ref=f16e247]:
+                  - link "Powertrain performance" [ref=f16e248] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=unmapped%3Apowertrain_performance"
+                  - paragraph [ref=f16e249]: Powertrain
+                - cell "Strength" [ref=f16e250]:
+                  - generic "We lead, or customers praise it. Keep it." [ref=f16e251]: Strength
+                - cell [ref=f16e252]:
+                  - paragraph [ref=f16e253]: "Strong engine power and torque: 7.1% of feedback items across the requested regions praise powertrain performance (269 of 3802)."
+                - cell "set by PM" [ref=f16e254]
+                - cell "1.9%" [ref=f16e255]
+              - row [ref=f16e260]:
+                - cell "REQ-8" [ref=f16e261]
+                - cell [ref=f16e262]:
+                  - link "Service docs support" [ref=f16e263] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=unmapped%3Aservice_docs_support"
+                  - paragraph [ref=f16e264]: Ownership & business
+                - cell "Gap" [ref=f16e265]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e266]: Gap
+                - cell [ref=f16e267]:
+                  - paragraph [ref=f16e268]: Owner's Manual support by making specific information easier to find; in the US, 1.8% of feedback items report a problem (68 of 3792), with Owner's Manual cited in 13 of 68 problem items.
+                - cell "set by PM" [ref=f16e269]
+                - cell "1.8%" [ref=f16e270]
+              - row [ref=f16e275]:
+                - cell "REQ-9" [ref=f16e276]
+                - cell [ref=f16e277]:
+                  - link "Real world range" [ref=f16e278] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=real_world_range"
+                  - paragraph [ref=f16e279]: Powertrain
+                - cell "Gap" [ref=f16e280]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e281]: Gap
+                - cell [ref=f16e282]:
+                  - paragraph [ref=f16e283]: Real-world electric range (Electric Range) to >= 390 miles BEV, matching the competitor median.
+                - cell ">= 390 miles" [ref=f16e284]
+                - cell "1.8%" [ref=f16e285]
+              - row [ref=f16e290]:
+                - cell "REQ-10" [ref=f16e291]
+                - cell [ref=f16e292]:
+                  - link "Keyless access" [ref=f16e293] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=keyless_access"
+                  - paragraph [ref=f16e294]: Exterior
+                - cell "Gap" [ref=f16e295]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e296]: Gap
+                - cell [ref=f16e297]:
+                  - paragraph [ref=f16e298]: "Digital Key: it is cited in 12 of 57 keyless-access problem items, and 1.5% of US feedback items report a keyless-access problem (57 of 3792)."
+                - cell "set by PM" [ref=f16e299]
+                - cell "1.5%" [ref=f16e300]
+              - row [ref=f16e305]:
+                - cell "REQ-11" [ref=f16e306]
+                - cell [ref=f16e307]:
+                  - link "Easy entry" [ref=f16e308] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=easy_entry"
+                  - paragraph [ref=f16e309]: Exterior
+                - cell "Gap" [ref=f16e310]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e311]: Gap
+                - cell [ref=f16e312]:
+                  - paragraph [ref=f16e313]: Automatic-door operation for easier entry; 1.5% of feedback items in US report a problem (55 of 3792).
+                - cell "set by PM" [ref=f16e314]
+                - cell "1.5%" [ref=f16e315]
+              - row [ref=f16e320]:
+                - cell "REQ-12" [ref=f16e321]
+                - cell [ref=f16e322]:
+                  - link "Flexible storage" [ref=f16e323] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=flexible_storage"
+                  - paragraph [ref=f16e324]: Interior
+                - cell "Gap" [ref=f16e325]:
+                  - generic "We fall short of what customers expect or competitors offer." [ref=f16e326]: Gap
+                - cell [ref=f16e327]:
+                  - paragraph [ref=f16e328]: Storage compartments to >= 522.5 l.
+                - cell ">= 522.5 l" [ref=f16e329]
+                - cell "1.4%" [ref=f16e330]
+        - generic [ref=f16e335]:
+          - generic [ref=f16e336]:
+            - generic [ref=f16e337]: Customer voice
+            - generic [ref=f16e338]: Share of 4,000 feedback items (G70 · All) · most pressing first · click a bar for verbatims
+            - link "Full ranking" [ref=f16e340] [cursor=pointer]:
+              - /url: /analysis/G70
+          - generic [ref=f16e342]:
+            - generic [ref=f16e343]:
+              - generic [ref=f16e344]: ← Complaints
+              - generic [ref=f16e345]: Praise →
+            - application [ref=f16e458]:
+              - generic [ref=f16e459]:
+                - generic [ref=f16e460] [cursor=pointer]
+                - generic [ref=f16e490] [cursor=pointer]
+              - generic [ref=f16e520]:
+                - generic [ref=f16e521]:
+                  - generic [ref=f16e522]: 11%
+                  - generic [ref=f16e524]: 5.5%
+                  - generic [ref=f16e526]: "0"
+                  - generic [ref=f16e528]: 5.5%
+                  - generic [ref=f16e530]: 11%
+                - generic [ref=f16e532]:
+                  - generic [ref=f16e533]: Infotainment & Connectivity
+                  - generic [ref=f16e535]: Exterior Design & Body
+                  - generic [ref=f16e537]: Powertrain & Performance
+                  - generic [ref=f16e539]: Access, Locking & Keys
+                  - generic [ref=f16e541]: Service, Docs & Support
+                  - generic [ref=f16e543]: ADAS / Driving Assistance
+                  - generic [ref=f16e545]: Instruments & Controls
+                  - generic [ref=f16e547]: Electrification & Charging
+                  - generic [ref=f16e549]: Chassis, Ride & Handling
+        - generic [ref=f16e349]:
+          - generic [ref=f16e350]:
+            - generic [ref=f16e351]: Other assessed features
+            - generic [ref=f16e352]: Not recommended · mostly rule-based, so less certain · 55 more with too little evidence
+          - generic [ref=f16e353]:
+            - generic [ref=f16e354]:
+              - generic "We fall short of what customers expect or competitors offer." [ref=f16e356]: Gap
+              - link "Smartphone integration1.4%" [ref=f16e358] [cursor=pointer]:
+                - /url: "?region=ALL&feature=smartphone_integration"
+            - generic [ref=f16e359]:
+              - generic "We lead, or customers praise it. Keep it." [ref=f16e361]: Strength
+              - generic [ref=f16e362]:
+                - link "Comfortable seats1.4%" [ref=f16e363] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=comfortable_seats"
+                - link "Interior design materials0.3%" [ref=f16e364] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=unmapped%3Ainterior_design_materials"
+                - link "Dynamic handling0.6%" [ref=f16e365] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=dynamic_handling"
+                - link "Iconic design0.1%" [ref=f16e366] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=iconic_design"
+                - link "Seats comfort" [ref=f16e367] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=unmapped%3Aseats_comfort"
+        - paragraph [ref=f16e368]: Run g70-all · 10/11/2026, 7:36:01 AM · gpt-6-luna
+    - complementary [ref=f16e369]:
+      - separator "Resize chat" [ref=f16e370]
+      - generic [ref=f16e371]:
+        - button "Collapse chat" [expanded] [ref=f16e372]
+        - generic [ref=f16e373]: Ask about this view
+        - button "New chat" [disabled]
+      - generic [ref=f16e375]:
+        - button "What is the most pressing issue of the G70?" [ref=f16e376]
+        - button "What should be improved from this G70?" [ref=f16e377]
+        - button "What should be added to this G70?" [ref=f16e378]
+      - generic [ref=f16e379]:
+        - textbox "Chat message" [ref=f16e380]:
+          - /placeholder: Ask a question…
+        - button "Send" [disabled]
+  - button "Open Next.js Dev Tools" [ref=f16e386] [cursor=pointer]
+  - alert [ref=f16e390]
+  - generic [ref=f16e392]:
+    - button "Copy element" [ref=f16e397] [cursor=pointer]
+    - button "Collapse toolbar" [expanded] [ref=f16e401] [cursor=pointer]
+  - generic [aria-hidden] [ref=f16e551]: "0"

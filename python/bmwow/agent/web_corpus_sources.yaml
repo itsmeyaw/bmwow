@@ -1,0 +1,388 @@
+# Approved URLs for the local web corpus (scripts/build_web_corpus.py). Public pages only.
+# Each entry: url, tags (competitor:<name> | feature keys | trend), region (EU | US | CN | GLOBAL), why.
+# Status: PROPOSED (2026-10-11) — download only after review. Competitor entries carry
+# segment:<name>; the corpus only offers competitors of the analysed model's segment.
+
+# ---------------------------------------------------------------- competitors, EU (WLTP)
+- url: https://ev-database.org/car/3240/Mercedes-Benz-EQE-350plus
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz EQE, competitor:Mercedes-Benz E-Class, real_world_range, fast_charging, efficiency]
+  region: EU
+  why: EV Database spec page, EQE 350+ MY25 — WLTP range, 10-80% DC charging time, consumption
+- url: https://ev-database.org/car/3238/Genesis-G80-Electrified
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, real_world_range, fast_charging, efficiency]
+  region: EU
+  why: EV Database spec page, G80 Electrified MY25 — WLTP range, charging, consumption
+- url: https://alternative-fuels-observatory.ec.europa.eu/node/1280
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, real_world_range, affordable]
+  region: EU
+  why: EU Alternative Fuels Observatory model listing, A6 Sportback e-tron — range, battery, EU price
+- url: https://alternative-fuels-observatory.ec.europa.eu/node/1281
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, real_world_range, affordable]
+  region: EU
+  why: EU Alternative Fuels Observatory, second A6 Sportback e-tron variant — range, battery, EU price
+- url: https://evkx.net/models/audi/a6_e-tron/a6_sportback_e-tron/charging/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, fast_charging]
+  region: EU
+  why: EVKX charging page, A6 Sportback e-tron — 10-80% charging time, peak/average DC power
+
+# ---------------------------------------------------------------- competitors, US (EPA, prices, features)
+- url: https://theevreport.com/2025-audi-a6-sportback-e-tron-unveiled
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, real_world_range, fast_charging, affordable]
+  region: US
+  why: US launch coverage — EPA-estimated range, 270 kW charging, US base price
+- url: https://insideevs.com/news/654410/genesis-electrified-g80-epa-range-price/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, real_world_range, fast_charging, affordable]
+  region: US
+  why: InsideEVs — Electrified G80 EPA range, 10-80% charging claim, US price
+- url: https://cargurus.com/Cars/articles/2025-mercedes-benz-e-class-pricing-specs-release-date
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class, affordable, safety, intuitive_ux]
+  region: US
+  why: CarGurus — 2025 E-Class US trim prices and standard equipment
+- url: https://cargurus.com/Cars/articles/2025-genesis-g80-pricing-specs-release-date
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, affordable, clear_displays, great_sound]
+  region: US
+  why: CarGurus — 2025 G80 US prices, 27-inch display, audio changes
+- url: https://www.motor1.com/news/730430/2025-genesis-g80-price/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, affordable]
+  region: US
+  why: Motor1 — 2025 G80 US pricing incl. destination
+- url: https://www.truecar.com/overview/mercedes-benz/e-class/2025/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class, clear_displays, intuitive_ux, easy_updates]
+  region: US
+  why: TrueCar overview — E-Class displays, wireless CarPlay/Android Auto, OTA updates (may be JS-rendered)
+- url: https://www.kbb.com/audi/a6-sportback-e-tron/2025/specs
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, real_world_range, rear_space, flexible_storage]
+  region: US
+  why: Kelley Blue Book specs — A6 Sportback e-tron dimensions and specs (may be JS-rendered)
+
+# ---------------------------------------------------------------- trends, US
+- url: https://www.jdpower.com/business/press-releases/2025-us-electric-vehicle-experience-evx-public-charging-study
+  tags: [trend, fast_charging]
+  region: US
+  why: J.D. Power 2025 EVX Public Charging Study — 14% failed charging visits, causes, satisfaction
+- url: https://www.jdpower.com/business/press-releases/2025-us-initial-quality-study-iqs
+  tags: [trend, reliable_software, intuitive_ux]
+  region: US
+  why: J.D. Power 2025 IQS — infotainment most problematic category (42.6 PP100)
+- url: https://www.automotiveworld.com/news/fewer-physical-vehicle-controls-and-more-problematic-touchscreen-make-infotainment-system-a-modern-catch-all-drawer-j-d-power-finds/
+  tags: [trend, physical_controls, intuitive_ux, reliable_software]
+  region: US
+  why: J.D. Power IQS coverage — fewer physical controls, touchscreen problems
+- url: https://www.businesswire.com/news/home/20250626729527/en/Fewer-Physical-Vehicle-Controls-and-More-Problematic-Touchscreen-Make-Infotainment-System-a-Modern-Catch-All-Drawer-J.D.-Power-Finds
+  tags: [trend, physical_controls, intuitive_ux, reliable_software]
+  region: US
+  why: Same J.D. Power release on Business Wire (fallback if jdpower.com blocks plain downloads)
+
+# ---------------------------------------------------------------- trends, EU (regulation)
+- url: https://cms.law/en/nld/legal-updates/eu-legislation-for-hydrogen-refuelling-stations-and-charging-points-introduced-the-alternative-fuels-infrastructure-regulation
+  tags: [trend, fast_charging, regulation]
+  region: EU
+  why: CMS law summary of AFIR (EU 2023/1804) — 150 kW fast chargers every 60 km on TEN-T from 2025
+- url: https://road-safety-charter.ec.europa.eu/resources-knowledge/media-and-press/intelligent-speed-assistance-isa-set-become-mandatory-across_en
+  tags: [trend, safety, regulation]
+  region: EU
+  why: European Commission — Intelligent Speed Assistance mandatory for new cars from July 2024 (GSR2)
+- url: https://single-market-economy.ec.europa.eu/single-market/digital-product-passport/batteries_en
+  tags: [trend, long_battery_life, sustainability, regulation]
+  region: EU
+  why: European Commission — digital battery passport mandatory for EV batteries from 18 February 2027
+
+# ---------------------------------------------------------------- added 2026-10-11: feature coverage
+# Competitors, US: equipment, cargo, power, displays, sound, assistance (static spec pages)
+- url: https://www.kbb.com/mercedes-benz/e-class/2025/specs
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class, flexible_storage, performance, efficiency, affordable, climate_comfort]
+  region: US
+  why: KBB specs — E-Class dimensions, cargo, engine, fuel economy, prices
+- url: https://www.kbb.com/mercedes-benz/e-class/2025/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class, comfortable_seats, great_sound, driver_assistance, clear_displays]
+  region: US
+  why: KBB review — E-Class interior, Burmester audio, MBUX displays, driver assistance
+- url: https://www.kbb.com/genesis/g80/2025/specs
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, flexible_storage, performance, affordable, efficiency]
+  region: US
+  why: KBB specs — G80 cargo 13.1 cu ft, engines, prices
+- url: https://www.kbb.com/genesis/g80/2025
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, comfortable_seats, driver_assistance, clear_displays, great_sound]
+  region: US
+  why: KBB review — G80 equipment and assistance
+- url: https://info.oregon.aaa.com/2025-genesis-g80-awd-3-5t-sport-prestige
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, performance, affordable]
+  region: US
+  why: AAA review — G80 trims, 300/375 hp, 0-60 times, price range
+- url: https://www.kbb.com/audi/a6-sportback-e-tron/2025/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, clear_displays, driver_assistance, comfortable_seats, affordable]
+  region: US
+  why: KBB review — A6 Sportback e-tron equipment, displays, assistance
+- url: https://wyler.com/showroom/2025/Audi/A6%20Sportback%20e-tron/Sedan.htm
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, flexible_storage, smartphone_integration, clear_displays, affordable]
+  region: US
+  why: Dealer showroom spec page — cargo 735/1,129 L, 14.5-inch display, wireless CarPlay, price
+- url: https://wyler.com/showroom/2025/Mercedes-Benz/E-Class/Sedan.htm
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class, flexible_storage, smartphone_integration, climate_comfort, affordable]
+  region: US
+  why: Dealer showroom spec page — E-Class sedan cargo, standard equipment, price
+- url: https://www.truecar.com/overview/genesis/g80/2025/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, driver_assistance, clear_displays, smartphone_integration]
+  region: US
+  why: TrueCar overview — G80 standard features and tech
+
+# Competitors, EU / UK: performance, boot, equipment (WLTP market)
+- url: https://evkx.net/models/mercedes/eqe/eqe_350plus/specifications/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz EQE, performance, real_world_range, fast_charging, flexible_storage]
+  region: EU
+  why: EVKX specifications — EQE 350+ power, 0-100, range, charging, boot
+- url: https://evkx.net/models/audi/a6_e-tron/a6_sportback_e-tron_performance/specifications/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, performance, real_world_range, fast_charging, flexible_storage]
+  region: EU
+  why: EVKX specifications — A6 Sportback e-tron performance variant
+- url: https://evkx.net/models/genesis/g80/electrified_g80/specifications/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, performance, real_world_range, fast_charging, flexible_storage]
+  region: EU
+  why: EVKX specifications — Electrified G80 (URL pattern, may not exist)
+- url: https://www.evspecifications.com/en/model/818816b
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz EQE, performance, real_world_range, efficiency, flexible_storage]
+  region: EU
+  why: EV specifications — EQE 350 technical data
+- url: https://cars-data.com/en/mercedes-benz/eqe/v295/350-business-edition--109046/specs
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz EQE, performance, flexible_storage, rear_space, affordable]
+  region: EU
+  why: cars-data.com — EQE 350 full specs incl. luggage volume and interior dimensions
+- url: https://www.parkers.co.uk/audi/a6-e-tron/sportback-2024/315kw-quattro-100kwh-sport-5dr-auto/specs/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, flexible_storage, performance, real_world_range, affordable]
+  region: EU
+  why: Parkers specs — A6 Sportback e-tron quattro boot 502 L, power, range, UK price
+- url: https://carwow.co.uk/audi/a6-sportback-e-tron
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6, affordable, clear_displays, driver_assistance, flexible_storage]
+  region: EU
+  why: carwow review — A6 Sportback e-tron UK prices, equipment, boot
+- url: https://carwow.co.uk/mercedes/e-class
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class, affordable, clear_displays, comfortable_seats, flexible_storage]
+  region: EU
+  why: carwow review — E-Class UK prices, MBUX superscreen, seats, boot
+- url: https://carwow.co.uk/mercedes/eqe
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz EQE, affordable, real_world_range, flexible_storage, quietness]
+  region: EU
+  why: carwow review — EQE UK prices, range, boot, refinement
+- url: https://carwow.co.uk/genesis/g80
+  tags: [segment:premium_upper_midsize_sedan, competitor:Genesis G80, affordable, comfortable_seats, driver_assistance, flexible_storage]
+  region: EU
+  why: carwow review — G80 UK prices and equipment
+- url: https://www.encycarpedia.com/us/mercedes/24-e-300-e-sedan
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class, real_world_range, fast_charging, efficiency]
+  region: US
+  why: Encycarpedia — E 300 e plug-in hybrid battery, electric range, AC charging (PHEV comparison)
+
+# Trends
+- url: https://jalopnik.com/cars-without-real-buttons-arent-safe-enough-to-receive-1851307984
+  tags: [trend, physical_controls, safety, regulation]
+  region: EU
+  why: Euro NCAP 2026 — physical controls for indicators, hazards, horn, wipers, SOS in the rating
+- url: https://hagerty.co.uk/articles/news-articles/car-makers-must-bring-back-buttons-says-eu
+  tags: [trend, physical_controls, regulation]
+  region: EU
+  why: Euro NCAP physical-button requirement coverage (UK)
+- url: https://www.jdpower.com/business/press-releases/2025-us-tech-experience-index-txi-study
+  tags: [trend, driver_assistance, intuitive_ux, climate_comfort, smartphone_integration]
+  region: US
+  why: J.D. Power 2025 US Tech Experience Index — owner satisfaction and problems with 40 technologies incl. driver assist
+- url: https://www.automotiveworld.com/news/ai-based-technologies-improve-customer-experience-but-present-new-challenges-j-d-power-finds/
+  tags: [trend, intuitive_ux, personalization, climate_comfort]
+  region: US
+  why: J.D. Power TXI coverage — AI-based features, smart climate and driver preferences
+
+# ---------------------------------------------------------------- added 2026-10-11: F70, G70, G68 and China
+# Same depth as the G60 set: specs, prices and equipment per competitor and region.
+- url: https://www.carwow.co.uk/audi/a3
+  tags: [segment:premium_compact, competitor:Audi A3, affordable, flexible_storage, clear_displays, driver_assistance, performance]
+  region: EU
+  why: "carwow review — A3 UK prices, engines, boot, equipment"
+- url: https://www.parkers.co.uk/audi/a3/review
+  tags: [segment:premium_compact, competitor:Audi A3, affordable, flexible_storage, performance, intuitive_ux, comfortable_seats]
+  region: EU
+  why: "Parkers review — A3 Sportback prices, boot 380 L, engines, interior"
+- url: https://www.whatcar.com/audi/a3/hatchback/review/n77/space-practicality
+  tags: [segment:premium_compact, competitor:Audi A3, flexible_storage, rear_space, easy_entry]
+  region: EU
+  why: "What Car — A3 space and practicality, boot and rear room"
+- url: https://autoexpress.co.uk/audi/a3/practicality
+  tags: [segment:premium_compact, competitor:Audi A3, flexible_storage, rear_space]
+  region: EU
+  why: "Auto Express — A3 practicality, boot size, dimensions"
+- url: https://www.carwow.co.uk/mercedes/a-class
+  tags: [segment:premium_compact, competitor:Mercedes-Benz A-Class, affordable, flexible_storage, clear_displays, intuitive_ux, performance]
+  region: EU
+  why: "carwow review — A-Class UK prices, MBUX displays, boot"
+- url: https://www.carexpert.com.au/mercedes-benz/a-class/2025-1-3l-hatchback-fwd-petrol-automatic-jo8gmk5k20250101
+  tags: [segment:premium_compact, competitor:Mercedes-Benz A-Class, performance, flexible_storage, efficiency]
+  region: GLOBAL
+  why: "CarExpert spec page — A 200 power, torque, boot 350-395 L (Australian market; AUD prices)"
+- url: https://www.autoexpress.co.uk/car-group-tests/353203/audi-a3-vs-mercedes-class
+  tags: [segment:premium_compact, competitor:Mercedes-Benz A-Class, flexible_storage, rear_space, intuitive_ux, quietness, smooth_ride]
+  region: EU
+  why: "Auto Express group test — A3 vs A-Class: boot, rear space, interior, ride"
+- url: https://www.whatcar.com/news/new-mercedes-benz-a-class-vs-audi-a3-sportback-vs-bmw-1-series/n17697
+  tags: [segment:premium_compact, competitor:Audi A3, flexible_storage, rear_space, intuitive_ux, affordable]
+  region: EU
+  why: "What Car twin test — A-Class vs A3 vs 1 Series"
+- url: https://www.kbb.com/mercedes-benz/s-class/2025/specs/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, performance, flexible_storage, efficiency, affordable]
+  region: US
+  why: "KBB specs — S 500 / S 580 power, cargo, MPG, MSRP"
+- url: https://www.kbb.com/mercedes-benz/s-class/2025/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, comfortable_seats, driver_assistance, clear_displays, great_sound, quietness]
+  region: US
+  why: "KBB review — S-Class equipment, comfort, assistance"
+- url: https://www.edmunds.com/mercedes-benz/s-class/2025/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, affordable, performance, comfortable_seats, driver_assistance]
+  region: US
+  why: "Edmunds — S-Class trims, prices, features"
+- url: https://www.cars.com/research/mercedes_benz-s_class-2025/specs/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, performance, flexible_storage, rear_space, efficiency]
+  region: US
+  why: "Cars.com specs — S-Class dimensions, cargo, engines"
+- url: https://www.truecar.com/overview/mercedes-benz/s-class/2025/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, performance, flexible_storage, comfortable_seats, driver_assistance]
+  region: US
+  why: "TrueCar overview — S-Class 442-791 hp, cargo, standard features"
+- url: https://www.kbb.com/mercedes-benz/mercedes-eq-eqs/2025/specs
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, real_world_range, performance, affordable, flexible_storage]
+  region: US
+  why: "KBB specs — EQS trims, EPA range 367-390 mi, 118 kWh, MSRP"
+- url: https://www.cars.com/research/mercedes_benz-eqs_450-2025/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, real_world_range, clear_displays, great_sound, comfortable_seats, climate_comfort]
+  region: US
+  why: "Cars.com — EQS 450 range, Hyperscreen, Burmester, massage seats, 4-zone climate"
+- url: https://www.truecar.com/overview/mercedes-benz/eqs-sedan/2025/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, real_world_range, fast_charging, driver_assistance, affordable]
+  region: US
+  why: "TrueCar overview — EQS sedan range, charging, features"
+- url: https://www.edmunds.com/mercedes-benz/eqs/2025/trims/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, affordable, real_world_range, comfortable_seats]
+  region: US
+  why: "Edmunds — EQS trims comparison"
+- url: https://www.kbb.com/audi/a8/2025/specs
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Audi A8, performance, flexible_storage, affordable, efficiency]
+  region: US
+  why: "KBB specs — A8 L 55 TFSI 335 hp, cargo 12.5 cu ft, MSRP"
+- url: https://www.kbb.com/audi/a8/2025/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Audi A8, comfortable_seats, driver_assistance, clear_displays, great_sound]
+  region: US
+  why: "KBB review — A8 equipment, rear comfort, assistance"
+- url: https://www.truecar.com/overview/audi/a8/2025/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Audi A8, performance, comfortable_seats, driver_assistance, smartphone_integration]
+  region: US
+  why: "TrueCar overview — A8 features"
+- url: https://www.carwow.co.uk/mercedes/s-class
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, affordable, comfortable_seats, clear_displays, quietness, flexible_storage]
+  region: EU
+  why: "carwow review — S-Class UK prices, boot 550 L, comfort, displays"
+- url: https://www.whatcar.com/mercedes-benz/s-class/saloon/review/n17355
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, affordable, flexible_storage, comfortable_seats, quietness]
+  region: EU
+  why: "What Car review — S-Class prices, PHEV boot 350 L, comfort"
+- url: https://www.parkers.co.uk/mercedes-benz/s-class/review/practicality/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, flexible_storage, rear_space, easy_entry]
+  region: EU
+  why: "Parkers — S-Class boot 540-550 L and practicality"
+- url: https://www.autoexpress.co.uk/mercedes/s-class/prices-specs
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, affordable, performance, efficiency]
+  region: EU
+  why: "Auto Express — S-Class UK prices and specs"
+- url: https://www.carwow.co.uk/mercedes/eqs
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, affordable, real_world_range, fast_charging, flexible_storage, clear_displays]
+  region: EU
+  why: "carwow review — EQS UK prices, range, 200 kW charging, boot 610 L"
+- url: https://www.whatcar.com/mercedes-benz/eqs/saloon/review/n24120
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, real_world_range, affordable, premium_feel, rear_space]
+  region: EU
+  why: "What Car review — EQS range, price, interior quality and space"
+- url: https://www.parkers.co.uk/mercedes-benz/eqs/review/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, real_world_range, fast_charging, comfortable_seats, quietness]
+  region: EU
+  why: "Parkers review — EQS range, charging, comfort"
+- url: https://evkx.net/models/mercedes/eqs/eqs_450plus/specifications/
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, real_world_range, fast_charging, efficiency, performance, flexible_storage]
+  region: EU
+  why: "EVKX specifications — EQS 450+ battery, WLTP range, DC charging"
+- url: https://ev-database.org/car/3578/Mercedes-Benz-EQS-450plus
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz EQS, real_world_range, fast_charging, efficiency, flexible_storage]
+  region: EU
+  why: "EV Database — EQS 450+ MY26 WLTP range, 10-80% time, consumption"
+- url: https://www.carwow.co.uk/audi/a8
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Audi A8, affordable, comfortable_seats, flexible_storage, rear_space]
+  region: EU
+  why: "carwow review — A8 UK prices, boot 505 L, rear space"
+- url: https://www.whatcar.com/audi/a8/saloon/review/n17302
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Audi A8, affordable, flexible_storage, comfortable_seats, quietness]
+  region: EU
+  why: "What Car review — A8 prices, PHEV boot 390 L"
+- url: https://autonews.gasgoo.com/m/70036021.html
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Mercedes-Benz S-Class, affordable, performance]
+  region: CN
+  why: "Gasgoo — 2025 S-Class China launch, from 962,600 yuan"
+- url: https://data.carnewschina.com/database/audi/audi-a8/2025
+  tags: [segment:premium_full_size_luxury_sedan, competitor:Audi A8, affordable, performance, rear_space, efficiency]
+  region: CN
+  why: "CarNewsChina database — A8L China trims, prices, specs"
+- url: https://carnewschina.com/2026/03/26/new-audi-a6l-started-sales-in-china-with-v6-powered-hev-system-for-386-hp/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6L, affordable, performance, rear_space, driver_assistance]
+  region: CN
+  why: "CarNewsChina — new A6L, from 322,900 yuan, 3.0 V6 hybrid, 3,066 mm wheelbase, Huawei ADAS"
+- url: https://autonews.gasgoo.com/articles/other/new-audi-a6l-family-launches-priced-from-322900-yuan-2037121728180813824
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6L, affordable, performance]
+  region: CN
+  why: "Gasgoo — A6L family launch, prices, powertrains, 0-100 km/h"
+- url: https://english.news18a.com/news/english_246434.html
+  tags: [segment:premium_upper_midsize_sedan, competitor:Audi A6L, real_world_range, affordable, fast_charging]
+  region: CN
+  why: "A6L e-tron China launch — trims and prices"
+- url: https://autonews.gasgoo.com/m/70030118.html
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class L, affordable, performance, clear_displays]
+  region: CN
+  why: "Gasgoo — E-Class LWB China launch, 449,000-559,800 yuan, 14.4-inch screen"
+- url: https://www.carscoops.com/2023/10/2024-mercedes-e-class-l-debuts-in-china-with-extra-amenities-for-the-rear-passengers/
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class L, rear_space, comfortable_seats, performance]
+  region: CN
+  why: "Carscoops — E-Class L China: rear-passenger amenities, dimensions, engines"
+- url: https://data.carnewschina.com/database/mercedes-benz/mercedes-benz-e-class-phev/2024
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class L, real_world_range, affordable, rear_space]
+  region: CN
+  why: "CarNewsChina database — E 350 eL PHEV, 368,600 yuan, CLTC electric range"
+- url: https://www.chinaservicesinfo.com/s/202312/18/WS657ffb07498ed2d7b7ea3110/mercedes-benz-launches-new-e-class-l.html
+  tags: [segment:premium_upper_midsize_sedan, competitor:Mercedes-Benz E-Class L, affordable, performance, clear_displays, rear_space]
+  region: CN
+  why: "China Daily — new E-Class L, 3,094 mm wheelbase, ISG mild hybrid"
+
+# Trends, China
+- url: https://carnewschina.com/2025/11/09/china-ends-full-ev-tax-exemption-in-2026-dealerships-report-year-end-sales-rush
+  tags: [trend, affordable, regulation]
+  region: CN
+  why: "NEV purchase tax halved from 2026 (cap 15,000 yuan); PHEV electric-range threshold rises to 100 km"
+- url: https://carnewschina.com/2026/09/04/china-is-gradually-phasing-out-sudsidies-for-new-energy-vehicles/
+  tags: [trend, affordable, regulation]
+  region: CN
+  why: "China phasing out NEV tax benefits; battery consumption tax from September 2026"
+- url: https://www.businesstoday.in/amp/technology/news/story/china-bans-smart-driving-and-autonomous-driving-claims-in-auto-ads-tightens-adas-oversight-after-fatal-accident-472406-2025-04-17
+  tags: [trend, driver_assistance, easy_updates, regulation]
+  region: CN
+  why: "China 2025 — L2 marketing claims banned, OTA updates to driving functions need approval"
+- url: https://www.digitimes.com/news/a20250418PD220.html
+  tags: [trend, driver_assistance, regulation]
+  region: CN
+  why: "MIIT instructs ~60 automakers on L2 driver-assistance terminology"
+- url: https://insideevs.com/news/785055/china-ev-charging-network-expansion/
+  tags: [trend, fast_charging]
+  region: CN
+  why: "China charging network passed 20 million points in 2025"
+- url: https://english.henan.gov.cn/2025/12-23/3277449.html
+  tags: [trend, fast_charging]
+  region: CN
+  why: "China charging infrastructure 2025: public vs private, average charging power"
+- url: https://www2.yicaiglobal.com/news/china-targets-100000-ultra-fast-ev-charging-stations-by-2027-to-ease-range-anxiety
+  tags: [trend, fast_charging, real_world_range]
+  region: CN
+  why: "Target of 100,000 ultra-fast charging stations by 2027"
+- url: https://autonews.gasgoo.com/articles/news/chinas-domestic-cars-fall-short-in-ultra-luxury-maextro-s800-says-otherwise-2022674910646636544
+  tags: [trend, premium_feel, affordable]
+  region: CN
+  why: "China luxury sedans: domestic MAEXTRO S800 outsells 7 Series, S-Class and A8L in December 2025"

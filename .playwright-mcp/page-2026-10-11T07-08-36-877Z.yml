@@ -1,0 +1,661 @@
+- generic [ref=f8e1]:
+  - generic [aria-hidden] [ref=f8e2]:
+    - generic [ref=f8e5]:
+      - list [ref=f8e7]:
+        - listitem [ref=f8e8]:
+          - link [ref=f8e9] [cursor=pointer]:
+            - /url: /analysis
+            - generic [ref=f8e21]:
+              - generic [ref=f8e22]: BMWow
+              - generic [ref=f8e23]: Customer feedback
+      - list [ref=f8e26]:
+        - listitem [ref=f8e27]:
+          - link [ref=f8e28] [cursor=pointer]:
+            - /url: /analysis
+            - generic [ref=f8e31]: Analysis
+        - listitem [ref=f8e32]:
+          - link [ref=f8e33] [cursor=pointer]:
+            - /url: /situation
+            - generic [ref=f8e37]: Situation analysis
+      - list [ref=f8e39]:
+        - listitem [ref=f8e40]:
+          - button [ref=f8e41]:
+            - generic [ref=f8e42]: PM
+            - generic [ref=f8e44]:
+              - generic [ref=f8e45]: Product Manager
+              - generic [ref=f8e46]: pm@bmw.example
+    - main [ref=f8e47]:
+      - generic [ref=f8e48]:
+        - button [ref=f8e49]:
+          - generic [ref=f8e50]: Toggle Sidebar
+        - separator [ref=f8e51]
+      - generic [ref=f8e52]:
+        - generic [ref=f8e53]:
+          - generic [ref=f8e54]:
+            - heading [level=1] [ref=f8e55]: G60
+            - generic [ref=f8e56]:
+              - generic [ref=f8e57]: BMW 5 Series Sedan (G60)
+              - generic [ref=f8e58]: premium upper midsize sedan
+          - generic [ref=f8e59]:
+            - navigation [ref=f8e60]:
+              - text: Market
+              - generic [ref=f8e61]:
+                - link [ref=f8e62] [cursor=pointer]:
+                  - /url: "?region=ALL"
+                  - text: All
+                - link [ref=f8e63] [cursor=pointer]:
+                  - /url: "?region=EU"
+                  - text: EU
+                - link [ref=f8e64] [cursor=pointer]:
+                  - /url: "?region=US"
+                  - text: US
+            - generic [ref=f8e65]:
+              - text: Feedback engine
+              - combobox [ref=f8e66]:
+                - generic [ref=f8e67]: All engines
+              - textbox [aria-hidden] [ref=f8e68]: all
+        - generic [ref=f8e69]:
+          - generic [ref=f8e71]:
+            - generic [ref=f8e72]: Customer feedback
+            - generic [ref=f8e73]: 4,000
+            - paragraph [ref=f8e75]: Good sentiment · +0.13
+          - generic [ref=f8e77]:
+            - generic [ref=f8e78]: Feedback with a problem
+            - generic [ref=f8e79]: 41%
+            - paragraph [ref=f8e81]: "Top: Infotainment & Connectivity"
+          - generic [ref=f8e83]:
+            - generic [ref=f8e84]: Recommended requirements
+            - generic [ref=f8e85]: "11"
+            - paragraph [ref=f8e87]: from 74 features analysed
+          - generic [ref=f8e89]:
+            - generic [ref=f8e90]: Evidence complete
+            - generic [ref=f8e91]: 3 of 4
+            - list [ref=f8e93]:
+              - listitem [ref=f8e94]: Our model
+              - listitem [ref=f8e96]: Competitors
+              - listitem [ref=f8e98]: Customers
+              - listitem [ref=f8e100]: Trends
+        - generic [ref=f8e102]:
+          - generic [ref=f8e103]:
+            - generic [ref=f8e104]:
+              - generic [ref=f8e105]: Feature verdicts
+              - generic [ref=f8e106]: All categories · hover for meaning
+            - generic [ref=f8e108]:
+              - application [ref=f8e112]:
+                - generic [ref=f8e113]: 74features
+              - list [ref=f8e129]:
+                - listitem [ref=f8e130]:
+                  - generic [ref=f8e132]: Gap
+                  - generic [ref=f8e133]: "11"
+                - listitem [ref=f8e134]:
+                  - generic [ref=f8e136]: Demand
+                  - generic [ref=f8e137]: "0"
+                - listitem [ref=f8e138]:
+                  - generic [ref=f8e140]: Must-have
+                  - generic [ref=f8e141]: "3"
+                - listitem [ref=f8e142]:
+                  - generic [ref=f8e144]: Strength
+                  - generic [ref=f8e145]: "5"
+                - listitem [ref=f8e146]:
+                  - generic [ref=f8e148]: Unclear
+                  - generic [ref=f8e149]: "55"
+          - generic [ref=f8e150]:
+            - generic [ref=f8e151]:
+              - generic [ref=f8e152]: Requirements by category
+              - generic [ref=f8e153]: Click a bar to filter
+            - application [ref=f8e158]:
+              - generic [ref=f8e159]:
+                - generic [ref=f8e160] [cursor=pointer]
+                - generic [ref=f8e178] [cursor=pointer]
+              - generic [ref=f8e188]:
+                - generic [ref=f8e189]: Exterior 2
+                - generic [ref=f8e191]: Interior 2
+                - generic [ref=f8e193]: Powertrain 2
+                - generic [ref=f8e195]: Driver assistance 2
+                - generic [ref=f8e197]: Digital & UX 2
+                - generic [ref=f8e199]: Ownership & business 1
+        - generic [ref=f8e201]:
+          - generic [ref=f8e202]:
+            - generic [ref=f8e203]: Recommended requirements
+            - generic [ref=f8e204]: By customer impact · click a row for the evidence
+          - table [ref=f8e207]:
+            - rowgroup [ref=f8e208]:
+              - row [ref=f8e209]:
+                - columnheader [ref=f8e210]: "#"
+                - columnheader [ref=f8e211]: Feature
+                - columnheader [ref=f8e212]: Verdict
+                - columnheader [ref=f8e213]: Requirement
+                - columnheader [ref=f8e214]: Target
+                - columnheader [ref=f8e215]: Customer problems
+            - rowgroup [ref=f8e216]:
+              - row [ref=f8e217]:
+                - cell [ref=f8e218]: REQ-1
+                - cell [ref=f8e219]:
+                  - link [ref=f8e220] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=real_world_range"
+                    - text: Real world range
+                  - paragraph [ref=f8e221]: Powertrain
+                - cell [ref=f8e222]:
+                  - generic [ref=f8e223]: Must-have
+                - cell [ref=f8e224]:
+                  - paragraph [ref=f8e225]: "Electric Range to >= 627 km WLTP; BEV (today's value: 627 km; must-have)."
+                - cell [ref=f8e226]: ">= 627 km"
+                - cell [ref=f8e227]:
+                  - generic [ref=f8e228]: 3.1%
+              - row [ref=f8e232]:
+                - cell [ref=f8e233]: REQ-2
+                - cell [ref=f8e234]:
+                  - link [ref=f8e235] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=fast_charging"
+                    - text: Fast charging
+                  - paragraph [ref=f8e236]: Powertrain
+                - cell [ref=f8e237]:
+                  - generic [ref=f8e238]: Gap
+                - cell [ref=f8e239]:
+                  - paragraph [ref=f8e240]: "For BEV, public-charging experience with external providers by achieving <= 25 min 10-80%; BEV, matching the competitor median (ours today: 30 min)."
+                - cell [ref=f8e241]: <= 25 min
+                - cell [ref=f8e242]:
+                  - generic [ref=f8e243]: 5.8%
+              - row [ref=f8e247]:
+                - cell [ref=f8e248]: REQ-3
+                - cell [ref=f8e249]:
+                  - link [ref=f8e250] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=unmapped%3Aexterior_design_body"
+                    - text: Exterior design body
+                  - paragraph [ref=f8e251]: Exterior
+                - cell [ref=f8e252]:
+                  - generic [ref=f8e253]: Gap
+                - cell [ref=f8e254]:
+                  - paragraph [ref=f8e255]: Panorama glass roof; 3.3% of US feedback items report a problem (120 of 3610).
+                - cell [ref=f8e256]: set by PM
+                - cell [ref=f8e257]:
+                  - generic [ref=f8e258]: 3.4%
+              - row [ref=f8e262]:
+                - cell [ref=f8e263]: REQ-4
+                - cell [ref=f8e264]:
+                  - link [ref=f8e265] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=keyless_access"
+                    - text: Keyless access
+                  - paragraph [ref=f8e266]: Exterior
+                - cell [ref=f8e267]:
+                  - generic [ref=f8e268]: Gap
+                - cell [ref=f8e269]:
+                  - paragraph [ref=f8e270]: "Non-contact trunk lid opening: 3.2% of feedback items in the US report a problem (116 of 3610)."
+                - cell [ref=f8e271]: set by PM
+                - cell [ref=f8e272]:
+                  - generic [ref=f8e273]: 3.2%
+              - row [ref=f8e277]:
+                - cell [ref=f8e278]: REQ-5
+                - cell [ref=f8e279]:
+                  - link [ref=f8e280] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=unmapped%3Aservice_docs_support"
+                    - text: Service docs support
+                  - paragraph [ref=f8e281]: Ownership & business
+                - cell [ref=f8e282]:
+                  - generic [ref=f8e283]: Gap
+                - cell [ref=f8e284]:
+                  - paragraph [ref=f8e285]: "Owner’s Manual support: 1.8% of US feedback items report a problem (65 of 3610), and the Owner’s Manual is named in 9 of 69 problem items across the requested regions."
+                - cell [ref=f8e286]: set by PM
+                - cell [ref=f8e287]:
+                  - generic [ref=f8e288]: 1.9%
+              - row [ref=f8e292]:
+                - cell [ref=f8e293]: REQ-6
+                - cell [ref=f8e294]:
+                  - link [ref=f8e295] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=unmapped%3Ainfotainment_connectivity"
+                    - text: Infotainment connectivity
+                  - paragraph [ref=f8e296]: Digital & UX
+                - cell [ref=f8e297]:
+                  - generic [ref=f8e298]: Gap
+                - cell [ref=f8e299]:
+                  - paragraph [ref=f8e300]: Infotainment connectivity by addressing USB-port problems; 1.9% of US feedback items report an infotainment-connectivity problem (68 of 3610), and USB-port problems appear in 11 of 72 problem items across the requested regions.
+                - cell [ref=f8e301]: set by PM
+                - cell [ref=f8e302]:
+                  - generic [ref=f8e303]: 2.0%
+              - row [ref=f8e307]:
+                - cell [ref=f8e308]: REQ-7
+                - cell [ref=f8e309]:
+                  - link [ref=f8e310] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=driver_assistance"
+                    - text: Driver assistance
+                  - paragraph [ref=f8e311]: Driver assistance
+                - cell [ref=f8e312]:
+                  - generic [ref=f8e313]: Gap
+                - cell [ref=f8e314]:
+                  - paragraph [ref=f8e315]: "(Active) cruise control: 2.8% of US feedback items report a problem (100 of 3610)."
+                - cell [ref=f8e316]: set by PM
+                - cell [ref=f8e317]:
+                  - generic [ref=f8e318]: 2.7%
+              - row [ref=f8e322]:
+                - cell [ref=f8e323]: REQ-8
+                - cell [ref=f8e324]:
+                  - link [ref=f8e325] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=flexible_storage"
+                    - text: Flexible storage
+                  - paragraph [ref=f8e326]: Interior
+                - cell [ref=f8e327]:
+                  - generic [ref=f8e328]: Must-have
+                - cell [ref=f8e329]:
+                  - paragraph [ref=f8e330]: "Luggage compartment to >= 490 l for BEV versions (today: 490 l)."
+                - cell [ref=f8e331]: ">= 490 l"
+                - cell [ref=f8e332]:
+                  - generic [ref=f8e333]: 2.3%
+              - row [ref=f8e337]:
+                - cell [ref=f8e338]: REQ-9
+                - cell [ref=f8e339]:
+                  - link [ref=f8e340] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=intuitive_ux"
+                    - text: Intuitive UX
+                  - paragraph [ref=f8e341]: Digital & UX
+                - cell [ref=f8e342]:
+                  - generic [ref=f8e343]: Gap
+                - cell [ref=f8e344]:
+                  - paragraph [ref=f8e345]: "Touchscreen operation: 2.0% of feedback items in the US report a problem (73 of 3610)."
+                - cell [ref=f8e346]: set by PM
+                - cell [ref=f8e347]:
+                  - generic [ref=f8e348]: 2.0%
+              - row [ref=f8e352]:
+                - cell [ref=f8e353]: REQ-10
+                - cell [ref=f8e354]:
+                  - link [ref=f8e355] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=climate_comfort"
+                    - text: Climate comfort
+                  - paragraph [ref=f8e356]: Interior
+                - cell [ref=f8e357]:
+                  - generic [ref=f8e358]: Must-have
+                - cell [ref=f8e359]:
+                  - paragraph [ref=f8e360]: Vehicle climatization in the successor to >= 4 zone (today 4 zone; must-have).
+                - cell [ref=f8e361]: ">= 4 zone"
+                - cell [ref=f8e362]:
+                  - generic [ref=f8e363]: 2.0%
+              - row [ref=f8e367]:
+                - cell [ref=f8e368]: REQ-11
+                - cell [ref=f8e369]:
+                  - link [ref=f8e370] [cursor=pointer]:
+                    - /url: "?region=ALL&feature=easy_parking"
+                    - text: Easy parking
+                  - paragraph [ref=f8e371]: Driver assistance
+                - cell [ref=f8e372]:
+                  - generic [ref=f8e373]: Gap
+                - cell [ref=f8e374]:
+                  - paragraph [ref=f8e375]: Parking Assistant to address reported parking-assistance problems; 1.4% of US feedback items report a problem (49 of 3610).
+                - cell [ref=f8e376]: set by PM
+                - cell [ref=f8e377]:
+                  - generic [ref=f8e378]: 1.4%
+        - generic [ref=f8e382]:
+          - generic [ref=f8e383]:
+            - generic [ref=f8e384]: Customer voice
+            - generic [ref=f8e385]: Share of 4,000 feedback items (G60 · All) · most pressing first · click a bar for verbatims
+            - link [ref=f8e387] [cursor=pointer]:
+              - /url: /analysis/G60
+              - text: Full ranking
+          - generic [ref=f8e389]:
+            - generic [ref=f8e390]:
+              - generic [ref=f8e391]: ← Complaints
+              - generic [ref=f8e392]: Praise →
+            - application [ref=f8e396]:
+              - generic [ref=f8e397]:
+                - generic [ref=f8e398] [cursor=pointer]
+                - generic [ref=f8e428] [cursor=pointer]
+              - generic [ref=f8e458]:
+                - generic [ref=f8e459]:
+                  - generic [ref=f8e460]: 12%
+                  - generic [ref=f8e462]: 6.0%
+                  - generic [ref=f8e464]: "0"
+                  - generic [ref=f8e466]: 6.0%
+                  - generic [ref=f8e468]: 12%
+                - generic [ref=f8e470]:
+                  - generic [ref=f8e471]: Infotainment & Connectivity
+                  - generic [ref=f8e473]: Electrification & Charging
+                  - generic [ref=f8e475]: Powertrain &Performance
+                  - generic [ref=f8e477]: Access, Locking & Keys
+                  - generic [ref=f8e479]: Exterior Design & Body
+                  - generic [ref=f8e481]: Instruments & Controls
+                  - generic [ref=f8e483]: ADAS / DrivingAssistance
+                  - generic [ref=f8e485]: Service, Docs & Support
+                  - generic [ref=f8e487]: Chassis, Ride & Handling
+        - generic [ref=f8e489]:
+          - generic [ref=f8e490]:
+            - generic [ref=f8e491]: Other assessed features
+            - generic [ref=f8e492]: Not recommended · mostly rule-based, so less certain · 55 more with too little evidence
+          - generic [ref=f8e493]:
+            - generic [ref=f8e494]:
+              - generic [ref=f8e495]: Gap
+              - generic [ref=f8e497]:
+                - link [ref=f8e498] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=clear_displays"
+                  - text: Clear displays1.7%
+                - link [ref=f8e499] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=comfortable_seats"
+                  - text: Comfortable seats1.3%
+                - link [ref=f8e500] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=smartphone_integration"
+                  - text: Smartphone integration1.3%
+            - generic [ref=f8e501]:
+              - generic [ref=f8e502]: Strength
+              - generic [ref=f8e504]:
+                - link [ref=f8e505] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=unmapped%3Apowertrain_performance"
+                  - text: Powertrain performance1.8%
+                - link [ref=f8e506] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=dynamic_handling"
+                  - text: Dynamic handling0.7%
+                - link [ref=f8e507] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=unmapped%3Ainterior_design_materials"
+                  - text: Interior design materials0.3%
+                - link [ref=f8e508] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=performance"
+                  - text: Performance0.5%
+                - link [ref=f8e509] [cursor=pointer]:
+                  - /url: "?region=ALL&feature=iconic_design"
+                  - text: Iconic design
+        - paragraph [ref=f8e510]: Run g60-all · 10/11/2026, 7:26:54 AM · gpt-6-luna
+    - complementary [ref=f8e511]:
+      - separator [ref=f8e512]
+      - generic [ref=f8e513]:
+        - button [expanded] [ref=f8e514]
+        - generic [ref=f8e515]: Ask about this view
+        - button [disabled]
+      - generic [ref=f8e517]:
+        - button [ref=f8e518]: What is the most pressing issue of the G60?
+        - button [ref=f8e519]: What should be improved from this G60?
+        - button [ref=f8e520]: What should be added to this G60?
+      - generic [ref=f8e521]:
+        - textbox [ref=f8e522]:
+          - /placeholder: Ask a question…
+        - button [disabled]
+  - generic [ref=f8e527] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=f8e528]
+    - generic [ref=f8e532]:
+      - button "Open issues overlay" [ref=f8e533]:
+        - generic [ref=f8e534]:
+          - generic [aria-hidden] [ref=f8e535]: "0"
+          - generic [ref=f8e536]: "1"
+        - generic [ref=f8e537]: Issue
+      - button "Collapse issues badge" [ref=f8e538]
+  - alert [ref=f8e541]
+  - dialog [ref=f8e545]:
+    - generic [ref=f8e546]:
+      - generic [ref=f8e547]:
+        - heading "Service docs support" [level=2] [ref=f8e548]
+        - generic "We fall short of what customers expect or competitors offer." [ref=f8e549]: Gap
+        - generic [ref=f8e550]: REQ-5
+      - paragraph [ref=f8e551]: "G60 · All · unmapped · importance rank #6"
+    - generic [ref=f8e552]:
+      - generic [ref=f8e553]:
+        - heading "Requirement" [level=3] [ref=f8e555]
+        - generic [ref=f8e556]:
+          - paragraph [ref=f8e557]:
+            - generic [ref=f8e558]: "Improve:"
+            - text: "The successor should improve Owner’s Manual support: 1.8% of US feedback items report a problem (65 of 3610), and the Owner’s Manual is named in 9 of 69 problem items across the requested regions."
+          - generic [ref=f8e559]:
+            - generic [ref=f8e560]:
+              - term [ref=f8e561]: Target
+              - definition [ref=f8e562]: set by PM
+            - generic [ref=f8e563]:
+              - term [ref=f8e564]: Why this target
+              - definition [ref=f8e565]: –
+            - generic [ref=f8e566]:
+              - term [ref=f8e567]: Current model
+              - definition [ref=f8e568]: Present today
+          - paragraph [ref=f8e569]: This matters to customers because the Owner’s Manual is named in 9 of 69 problem items and 6 of 18 request items.
+          - paragraph [ref=f8e570]: "Acceptance: service docs support: target value to be set by the PM · verified by to be defined"
+          - list [ref=f8e571]:
+            - listitem [ref=f8e572]: "missing: our value, competitor evidence, trend evidence"
+            - listitem [ref=f8e573]: "no comparable competitor value: the target cannot be derived"
+      - generic [ref=f8e574]:
+        - generic [ref=f8e575]:
+          - heading "Why" [level=3] [ref=f8e576]
+          - paragraph [ref=f8e577]: "Judged by the LLM with a fixed rubric; checked by code rules (passed). Code suggested: gap (customers only)."
+        - paragraph [ref=f8e578]: "Customers describe a mixed service-support issue rather than one specific documentation defect: Owner’s Manual problems (9 of 69 problem items), Tirefit (7), Teleservices (4), and My BMW / MINI Portal access (3); one customer also says the dealer/importer did not resolve reported defects despite repeated inquiries. [fb:evidence:bmw-feedback:G60-1562] [fb:evidence:bmw-feedback:G60-0612] [fb:evidence:bmw-feedback:G60-1048] [fb:evidence:bmw-feedback:G60-0783] [fb:evidence:bmw-feedback:G60-3229]"
+        - paragraph [ref=f8e579]:
+          - text: The clearest themes are Owner’s Manual, Tirefit, Teleservices, and portal support; requests also include Owner’s Manual (6 of 18 request items) and Accessories / Parts (5 of 18), so the wish is for clearer or more accessible ownership and service support, not solely more documents.
+          - generic "fb:evidence:bmw-feedback:G60-1562" [ref=f8e580]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-0612" [ref=f8e581]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-1048" [ref=f8e582]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-0783" [ref=f8e583]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-0008" [ref=f8e584]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-0121" [ref=f8e585]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-1562, fb:evidence:bmw-feedback:G60-0612, fb:evidence:bmw-feedback:G60-1048, fb:evidence:bmw-feedback:G60-0783, fb:evidence:bmw-feedback:G60-0008, fb:evidence:bmw-feedback:G60-0121" [ref=f8e586]: 6 src
+          - text: Problems are limited in the all-region customer data at 1.9% (69 of 3,677; 95% CI 1.5%–2.4%), with US at 1.8% (65 of 3,610; CI 1.4%–2.3%); EU is 6.0% (4 of 67; CI 2.4%–14.4%) but explicitly a thin sample, so it does not establish broad prevalence.
+          - generic "F-feedback-241" [ref=f8e587]: 1 src
+          - generic "F-feedback-242" [ref=f8e588]: 1 src
+          - generic "F-feedback-243" [ref=f8e589]: 1 src
+          - generic "F-feedback-241, F-feedback-242, F-feedback-243" [ref=f8e590]: 3 src
+          - text: The package reports a significant US–EU difference in problem share (p=0.013), but the EU result rests on only four problem reports; strength is also higher in the small EU sample (7.5%, 5 of 67) than in the US (1.1%, 39 of 3,610), so the regional picture is mixed.
+          - generic "F-feedback-241" [ref=f8e591]: 1 src
+          - generic "F-feedback-242" [ref=f8e592]: 1 src
+          - generic "F-feedback-246" [ref=f8e593]: 1 src
+          - generic "F-feedback-247" [ref=f8e594]: 1 src
+          - generic "F-feedback-241, F-feedback-242, F-feedback-246, F-feedback-247" [ref=f8e595]: 4 src
+          - text: There is no customer breakdown by engine type, so the evidence does not show whether the issue differs among ICE, PHEV, and BEV versions.
+          - generic "F-feedback-241" [ref=f8e596]: 1 src
+          - generic "F-feedback-242" [ref=f8e597]: 1 src
+          - generic "F-feedback-243" [ref=f8e598]: 1 src
+          - generic "F-feedback-241, F-feedback-242, F-feedback-243" [ref=f8e599]: 3 src
+          - text: No trend evidence is available for the regions, so the package cannot establish whether this issue will become more or less important for a launch in 3–5 years.
+          - generic "F-feedback-243" [ref=f8e600]: 1 src
+          - generic "F-feedback-243" [ref=f8e601]: 1 src
+          - text: No direct safety concern is evidenced, but unresolved service issues and support are relevant to the premium ownership experience; customer evidence also includes praise for follow-up service.
+          - generic "fb:evidence:bmw-feedback:G60-3229" [ref=f8e602]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-2588" [ref=f8e603]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-3229, fb:evidence:bmw-feedback:G60-2588" [ref=f8e604]: 2 src
+          - text: The rule-based suggestion is gap, and the customer problem reports support that assessment; confidence is moderated because the evidence spans varied sub-themes and there is no current-model catalog value, competitor comparison, or trend evidence.
+          - generic "F-feedback-243" [ref=f8e605]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-1562" [ref=f8e606]: 1 src
+          - generic "fb:evidence:bmw-feedback:G60-0612" [ref=f8e607]: 1 src
+          - generic "F-feedback-243, fb:evidence:bmw-feedback:G60-1562, fb:evidence:bmw-feedback:G60-0612" [ref=f8e608]: 3 src
+        - generic [ref=f8e609]:
+          - generic [ref=f8e610]:
+            - term [ref=f8e611]: Certainty
+            - definition [ref=f8e612]: medium
+          - generic [ref=f8e613]:
+            - term [ref=f8e614]: Widespread
+            - definition [ref=f8e615]: limited
+          - generic [ref=f8e616]:
+            - term [ref=f8e617]: Problem share
+            - definition [ref=f8e618]: 1.9%
+        - list [ref=f8e619]:
+          - listitem [ref=f8e620]: "Customers, US: problem 1.8% (65 of 3610, 95% CI 1.4%–2.3%). Significantly different from EU (p=0.013)."
+          - listitem [ref=f8e621]: "Customers, EU: problem 6.0% (4 of 67, 95% CI 2.4%–14.4%), thin sample. Significantly different from US (p=0.013)."
+          - listitem [ref=f8e622]: "Customers, all requested regions: problem 1.9% (69 of 3677, 95% CI 1.5%–2.4%)."
+          - listitem [ref=f8e623]: "Customers, US: request 0.5% (18 of 3610, 95% CI 0.3%–0.8%)."
+          - listitem [ref=f8e624]: "Customers, all requested regions: request 0.5% (18 of 3677, 95% CI 0.3%–0.8%)."
+          - listitem [ref=f8e625]: "Customers, US: strength 1.1% (39 of 3610, 95% CI 0.8%–1.5%). Significantly different from EU (p<0.001)."
+          - listitem [ref=f8e626]: "Customers, EU: strength 7.5% (5 of 67, 95% CI 3.2%–16.3%). Significantly different from US (p<0.001)."
+          - listitem [ref=f8e627]: "Customers, all requested regions: strength 1.2% (44 of 3677, 95% CI 0.9%–1.6%)."
+      - generic [ref=f8e628]:
+        - generic [ref=f8e629]:
+          - heading "Customers" [level=3] [ref=f8e630]
+          - paragraph [ref=f8e631]: Share of feedback items, with the 95% interval as a box. Thin = small sample.
+        - generic [ref=f8e632]:
+          - generic [ref=f8e633]:
+            - generic [ref=f8e634]:
+              - text: Problem
+              - generic [ref=f8e635]: · all
+            - generic "95% interval 1.5%–2.4%" [ref=f8e638]
+            - generic [ref=f8e639]:
+              - text: 1.9%
+              - generic [ref=f8e640]: (69 of 3,677)
+          - generic [ref=f8e641]:
+            - generic [ref=f8e642]:
+              - text: Problem
+              - generic [ref=f8e643]: · EU
+            - generic "95% interval 2.4%–14%" [ref=f8e646]
+            - generic [ref=f8e647]:
+              - text: 6.0%
+              - generic [ref=f8e648]: (4 of 67) · thin
+          - generic [ref=f8e649]:
+            - generic [ref=f8e650]:
+              - text: Problem
+              - generic [ref=f8e651]: · US
+            - generic "95% interval 1.4%–2.3%" [ref=f8e654]
+            - generic [ref=f8e655]:
+              - text: 1.8%
+              - generic [ref=f8e656]: (65 of 3,610)
+          - generic [ref=f8e657]:
+            - generic [ref=f8e658]:
+              - text: Request
+              - generic [ref=f8e659]: · all
+            - generic "95% interval 0.3%–0.8%" [ref=f8e662]
+            - generic [ref=f8e663]:
+              - text: 0.5%
+              - generic [ref=f8e664]: (18 of 3,677)
+          - generic [ref=f8e665]:
+            - generic [ref=f8e666]:
+              - text: Request
+              - generic [ref=f8e667]: · US
+            - generic "95% interval 0.3%–0.8%" [ref=f8e670]
+            - generic [ref=f8e671]:
+              - text: 0.5%
+              - generic [ref=f8e672]: (18 of 3,610)
+          - generic [ref=f8e673]:
+            - generic [ref=f8e674]:
+              - text: Praise
+              - generic [ref=f8e675]: · all
+            - generic "95% interval 0.9%–1.6%" [ref=f8e678]
+            - generic [ref=f8e679]:
+              - text: 1.2%
+              - generic [ref=f8e680]: (44 of 3,677)
+          - generic [ref=f8e681]:
+            - generic [ref=f8e682]:
+              - text: Praise
+              - generic [ref=f8e683]: · EU
+            - generic "95% interval 3.2%–16%" [ref=f8e686]
+            - generic [ref=f8e687]:
+              - text: 7.5%
+              - generic [ref=f8e688]: (5 of 67)
+          - generic [ref=f8e689]:
+            - generic [ref=f8e690]:
+              - text: Praise
+              - generic [ref=f8e691]: · US
+            - generic "95% interval 0.8%–1.5%" [ref=f8e694]
+            - generic [ref=f8e695]:
+              - text: 1.1%
+              - generic [ref=f8e696]: (39 of 3,610)
+      - generic [ref=f8e697]:
+        - heading "What exactly customers mean" [level=3] [ref=f8e699]
+        - list [ref=f8e700]:
+          - listitem [ref=f8e701]:
+            - generic [ref=f8e702]:
+              - generic [ref=f8e703]: Problem ·
+              - text: Owner's Manual
+            - generic [ref=f8e704]: 9 of 69
+          - listitem [ref=f8e705]:
+            - generic [ref=f8e706]:
+              - generic [ref=f8e707]: Problem ·
+              - text: Tirefit
+            - generic [ref=f8e708]: 7 of 69
+          - listitem [ref=f8e709]:
+            - generic [ref=f8e710]:
+              - generic [ref=f8e711]: Problem ·
+              - text: Teleservices
+            - generic [ref=f8e712]: 4 of 69
+          - listitem [ref=f8e713]:
+            - generic [ref=f8e714]:
+              - generic [ref=f8e715]: Problem ·
+              - text: My BMW / MINI Portal
+            - generic [ref=f8e716]: 3 of 69
+          - listitem [ref=f8e717]:
+            - generic [ref=f8e718]:
+              - generic [ref=f8e719]: Problem ·
+              - text: Washer fluid, top up
+            - generic [ref=f8e720]: 3 of 69
+          - listitem [ref=f8e721]:
+            - generic [ref=f8e722]:
+              - generic [ref=f8e723]: Request ·
+              - text: Owner's Manual
+            - generic [ref=f8e724]: 6 of 18
+          - listitem [ref=f8e725]:
+            - generic [ref=f8e726]:
+              - generic [ref=f8e727]: Request ·
+              - text: Accessories / Parts
+            - generic [ref=f8e728]: 5 of 18
+          - listitem [ref=f8e729]:
+            - generic [ref=f8e730]:
+              - generic [ref=f8e731]: Praise ·
+              - text: Owner's Manual
+            - generic [ref=f8e732]: 5 of 44
+          - listitem [ref=f8e733]:
+            - generic [ref=f8e734]:
+              - generic [ref=f8e735]: Praise ·
+              - text: Service
+            - generic [ref=f8e736]: 3 of 44
+          - listitem [ref=f8e737]:
+            - generic [ref=f8e738]:
+              - generic [ref=f8e739]: Praise ·
+              - text: Professionalism
+            - generic [ref=f8e740]: 3 of 44
+      - generic [ref=f8e741]:
+        - generic [ref=f8e742]:
+          - heading "Customer feedback" [level=3] [ref=f8e743]
+          - paragraph [ref=f8e744]: Verbatim, alternating problem / request / praise so counter-evidence is shown.
+        - figure "Problem · G60-3229" [ref=f8e745]:
+          - blockquote [ref=f8e746]:
+            - mark [ref=f8e747]: the car has serious defects
+            - text: and
+            - mark [ref=f8e748]: the importer/dealer doesn't seem interested in resolving them, even after several inquiries from me
+            - text: .
+        - figure "Request · G60-0008" [ref=f8e750]:
+          - blockquote [ref=f8e751]: the ride quality is excellent and the road feedback is great. acceleration responds instantly. interior layout and space feel flawless, and overall the car gives a very high-quality impression. on the other hand, the electronics are very complicated and difficult to understand. thankfully there are…
+        - figure "Praise · G60-1077" [ref=f8e753]:
+          - blockquote [ref=f8e754]:
+            - text: for professional driving, bmw provides
+            - mark [ref=f8e755]: a solid overall package
+            - text: thanks to
+            - mark [ref=f8e756]: a sensible mandatory care agreement
+            - text: .
+            - mark [ref=f8e757]: the car's quality
+            - text: and
+            - mark [ref=f8e758]: features justify a top rating
+            - text: .
+            - mark [ref=f8e759]: the option of an extended warranty is something other makers do not provide in the same way
+            - text: . having that extended warranty makes it much…
+        - figure "Problem · G60-3651" [ref=f8e761]:
+          - blockquote [ref=f8e762]:
+            - text: hello, in general i am happy with the car, but i am really upset about how often it wants oil changes.
+            - mark [ref=f8e763]: my order sheet clearly said 24 months or 30,000 kms
+            - text: ", yet"
+            - mark [ref=f8e764]: the car asked for an oil change at 16,400 kms, which feels really abused
+            - text: . i did the oil service at 16,733 kms and the maintenance counter w…
+        - figure "Request · G60-0121" [ref=f8e766]:
+          - blockquote [ref=f8e767]: Customer asked whether a roof rack is available. Writer clarified they only handle manufacturing aspects and referred the customer to the dealership for any aftermarket add-on inquiries.
+        - figure "Praise · G60-2588" [ref=f8e769]:
+          - blockquote [ref=f8e770]:
+            - text: i have been
+            - mark [ref=f8e771]: really happy with the car itself
+            - text: ", plus"
+            - mark [ref=f8e772]: the whole sales
+            - text: and
+            - mark [ref=f8e773]: delivery experience
+            - text: and
+            - mark [ref=f8e774]: the follow-up service
+            - text: . up to now, this is clearly the best bmw i have owned, and at the same time
+            - mark [ref=f8e775]: the biggest model update compared with the previous one i had
+            - text: .
+      - generic [ref=f8e777]:
+        - generic [ref=f8e778]:
+          - heading "Competitors" [level=3] [ref=f8e779]
+          - paragraph [ref=f8e780]: "Only like-for-like values are compared: same unit, test standard and powertrain."
+        - paragraph [ref=f8e781]: No competitor evidence for this feature.
+      - generic [ref=f8e782]:
+        - generic [ref=f8e783]:
+          - heading "Our current model" [level=3] [ref=f8e784]
+          - paragraph [ref=f8e785]: From the BMW price list, customer studies and sales data.
+        - paragraph [ref=f8e786]: No catalog or study evidence for this feature.
+      - generic [ref=f8e787]:
+        - heading "Trends" [level=3] [ref=f8e789]
+        - paragraph [ref=f8e790]: No trend linked to this feature.
+      - generic [ref=f8e791]:
+        - heading "Missing evidence" [level=3] [ref=f8e793]
+        - list [ref=f8e794]:
+          - listitem [ref=f8e795]: "missing: our value, competitor evidence, trend evidence"
+          - listitem [ref=f8e796]: "trends · documents: unavailable — no stored studies or reports for these regions"
+      - generic [ref=f8e797]:
+        - heading "Sources" [level=3] [ref=f8e799]
+        - paragraph [ref=f8e800]: No document sources.
+    - button "Close" [active] [ref=f8e801]
+  - generic [aria-hidden] [ref=f8e804]: Support
+  - generic [ref=f8e806]:
+    - button [ref=f8e811] [cursor=pointer]
+    - button [expanded] [ref=f8e815] [cursor=pointer]

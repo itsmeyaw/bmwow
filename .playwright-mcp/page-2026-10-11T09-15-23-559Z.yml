@@ -1,0 +1,369 @@
+- generic [ref=f5e1]:
+  - generic [aria-hidden] [ref=f5e2]:
+    - generic [ref=f5e5]:
+      - list [ref=f5e7]:
+        - listitem [ref=f5e8]:
+          - link [ref=f5e270] [cursor=pointer]:
+            - /url: /feedback
+            - generic [ref=f5e21]:
+              - generic [ref=f5e22]: BMWow
+              - generic [ref=f5e23]: Customer feedback
+      - list [ref=f5e26]:
+        - listitem [ref=f5e27]:
+          - link [ref=f5e271] [cursor=pointer]:
+            - /url: /introduction
+            - generic [ref=f5e32]: Introduction
+        - listitem [ref=f5e33]:
+          - link [ref=f5e272] [cursor=pointer]:
+            - /url: /feedback
+            - generic [ref=f5e39]: Feedback
+        - listitem [ref=f5e40]:
+          - link [ref=f5e273] [cursor=pointer]:
+            - /url: /analysis
+            - generic [ref=f5e44]: Analysis
+      - list [ref=f5e46]:
+        - listitem [ref=f5e47]:
+          - button [ref=f5e274]:
+            - generic [ref=f5e49]: PM
+            - generic [ref=f5e51]:
+              - generic [ref=f5e52]: Product Manager
+              - generic [ref=f5e53]: pm@bmw.example
+    - main [ref=f5e54]:
+      - generic [ref=f5e55]:
+        - button [ref=f5e275]:
+          - generic [ref=f5e57]: Toggle Sidebar
+        - separator [ref=f5e58]
+      - generic [ref=f5e59]:
+        - generic [ref=f5e60]:
+          - generic [ref=f5e61]:
+            - heading [level=1] [ref=f5e276]: F70
+            - generic [ref=f5e63]:
+              - generic [ref=f5e64]: BMW 1 Series (F70)
+              - generic [ref=f5e65]: premium compact
+          - generic [ref=f5e66]:
+            - navigation [ref=f5e67]:
+              - text: Market
+              - link [ref=f5e277] [cursor=pointer]:
+                - /url: "?region=EU"
+                - text: EU
+            - generic [ref=f5e70]:
+              - text: Feedback engine
+              - combobox [ref=f5e278]:
+                - generic [ref=f5e72]: All engines
+              - textbox [aria-hidden] [ref=f5e73]: all
+        - generic [ref=f5e74]:
+          - generic [ref=f5e76]:
+            - generic [ref=f5e77]: Customer feedback
+            - generic [ref=f5e78]: "140"
+            - paragraph [ref=f5e80]: Good sentiment · +0.28
+          - generic [ref=f5e82]:
+            - generic [ref=f5e83]: Feedback with a problem
+            - generic [ref=f5e84]: 34%
+            - paragraph [ref=f5e86]: "Top: Infotainment & Connectivity"
+          - generic [ref=f5e88]:
+            - generic [ref=f5e89]: Recommended requirements
+            - generic [ref=f5e90]: "4"
+            - paragraph [ref=f5e92]: from 40 features analysed
+          - generic [ref=f5e94]:
+            - generic [ref=f5e95]: Evidence complete
+            - generic [ref=f5e96]: 4 of 4
+            - list [ref=f5e98]:
+              - listitem [ref=f5e279]: Our model
+              - listitem [ref=f5e280]: Competitors
+              - listitem [ref=f5e281]: Customers
+              - listitem [ref=f5e282]: Trends
+        - generic [ref=f5e107]:
+          - generic [ref=f5e108]:
+            - generic [ref=f5e109]:
+              - generic [ref=f5e110]: Feature verdicts
+              - generic [ref=f5e111]: All categories · hover for meaning
+            - generic [ref=f5e113]:
+              - application [ref=f5e283]:
+                - generic [ref=f5e284]: 6features
+              - list [ref=f5e117]:
+                - listitem [ref=f5e297]:
+                  - generic [ref=f5e120]: Underperformance
+                  - generic [ref=f5e121]: "3"
+                - listitem [ref=f5e298]:
+                  - generic [ref=f5e124]: Gap
+                  - generic [ref=f5e125]: "1"
+                - listitem [ref=f5e299]:
+                  - generic [ref=f5e128]: Must-have
+                  - generic [ref=f5e129]: "0"
+                - listitem [ref=f5e300]:
+                  - generic [ref=f5e132]: Strength
+                  - generic [ref=f5e133]: "2"
+          - generic [ref=f5e134]:
+            - generic [ref=f5e135]:
+              - generic [ref=f5e136]: Requirements by category
+              - generic [ref=f5e137]: Click a bar to filter
+            - application [ref=f5e301]:
+              - generic [ref=f5e302]:
+                - generic [ref=f5e303] [cursor=pointer]
+                - generic [ref=f5e309] [cursor=pointer]
+              - generic [ref=f5e316]:
+                - generic [ref=f5e317]: Powertrain 1
+                - generic [ref=f5e319]: Digital & UX 3
+        - generic [ref=f5e142]:
+          - generic [ref=f5e143]:
+            - generic [ref=f5e144]: Recommended requirements
+            - generic [ref=f5e145]: By customer impact · click a row for the evidence
+          - table [ref=f5e148]:
+            - rowgroup [ref=f5e149]:
+              - row [ref=f5e321]:
+                - columnheader [ref=f5e322]: "#"
+                - columnheader [ref=f5e323]: Feature
+                - columnheader [ref=f5e324]: Verdict
+                - columnheader [ref=f5e325]: Requirement
+                - columnheader [ref=f5e326]: Target
+                - columnheader [ref=f5e327]: Customer problems
+            - rowgroup [ref=f5e157]:
+              - row [ref=f5e328]:
+                - cell [ref=f5e329]: REQ-1
+                - cell [ref=f5e330]:
+                  - link [ref=f5e331] [cursor=pointer]:
+                    - /url: "?region=EU&feature=unmapped%3Ainfotainment_connectivity"
+                    - text: Infotainment connectivity
+                  - paragraph [ref=f5e162]: Digital & UX
+                - cell [ref=f5e332]:
+                  - generic [ref=f5e333]: Underperformance
+                - cell [ref=f5e334]:
+                  - paragraph [ref=f5e166]: Infotainment connectivity by addressing unresolved software bugs and glitches, which are reported in 5.7% of EU feedback items (8 of 140).
+                - cell [ref=f5e335]: set by PM
+                - cell [ref=f5e336]:
+                  - generic [ref=f5e169]: 5.7%
+              - row [ref=f5e337]:
+                - cell [ref=f5e338]: REQ-2
+                - cell [ref=f5e339]:
+                  - link [ref=f5e340] [cursor=pointer]:
+                    - /url: "?region=EU&feature=great_sound"
+                    - text: Great sound
+                  - paragraph [ref=f5e177]: Digital & UX
+                - cell [ref=f5e341]:
+                  - generic [ref=f5e342]: Underperformance
+                - cell [ref=f5e343]:
+                  - paragraph [ref=f5e181]: Audio mode, sound, targeting >= 8 speakers (ICE), matching the competitor median.
+                - cell [ref=f5e344]: ">= 8 speakers"
+                - cell [ref=f5e345]:
+                  - generic [ref=f5e184]: 3.6%
+              - row [ref=f5e346]:
+                - cell [ref=f5e347]: REQ-3
+                - cell [ref=f5e348]:
+                  - link [ref=f5e349] [cursor=pointer]:
+                    - /url: "?region=EU&feature=unmapped%3Apowertrain_performance"
+                    - text: Powertrain performance
+                  - paragraph [ref=f5e192]: Powertrain
+                - cell [ref=f5e350]:
+                  - generic [ref=f5e351]: Strength
+                - cell [ref=f5e352]:
+                  - paragraph [ref=f5e196]: Strong and responsive engine power; 8.6% of feedback items in the EU praise it (12 of 140).
+                - cell [ref=f5e353]: set by PM
+                - cell [ref=f5e354]:
+                  - generic [ref=f5e199]: 3.6%
+              - row [ref=f5e355]:
+                - cell [ref=f5e356]: REQ-4
+                - cell [ref=f5e357]:
+                  - link [ref=f5e358] [cursor=pointer]:
+                    - /url: "?region=EU&feature=intuitive_ux"
+                    - text: Intuitive UX
+                  - paragraph [ref=f5e207]: Digital & UX
+                - cell [ref=f5e359]:
+                  - generic [ref=f5e360]: Underperformance
+                - cell [ref=f5e361]:
+                  - paragraph [ref=f5e211]: Intuitive UX, especially touch-screen operation. In the EU, 2.9% of feedback items report a problem (4 of 140; small sample).
+                - cell [ref=f5e362]: set by PM
+                - cell [ref=f5e363]:
+                  - generic [ref=f5e214]: 2.9%
+        - generic [ref=f5e218]:
+          - generic [ref=f5e219]:
+            - generic [ref=f5e220]: Customer voice
+            - generic [ref=f5e221]: Share of 140 feedback items (F70 · EU) · most pressing first · click a bar for verbatims
+            - link [ref=f5e364] [cursor=pointer]:
+              - /url: /feedback/F70?region=EU
+              - text: Full ranking
+          - generic [ref=f5e225]:
+            - generic [ref=f5e226]:
+              - generic [ref=f5e227]: ← Complaints
+              - generic [ref=f5e228]: Praise →
+            - application [ref=f5e365]:
+              - generic [ref=f5e366]:
+                - generic [ref=f5e367] [cursor=pointer]
+                - generic [ref=f5e394] [cursor=pointer]
+              - generic [ref=f5e421]:
+                - generic [ref=f5e422]:
+                  - generic [ref=f5e423]: 15%
+                  - generic [ref=f5e425]: "0"
+                  - generic [ref=f5e427]: 15%
+                  - generic [ref=f5e429]: 30%
+                  - generic [ref=f5e431]: 45%
+                - generic [ref=f5e433]:
+                  - generic [ref=f5e434]: Infotainment & Connectivity
+                  - generic [ref=f5e436]: Seats & Comfort
+                  - generic [ref=f5e438]: Powertrain & Performance
+                  - generic [ref=f5e440]: Instruments & Controls
+                  - generic [ref=f5e442]: Exterior Design & Body
+                  - generic [ref=f5e444]: Service, Docs & Support
+                  - generic [ref=f5e446]: Chassis, Ride & Handling
+                  - generic [ref=f5e448]: ADAS / Driving Assistance
+        - generic [ref=f5e232]:
+          - generic [ref=f5e233]:
+            - generic [ref=f5e234]: Other assessed features
+            - generic [ref=f5e235]: Not recommended · mostly rule-based, so less certain · 34 more with too little evidence
+          - generic [ref=f5e236]:
+            - generic [ref=f5e237]:
+              - generic [ref=f5e238]: Gap
+              - link [ref=f5e451] [cursor=pointer]:
+                - /url: "?region=EU&feature=physical_controls"
+                - text: Physical controls
+            - generic [ref=f5e242]:
+              - generic [ref=f5e243]: Strength
+              - link [ref=f5e453] [cursor=pointer]:
+                - /url: "?region=EU&feature=dynamic_handling"
+                - text: Dynamic handling
+        - paragraph [ref=f5e247]: Run f70-eu · 10/11/2026, 7:43:05 AM · gpt-6-luna
+    - complementary [ref=f5e248]:
+      - separator [ref=f5e454]
+      - generic [ref=f5e250]:
+        - button [expanded] [ref=f5e455]
+        - generic [ref=f5e252]: Ask about this view
+        - button [disabled]
+      - generic [ref=f5e254]:
+        - button [ref=f5e456]: What is the most pressing issue of the F70?
+        - button [ref=f5e457]: What should be improved from this F70?
+        - button [ref=f5e458]: What should be added to this F70?
+      - generic [ref=f5e258]:
+        - textbox [ref=f5e459]:
+          - /placeholder: Ask a question…
+        - button [disabled]
+  - button "Open Next.js Dev Tools" [ref=f5e265] [cursor=pointer]
+  - alert [ref=f5e269]
+  - dialog [ref=f5e463]:
+    - generic [ref=f5e464]:
+      - generic [ref=f5e465]:
+        - heading "Flexible storage" [level=2] [ref=f5e466]
+        - generic "Evidence too thin or contradictory to decide." [ref=f5e467]: Unclear
+      - paragraph [ref=f5e468]: "F70 · EU · Interior · importance rank #6"
+    - generic [ref=f5e469]:
+      - generic [ref=f5e470]:
+        - generic [ref=f5e471]:
+          - heading "Why" [level=3] [ref=f5e472]
+          - paragraph [ref=f5e473]: "Judged by the LLM with a fixed rubric; checked by code rules (passed). Code suggested: Unclear (thin)."
+        - paragraph [ref=f5e474]: The few complaints point to a boot perceived as too small and to the trunk lid not opening or closing via the remote key; these concern capacity and convenience, not clearly flexible storage itself.
+        - paragraph [ref=f5e475]:
+          - text: The concrete concerns are a small boot and lack of remote trunk-lid operation, while another respondent says the car has good trunk space, so the evidence is not a consistent complaint about storage flexibility.
+          - button "2 src" [expanded] [ref=f5e477] [cursor=pointer]
+          - dialog [active] [ref=f5e481]:
+            - generic [ref=f5e483]:
+              - paragraph [ref=f5e484]:
+                - text: Source A, SE, F70
+                - generic [ref=f5e485]: · customer feedback
+              - paragraph [ref=f5e486]: nice car but the boot is small, and its model is a bit low
+            - generic [ref=f5e488]:
+              - paragraph [ref=f5e489]:
+                - text: Source A, SE, F70
+                - generic [ref=f5e490]: · customer feedback
+              - paragraph [ref=f5e491]: lovely to drive with several nice features. good trunk space, but minus that the trunk lid cant be opened or closed by remote key.
+          - text: EU problem share is 2.1% (3 of 140) with a 95% CI of 0.7%–6.1%, and the package labels the sample thin, so the issue appears limited and certainty is low.
+          - button "1 src" [ref=f5e494] [cursor=pointer]
+          - text: Competitors have a median luggage capacity of 380 l (range 380–380 l, n=1), but there is no comparable F70 value in litres; F70 customer-study ratings are on an unknown scale and cannot be compared on the same unit and test standard.
+          - button "3 src" [ref=f5e495] [cursor=pointer]
+          - text: The customer evidence is EU-wide, but it gives no country split, and the package provides no comparable regional or engine-specific customer view; the competitor PHEV figure is also 380 l with n=1.
+          - button "3 src" [ref=f5e496] [cursor=pointer]
+          - text: No trend evidence is available to judge whether the issue will become more or less important for launch in 3–5 years. The package contains no evidence linking this issue to safety or to BMW brand attributes such as driving pleasure, design, or premium feel.
+          - button "3 src" [ref=f5e497] [cursor=pointer]
+          - text: I retain the rule-based suggestion of unclear because the customer share is thin and the quotes are sparse and mixed, rather than establishing a consistent customer gap or demand.
+          - button "3 src" [ref=f5e498] [cursor=pointer]
+        - generic [ref=f5e499]:
+          - generic [ref=f5e500]:
+            - term [ref=f5e501]: Certainty
+            - definition [ref=f5e502]: low
+          - generic [ref=f5e503]:
+            - term [ref=f5e504]: Widespread
+            - definition [ref=f5e505]: limited
+          - generic [ref=f5e506]:
+            - term [ref=f5e507]: Problem share
+            - definition [ref=f5e508]: 2.1%
+        - list [ref=f5e509]:
+          - listitem [ref=f5e510]: "Competitors: median 380 l, range 380–380 l, n=1; higher is better. No comparable value of ours."
+          - listitem [ref=f5e511]: "Competitors (phev): median 380 l, range 380–380 l, n=1; higher is better. No comparable value of ours."
+          - listitem [ref=f5e512]: "Customers, EU: problem 2.1% (3 of 140, 95% CI 0.7%–6.1%), thin sample."
+      - generic [ref=f5e513]:
+        - generic [ref=f5e514]:
+          - heading "Customers" [level=3] [ref=f5e515]
+          - paragraph [ref=f5e516]: Share of feedback items, with the 95% interval as a box. Thin = small sample.
+        - generic [ref=f5e518]:
+          - generic [ref=f5e519]:
+            - text: Problem
+            - generic [ref=f5e520]: · EU
+          - generic "95% interval 0.7%–6.1%" [ref=f5e523]
+          - generic [ref=f5e524]:
+            - text: 2.1%
+            - generic [ref=f5e525]: (3 of 140) · thin
+      - generic [ref=f5e526]:
+        - generic [ref=f5e527]:
+          - heading "Customer feedback" [level=3] [ref=f5e528]
+          - paragraph [ref=f5e529]: Verbatim, alternating problem / request / praise so counter-evidence is shown.
+        - figure "Problem · F70-1039" [ref=f5e530]:
+          - blockquote [ref=f5e531]: lovely to drive with several nice features. good trunk space, but minus that the trunk lid cant be opened or closed by remote key.
+        - figure "Problem · F70-1788" [ref=f5e533]:
+          - blockquote [ref=f5e534]: nice car but the boot is small, and its model is a bit low
+        - figure "Problem · F70-1287" [ref=f5e536]:
+          - blockquote [ref=f5e537]: the car is big enough and uses relatively little petrol, but it is still somewhat too expensive. there are thousands of digital functions, which end up being more of a hassle than a benefit. since the manual is also digital, its layout should be improved to give a clearer overview and make searchin…
+      - generic [ref=f5e539]:
+        - generic [ref=f5e540]:
+          - heading "Competitors" [level=3] [ref=f5e541]
+          - paragraph [ref=f5e542]: "Only like-for-like values are compared: same unit, test standard and powertrain."
+        - table [ref=f5e544]:
+          - rowgroup [ref=f5e545]:
+            - row [ref=f5e546]:
+              - columnheader "Basis" [ref=f5e547]
+              - columnheader "n" [ref=f5e548]
+              - columnheader "Min" [ref=f5e549]
+              - columnheader "Median" [ref=f5e550]
+              - columnheader "Max" [ref=f5e551]
+              - columnheader "Ours" [ref=f5e552]
+          - rowgroup [ref=f5e553]:
+            - row [ref=f5e554]:
+              - cell "l · –" [ref=f5e555]
+              - cell "1" [ref=f5e556]
+              - cell "380" [ref=f5e557]
+              - cell "380" [ref=f5e558]
+              - cell "380" [ref=f5e559]
+              - cell "–" [ref=f5e560]
+            - row [ref=f5e561]:
+              - cell "l · phev" [ref=f5e562]
+              - cell "1" [ref=f5e563]
+              - cell "380" [ref=f5e564]
+              - cell "380" [ref=f5e565]
+              - cell "380" [ref=f5e566]
+              - cell "–" [ref=f5e567]
+        - list [ref=f5e568]:
+          - listitem [ref=f5e569]: Audi A3 has flexible storage of 380 litres (variant depending on the trim level).
+          - listitem [ref=f5e570]: Audi A3 has flexible storage of 380 litre (variant non-PHEV versions; powertrain phev).
+      - generic [ref=f5e571]:
+        - generic [ref=f5e572]:
+          - heading "Our current model" [level=3] [ref=f5e573]
+          - paragraph [ref=f5e574]: From the BMW price list, customer studies and sales data.
+        - list [ref=f5e575]:
+          - listitem [ref=f5e576]: In F70_G60_G68_G70_customer_studies.xlsx (EU), F70 has a mean of 8.57164 unknown_rating_scale on 'Interior versatility'.
+          - listitem [ref=f5e577]: In F70_G60_G68_G70_customer_studies.xlsx (EU), F70 has a mean of 7.06969 unknown_rating_scale on 'Luggage capacity'.
+          - listitem [ref=f5e578]: In F70_G60_G68_G70_customer_studies.xlsx (EU), F70 has a mean of 7.50291 unknown_rating_scale on 'Ease of loading/ unloading luggage'.
+          - listitem [ref=f5e579]: In F70_G60_G68_G70_customer_studies.xlsx (EU), F70 has a mean of 8.10336 unknown_rating_scale on 'Interior storage for small items'.
+      - generic [ref=f5e580]:
+        - heading "Trends" [level=3] [ref=f5e582]
+        - paragraph [ref=f5e583]: No trend linked to this feature.
+      - generic [ref=f5e584]:
+        - heading "Missing evidence" [level=3] [ref=f5e586]
+        - list [ref=f5e587]:
+          - listitem [ref=f5e588]: "missing: trend evidence"
+          - listitem [ref=f5e589]: "baseline · catalog: unavailable — no catalog values for F70"
+          - listitem [ref=f5e590]: "trends · documents: unavailable — no stored studies or reports for these regions"
+      - generic [ref=f5e591]:
+        - heading "Sources" [level=3] [ref=f5e593]
+        - group [ref=f5e594]:
+          - generic "6 sources behind the catalog, competitor and trend findings" [ref=f5e595] [cursor=pointer]
+    - button "Close" [ref=f5e596]
+  - generic [aria-hidden] [ref=f5e599]: 30%
+  - generic [ref=f5e601]:
+    - button [ref=f5e606] [cursor=pointer]
+    - button [expanded] [ref=f5e610] [cursor=pointer]
