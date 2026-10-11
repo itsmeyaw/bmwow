@@ -44,3 +44,9 @@ export function categoryOf(attribute: string, area: string): CategoryKey {
 
 export const categoryLabel = (key: string) =>
   CATEGORIES.find((c) => c.key === key)?.label ?? "Other";
+
+/** "intuitive ux" -> "Intuitive UX": first letter up, known acronyms in capitals. */
+export const sentenceLabel = (label: string) =>
+  (label.charAt(0).toUpperCase() + label.slice(1)).replace(/\b(ux|adas|ev|bev|phev)\b/gi, (m) =>
+    m.toUpperCase(),
+  );

@@ -23,6 +23,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CATEGORIES, categoryLabel, categoryOf } from "@/lib/feature-category";
+import { active, type Decision } from "@/server/situation/apply-decisions";
+import { listDecisions } from "@/server/situation/decisions";
 import { int, pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -66,7 +68,11 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
   const region = one(sp.region) ?? regions[0].region;
   const run = await getRun(derivate, region);
   if (!run) notFound();
-  const features = await listFeatures(run.runId);
+  const [features, decisions] = await Promise.all([
+    listFeatures(run.runId),
+    listDecisions(run.runId),
+  ]);
+  const byAttribute = Map.groupBy(active(decisions), (d) => d.attribute);
   const category = CATEGORIES.find((c) => c.key === one(sp.category))?.key ?? null;
   const inCategory = (f: FeatureRow) => !category || categoryOf(f.attribute, f.area) === category;
   const allRecommended = features.filter((f) => f.reqId);
@@ -90,25 +96,40 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
             {run.segment && <Badge variant="secondary">{run.segment.replaceAll("_", " ")}</Badge>}
           </div>
         </div>
-        <nav className="flex flex-col gap-1 text-xs text-muted-foreground">
-          Region
-          <div className="flex gap-1">
-            {regions.map((r) => (
-              <Link
-                key={r.region}
-                href={hrefWith(sp, { region: r.region, feature: null })}
-                scroll={false}
-                className={cn(
-                  "rounded-md border px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted",
-                  r.region === region &&
-                    "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
-                )}
-              >
-                {regionLabel(r.region)}
-              </Link>
-            ))}
-          </div>
-        </nav>
+        <div className="flex flex-wrap items-end gap-3">
+          <a
+            href={`/api/situation/report?derivate=${run.modelCode}&region=${run.region}`}
+            download
+            className="rounded-md border px-3 py-1.5 text-sm transition-colors hover:bg-muted"
+            title="Recommendations adapted by the PM's decisions in the chat"
+          >
+            Report (PDF)
+            {decisions.some((d) => !d.undoneAt) && (
+              <span className="ml-1 text-xs text-amber-700 dark:text-amber-300">
+                · {decisions.filter((d) => !d.undoneAt).length} PM decisions
+              </span>
+            )}
+          </a>
+          <nav className="flex flex-col gap-1 text-xs text-muted-foreground">
+            Region
+            <div className="flex gap-1">
+              {regions.map((r) => (
+                <Link
+                  key={r.region}
+                  href={hrefWith(sp, { region: r.region, feature: null })}
+                  scroll={false}
+                  className={cn(
+                    "rounded-md border px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted",
+                    r.region === region &&
+                      "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
+                  )}
+                >
+                  {regionLabel(r.region)}
+                </Link>
+              ))}
+            </div>
+          </nav>
+        </div>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -133,6 +154,7 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
       <CategoryFilter features={allRecommended} active={category} sp={sp} />
       <RequirementsTable
         rows={recommended}
+        decisions={byAttribute}
         sp={sp}
         emptyReason={
           category && allRecommended.length
@@ -159,6 +181,38 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
         {run.llmModel && ` · ${run.llmModel}`}
       </p>
     </>
+  );
+}
+
+const PM_LABEL: Record<string, string> = {
+  omit: "Omitted by PM",
+  change_target: "Target set by PM",
+  deprioritize: "Deprioritized by PM",
+  note: "PM note",
+};
+
+/** The PM's active decisions on a requirement, from the chat; hover shows the reason. */
+function PmBadges({ decisions }: { decisions: Decision[] }) {
+  return decisions.map((d) => (
+    <span
+      key={d.id}
+      title={d.reason}
+      className="rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300"
+    >
+      {PM_LABEL[d.action]}
+    </span>
+  ));
+}
+
+/** A PM-set target above the system's (which stays visible for comparison). */
+function PmTarget({ decisions }: { decisions: Decision[] }) {
+  const d = decisions.filter((x) => x.action === "change_target").at(-1);
+  if (!d || d.value == null) return null;
+  return (
+    <p className="font-medium whitespace-nowrap text-amber-700 dark:text-amber-300">
+      {[d.operator, d.value.toLocaleString("en"), d.unit].filter(Boolean).join(" ")}{" "}
+      <span className="text-[10px] font-normal">PM</span>
+    </p>
   );
 }
 
@@ -275,10 +329,12 @@ function emptyReason(run: Run, features: FeatureRow[]) {
 
 function RequirementsTable({
   rows,
+  decisions,
   sp,
   emptyReason,
 }: {
   rows: FeatureRow[];
+  decisions: Map<string, Decision[]>;
   sp: Search;
   emptyReason: string;
 }) {
@@ -307,7 +363,13 @@ function RequirementsTable({
           </TableHeader>
           <TableBody>
             {rows.map((f) => (
-              <TableRow key={f.attribute} className="relative align-top">
+              <TableRow
+                key={f.attribute}
+                className={cn(
+                  "relative align-top",
+                  decisions.get(f.attribute)?.some((d) => d.action === "omit") && "opacity-55",
+                )}
+              >
                 <TableCell className="font-mono text-xs text-muted-foreground">{f.reqId}</TableCell>
                 <TableCell>
                   <FeatureLink f={f} sp={sp} />
@@ -317,7 +379,10 @@ function RequirementsTable({
                   {categoryLabel(categoryOf(f.attribute, f.area))}
                 </TableCell>
                 <TableCell>
-                  <AssessmentBadge value={f.assessment} method={f.method} />
+                  <div className="flex flex-col items-start gap-1">
+                    <AssessmentBadge value={f.assessment} method={f.method} />
+                    <PmBadges decisions={decisions.get(f.attribute) ?? []} />
+                  </div>
                 </TableCell>
                 <TableCell className="text-sm whitespace-normal">
                   {f.changeIntent && (
@@ -326,9 +391,16 @@ function RequirementsTable({
                   <span className="text-muted-foreground">{f.requirement}</span>
                 </TableCell>
                 <TableCell className="text-sm tabular-nums">
+                  <PmTarget decisions={decisions.get(f.attribute) ?? []} />
                   {f.targetValue != null ? (
                     <>
-                      <span className="font-medium whitespace-nowrap">
+                      <span
+                        className={cn(
+                          "font-medium whitespace-nowrap",
+                          decisions.get(f.attribute)?.some((d) => d.action === "change_target") &&
+                            "font-normal text-muted-foreground line-through",
+                        )}
+                      >
                         {target(f.targetOperator, f.targetValue, f.targetUnit, null)}
                       </span>
                       {f.targetCondition && (

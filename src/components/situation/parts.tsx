@@ -50,11 +50,8 @@ export function AssessmentBadge({ value, method }: { value: string; method?: str
   );
 }
 
-/** "intuitive ux" -> "Intuitive UX": first letter up, known acronyms in capitals. */
-export const sentence = (label: string) =>
-  (label.charAt(0).toUpperCase() + label.slice(1)).replace(/\b(ux|adas|ev|bev|phev)\b/gi, (m) =>
-    m.toUpperCase(),
-  );
+/** Feature labels in sentence case (shared with the PDF report). */
+export { sentenceLabel as sentence } from "@/lib/feature-category";
 
 export const INTENTS: Record<string, string> = {
   introduce: "Introduce",

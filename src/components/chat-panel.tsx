@@ -15,6 +15,7 @@ import {
   StopIcon,
 } from "@hugeicons/core-free-icons";
 import { type Attachment, useChatContext } from "@/components/chat-context";
+import { DecisionCard } from "@/components/situation/decision-card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +32,9 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   getCategoryDetail: ["Reading category detail…", "Read category detail"],
   getEvidence: ["Reading verbatims…", "Read verbatims"],
   searchWeb: ["Searching the web…", "Searched the web"],
+  getSituationRun: ["Reading the run…", "Read the run"],
+  getSituationFeature: ["Reading the feature analysis…", "Read the feature analysis"],
+  undoDecision: ["Undoing decision…", "Undid a decision"],
 };
 
 type Cited = {
@@ -223,6 +227,8 @@ export function ChatPanel() {
                   {m.parts.map((p, i) =>
                     p.type === "text" ? (
                       <Answer key={i} text={p.text} cited={cited} animating={busy && m === last} />
+                    ) : p.type === "tool-recordDecision" ? (
+                      <DecisionCard key={i} {...(p as unknown as ToolPart)} />
                     ) : p.type.startsWith("tool-") ? (
                       <Step key={i} part={p as unknown as ToolPart} />
                     ) : null,

@@ -293,3 +293,10 @@ export async function getFeatureDetail(
     sources,
   };
 }
+
+/** A car's stored run in a region; without a region, its default ("ALL" if it has one). */
+export async function resolveRun(modelCode: string, region: string | null): Promise<Run | null> {
+  const runs = (await listRuns()).filter((r) => r.modelCode === modelCode);
+  if (!runs.length) return null;
+  return getRun(modelCode, region ?? runs[0].region);
+}
