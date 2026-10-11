@@ -30,7 +30,7 @@ from .. import router
 from ..config import get_settings
 from ..llm import get_chat_model
 from ..prompting import render_prompt, render_regions
-from ..rules import load_rules, powertrain_of
+from ..rules import engine_type, load_rules, powertrain_of
 from ..sources import Budget, attribute_source, clip, render_attribute
 from ..tools.knowledge import AttributeValue, ModelNode
 from ..tools.web_search import (
@@ -174,6 +174,26 @@ def _ontology_finding(ctx: AgentContext, model: ModelNode, av: AttributeValue) -
     unit = f" {av.unit}" if av.unit else ""
     note = f" ({av.source_note})" if av.source_note else ""
     prefix = "The source reports" if av.references else ""
+    variant = av.variant
+    pt = (
+        engine_type(av.context.engine_types if av.context else [])
+        or powertrain_of(f"{variant or ''} {model.name}")
+        or (model.powertrain if model.powertrain in ("bev", "phev", "ice") else None)
+    )
+    qualifier = (
+        "; ".join(
+            x
+            for x in (
+                av.measurement.test_standard
+                if av.measurement and av.measurement.test_standard
+                else "",
+                f"variant {variant}" if variant else "",
+                f"powertrain {pt}" if pt else "",
+            )
+            if x
+        )
+        or av.source_note
+    )
     return ctx.finding(
         attribute=av.attribute,
         claim=f"{prefix} {model.name} has {av.attribute.replace('_', ' ')} of {av.value}{unit}{note}.",
@@ -182,7 +202,7 @@ def _ontology_finding(ctx: AgentContext, model: ModelNode, av: AttributeValue) -
         source_ids=[src.id],
         confidence="high",
         quantity=Quantity(
-            value=float(av.value), unit=av.unit or "", qualifier=av.source_note, origin="record"
+            value=float(av.value), unit=av.unit or "", qualifier=qualifier, origin="record"
         )
         if numeric and av.unit
         else None,

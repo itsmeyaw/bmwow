@@ -18,7 +18,13 @@ from bmwow.agent.models.evidence import Quantity
 from .. import router
 from ..config import get_settings
 from ..models.evidence import Source
-from ..rules import feature_for_term, is_lower_better, load_study_mappings, powertrain_of
+from ..rules import (
+    engine_type,
+    feature_for_term,
+    is_lower_better,
+    load_study_mappings,
+    powertrain_of,
+)
 from ..sources import attribute_source, model_source
 from ..tools.knowledge import ModelNode, SalesRow, StudyScore
 from .common import AgentContext
@@ -37,13 +43,26 @@ async def run(ctx: AgentContext) -> None:
         unit = f" {av.unit}" if av.unit else ""
         # Comparison key parts: the powertrain of the variant the catalog row names, and for a
         # configuration interval its best end (an interval is never averaged).
-        pt = powertrain_of(av.source_note.split(";")[0])
+        variant = getattr(av, "variant", None)
+        pt = (
+            engine_type(av.context.engine_types if av.context else [])
+            or powertrain_of(variant)
+            or powertrain_of(av.source_note.split(";")[0])
+        )
         best, span = (float(av.value) if numeric else None), ""
         if av.value_range is not None and av.unit:
             lo, hi = av.value_range.minimum, av.value_range.maximum
             best = lo if is_lower_better(av.attribute, av.unit) else hi
             span = f"best configuration of {lo:g}–{hi:g}"
-        qualifier = "; ".join(x for x in (span, f"powertrain {pt}" if pt else "") if x)
+        qualifier = "; ".join(
+            x
+            for x in (
+                span,
+                f"variant {variant}" if variant else "",
+                f"powertrain {pt}" if pt else "",
+            )
+            if x
+        )
         note = f" ({av.source_note})" if av.source_note else ""
         offered = f", {av.availability}" if av.availability and av.availability != "unknown" else ""
         prefix = "The source reports" if av.references else "The reference model"

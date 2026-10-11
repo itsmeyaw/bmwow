@@ -91,7 +91,11 @@ feature_aliases:
   build_quality: [build quality, workmanship, durability, solidity]
 
 structure:
-  max_judged_features: 12  # LLM judgment for the most important features; others stay "not_assessed"
+  max_judged_features: 12  # LLM judgment for the most important features; the rest get the rule result
+  # Rule-based assessment (code, every feature; the judge sees it as a suggestion). Thresholds apply
+  # to the 95% interval lower bound of a customer share across all requested regions.
+  rule_min_signal: 0.01     # problem / request share that counts
+  rule_min_strength: 0.02   # praise share that makes a strength (and must exceed problems/requests)
   max_quotes_per_package: 6
   widespread_min_ci_low: 0.02   # guard: "widespread" needs a customer share whose CI lower bound reaches this
   thin_words: [thin, small sample, limited data, few items, low n, uncertain]
@@ -146,3 +150,4 @@ candidates:
     hygiene_factor: ours
     strength: ours
   max_customer_facts: 2
+  from_rule_based: false  # true: rule-based assessments (not judged) also become candidates

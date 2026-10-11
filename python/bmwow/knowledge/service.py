@@ -334,6 +334,7 @@ class KnowledgeService:
                         value=value,
                         value_range=interval,
                         unit=measurement.unit if measurement else None,
+                        variant=capability.variant,
                         measurement=measurement,
                         availability=capability.availability,
                         epistemic_status=properties.epistemic_status,
@@ -381,9 +382,7 @@ class KnowledgeService:
                         vfc_category=classification.vfc_level2,
                         vfc_issue=classification.vfc_level3,
                         vfc_combined=classification.vfc_combined,
-                        attribute=self._config.feature_keys[mapping.feature_id]
-                        if mapping is not None and mapping.status == "reviewed"
-                        else None,
+                        attribute=self._config.mapped_feature(mapping),
                         mapping_status=mapping.status if mapping else None,
                         locator=classification.locator,
                     )

@@ -227,3 +227,21 @@ def test_problem_reports_mean_the_feature_exists_today():
         attribute="x", label="x", importance=0.1, sub_themes=[theme("request", 9)]
     )
     assert _baseline(wish_only, None, theme("request", 9))[0] == "unknown"
+
+
+def test_one_unavailable_option_does_not_make_the_feature_absent():
+    from bmwow.agent.candidates import _baseline
+    from bmwow.agent.models.evidence import EvidencePackage, FactRef
+
+    def fact(i, text):
+        return FactRef(finding_id=f"F-{i}", agent="baseline", subject="G60", text=text)
+
+    mixed = EvidencePackage(
+        attribute="x",
+        label="x",
+        importance=0.1,
+        ours=[fact(1, "Highway assistant, standard."), fact(2, "Option Y, unavailable.")],
+    )
+    assert _baseline(mixed, None)[0] == "known_present"
+    none = mixed.model_copy(update={"ours": [fact(2, "Option Y, unavailable.")]})
+    assert _baseline(none, None)[0] == "known_absent"

@@ -13,6 +13,8 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 
+from pydantic import BaseModel
+
 from bmwow.agent.models.evidence import (
     AgentName,
     AgentReport,
@@ -29,7 +31,7 @@ from bmwow.agent.models.evidence import (
     ValueComparison,
 )
 
-from .rules import Rules, is_lower_better, powertrain_of
+from .rules import Rules, is_lower_better, load_rules, powertrain_of
 from .sources import clip
 from .stats import distribution, rank_position, relative_difference
 from .validation import unsupported_numbers
@@ -361,6 +363,110 @@ def gap_requests(
     return wanted[: rules.gap_fill.max_features]
 
 
+class RuleResult(BaseModel):
+    assessment: str  # gap | strength | hygiene_factor | demand | unclear
+    basis: str  # "competitor + customers" | "customers only" | "trend only" | "thin"
+    reasoning: str
+    cited_ids: list[str]
+
+
+def _pooled(pkg: EvidencePackage, direction: str) -> CustomerSignal | None:
+    """The customer share across all requested regions (else the largest sample)."""
+    signals = [s for s in pkg.customers if s.direction == direction]
+    pooled = [s for s in signals if s.region is None] or signals
+    return max(pooled, key=lambda s: s.n) if pooled else None
+
+
+def rule_assessment(pkg: EvidencePackage, rules: Rules) -> RuleResult:
+    """Assessment from computed facts only (no LLM). Customer shares count by the lower bound of
+    their 95% interval; a comparison counts only with our own value in it (same unit, standard and
+    powertrain). Missing views lower the certainty, they do not make a feature unclear."""
+    t, ts = rules.structure.rule_min_signal, rules.structure.rule_min_strength
+    p, r, s = (_pooled(pkg, d) for d in ("problem", "request", "strength"))
+    pl, rl, sl = (x.ci_low if x else 0.0 for x in (p, r, s))
+    c = next((v for v in pkg.competitor_values if v.ours is not None and v.field_size), None)
+
+    def fmt(x: CustomerSignal | None, what: str) -> str:
+        return (
+            f"{x.share:.1%} {what} ({x.k} of {x.n}, CI {x.ci_low:.1%}–{x.ci_high:.1%})" if x else ""
+        )
+
+    def ids(*xs: CustomerSignal | None) -> list[str]:
+        return [x.finding_id for x in xs if x is not None]
+
+    if c is not None:
+        worse = (c.ours_vs_median or 0) > 0 if c.lower_is_better else (c.ours_vs_median or 0) < 0
+        where = (
+            f"ours {_fmt(c.ours)} {c.unit} vs competitor median {_fmt(c.median)} "
+            f"({c.condition or 'same basis'}, rank {c.ours_rank} of {c.field_size})"
+        )
+        if worse and max(pl, rl) >= t:
+            x = p if pl >= rl else r
+            return RuleResult(
+                assessment="gap",
+                basis="competitor + customers",
+                reasoning=f"We trail: {where}; customers: {fmt(x, x.direction if x else '')}.",
+                cited_ids=[*c.finding_ids, *ids(x)],
+            )
+        if not worse and pl >= t:
+            return RuleResult(
+                assessment="hygiene_factor",
+                basis="competitor + customers",
+                reasoning=f"Customers complain ({fmt(p, 'problem')}) though we do not trail: {where}.",
+                cited_ids=[*c.finding_ids, *ids(p)],
+            )
+        if c.ours_rank == 1 and (sl >= t or max(pl, rl) < t):
+            return RuleResult(
+                assessment="strength",
+                basis="competitor + customers",
+                reasoning=f"We lead: {where}" + (f"; customers: {fmt(s, 'praise')}." if s else "."),
+                cited_ids=[*c.finding_ids, *ids(s)],
+            )
+    if sl >= ts and sl > max(pl, rl):
+        return RuleResult(
+            assessment="strength",
+            basis="customers only",
+            reasoning=f"Customers praise it ({fmt(s, 'praise')}) more than they report problems or "
+            "wishes; no comparable competitor value with ours.",
+            cited_ids=ids(s, p),
+        )
+    if rl >= t and rl >= pl:
+        return RuleResult(
+            assessment="demand",
+            basis="customers only",
+            reasoning=f"Customers ask for it ({fmt(r, 'request')}); no comparable competitor value.",
+            cited_ids=ids(r),
+        )
+    if pl >= t:
+        return RuleResult(
+            assessment="gap",
+            basis="customers only",
+            reasoning=f"Customers report problems ({fmt(p, 'problem')}): the current model falls "
+            "short of what customers expect; no comparable competitor value.",
+            cited_ids=ids(p),
+        )
+    demand_trends = [x for x in pkg.trends if x.polarity == "demand" and not x.thin]
+    if demand_trends and not pkg.customers:
+        return RuleResult(
+            assessment="demand",
+            basis="trend only",
+            reasoning=f"A demand trend applies: {demand_trends[0].claim}",
+            cited_ids=[demand_trends[0].finding_id],
+        )
+    shares = [x for x in (p, r, s) if x is not None]
+    return RuleResult(
+        assessment="unclear",
+        basis="thin",
+        reasoning=(
+            "All customer shares are below the threshold "
+            f"({', '.join(fmt(x, x.direction) for x in shares)})."
+            if shares
+            else "No customer signal and no comparison with our value."
+        ),
+        cited_ids=ids(*shares),
+    )
+
+
 def render_package(pkg: EvidencePackage) -> str:
     """The package as text for the judgment, with every citable id."""
     lines = [f"# Feature: {pkg.label} ({pkg.attribute})", "", "## Facts computed by code"]
@@ -393,6 +499,12 @@ def render_package(pkg: EvidencePackage) -> str:
     lines += [f"- [{t.finding_id}] {t.claim}" for t in pkg.trends] or ["- no evidence"]
     lines += ["", "## Coverage"]
     lines += [f"- {c}" for c in pkg.coverage] or ["- all four views present"]
+    rule = rule_assessment(pkg, load_rules())
+    lines += [
+        "",
+        "## Rule-based suggestion (computed by code from the facts above)",
+        f"- {rule.assessment} (basis: {rule.basis}): {rule.reasoning}",
+    ]
     return "\n".join(lines)
 
 

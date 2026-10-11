@@ -6,8 +6,9 @@
 3. guard (code): checks the judgment against the package; one revision with the violations, then the
    result is kept and flagged if it still fails.
 
-The judgment reads BMW feedback quotes, so it runs only with ALLOW_LLM_ON_INTERNAL_DATA=true; otherwise
-features stay "not_assessed" and the packages are handed over as they are.
+The judgment reads BMW feedback quotes, so it runs only with ALLOW_LLM_ON_INTERNAL_DATA=true. Code also
+computes a rule-based assessment for every feature (structure.rule_assessment): the judge sees it as a
+suggestion, and features the judge does not run on keep it (method "rule", low certainty).
 """
 
 from __future__ import annotations
@@ -29,7 +30,7 @@ from ..config import get_settings
 from ..llm import get_chat_model
 from ..prompting import render_prompt
 from ..rules import Rules, load_rules
-from ..structure import guard, render_package
+from ..structure import guard, render_package, rule_assessment
 from ..taxonomy import Taxonomy
 from .common import structured_call
 
@@ -87,6 +88,7 @@ async def judge_one(
         )
         checks = guard(pkg, out.assessment, out.widespread, _text(out), _cited(out), rules)
         status = "revised" if all(c.ok for c in checks) else "flagged"
+    rule = rule_assessment(pkg, rules)
     return FeatureAssessment(
         attribute=pkg.attribute,
         assessment=out.assessment,
@@ -101,27 +103,41 @@ async def judge_one(
         cited_ids=_cited(out),
         guard=checks,
         guard_status=status,
+        method="judge",
+        rule_suggestion=f"{rule.assessment} ({rule.basis})",
     )
 
 
-def _not_assessed(pkg: EvidencePackage, note: str) -> FeatureAssessment:
-    return FeatureAssessment(attribute=pkg.attribute, assessment="not_assessed", note=note)
+def _by_rule(pkg: EvidencePackage, note: str) -> FeatureAssessment:
+    """The code's rule-based assessment, used where the judge does not run (low certainty)."""
+    r = rule_assessment(pkg, load_rules())
+    return FeatureAssessment(
+        attribute=pkg.attribute,
+        assessment=r.assessment,  # type: ignore[arg-type]
+        widespread="unclear",
+        certainty="low",
+        reasoning=f"{r.reasoning} [{', '.join(r.cited_ids)}]" if r.cited_ids else r.reasoning,
+        cited_ids=r.cited_ids,
+        note=f"rule-based ({r.basis}); {note}",
+        method="rule",
+        rule_suggestion=f"{r.assessment} ({r.basis})",
+    )
 
 
 async def judge(
     brief: ProductBrief, taxonomy: Taxonomy, packages: list[EvidencePackage]
 ) -> list[FeatureAssessment]:
-    """Judge the most important features (ranked by assemble); the rest stay not_assessed."""
+    """Judge the most important features (ranked by assemble); the rest get the rule result."""
     rules = load_rules()
     settings = get_settings()
     top = packages[: rules.structure.max_judged_features]
     rest = [
-        _not_assessed(p, "outside the most important features judged in this run")
+        _by_rule(p, "outside the most important features judged in this run")
         for p in packages[rules.structure.max_judged_features :]
     ]
     if not settings.allow_llm_on_internal_data:
         note = "judgment needs an LLM on BMW data; disabled until ALLOW_LLM_ON_INTERNAL_DATA=true"
-        return [_not_assessed(p, note) for p in top] + rest
+        return [_by_rule(p, note) for p in top] + rest
     semaphore = asyncio.Semaphore(settings.llm_concurrency)
 
     async def one(pkg: EvidencePackage) -> FeatureAssessment:
@@ -130,6 +146,6 @@ async def judge(
                 return await judge_one(brief, taxonomy, pkg, rules)
             except Exception as exc:  # noqa: BLE001 - one feature failing must not stop the rest
                 log.exception("judging %s failed", pkg.attribute)
-                return _not_assessed(pkg, f"judgment failed: {type(exc).__name__}: {exc}")
+                return _by_rule(pkg, f"judgment failed: {type(exc).__name__}: {exc}")
 
     return list(await asyncio.gather(*(one(p) for p in top))) + rest

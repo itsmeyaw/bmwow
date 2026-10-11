@@ -54,6 +54,8 @@ class StructureRules(_Rules):
     higher_is_better_units: list[str] = Field(default_factory=list)
     lower_is_better_units: list[str] = Field(default_factory=list)
     powertrain_patterns: dict[str, list[str]] = Field(default_factory=dict)
+    rule_min_signal: float = 0.01
+    rule_min_strength: float = 0.02
 
 
 class CompetitionRules(_Rules):
@@ -71,6 +73,7 @@ class CandidateRules(_Rules):
     assessments: list[str]
     default_target: dict[str, Literal["competitor_median", "best_in_class", "ours"]]
     max_customer_facts: int
+    from_rule_based: bool = False
 
 
 class Rules(_Rules):
@@ -152,6 +155,12 @@ def powertrain_of(text: str | None) -> Powertrain | None:
     if "phev" in hits:
         return "phev"
     return hits[0] if len(hits) == 1 else None  # type: ignore[return-value]
+
+
+def engine_type(engine_types: list[str]) -> Powertrain | None:
+    """The one known engine type an ontology context names, else None."""
+    known = {e for e in engine_types if e in ("bev", "phev", "ice")}
+    return known.pop() if len(known) == 1 else None  # type: ignore[return-value]
 
 
 def is_lower_better(attribute: str, unit: str) -> bool:

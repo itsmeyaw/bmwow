@@ -109,17 +109,21 @@ class CombinedKnowledgeService(KnowledgeService):
             item.limitations.append("Feedback Derivate has no reviewed canonical model mapping.")
         for aspect in item.aspects:
             aspect.context = self._feedback_context(aspect.context, item.model)
+            mappings = (
+                self._config.aspect_mappings
+                if aspect.extraction_source == "llm"
+                else self._config.vfc_mappings
+            )
+            mapping = mappings.get(aspect.aspect_term or "")
+            aspect.mapping_status = mapping.status if mapping else None
+            aspect.attribute = self._config.mapped_feature(mapping)
         for classification in item.classifications:
             # SQL does not retain a combined VFC string; use an explicit exact-term mapping.
             mapping = self._config.vfc_mappings.get(classification.vfc_combined or "")
             if mapping is None:
                 mapping = self._config.vfc_mappings.get(classification.aspect_term or "")
             classification.mapping_status = mapping.status if mapping else None
-            classification.attribute = (
-                self._config.feature_keys[mapping.feature_id]
-                if mapping and mapping.status == "reviewed"
-                else None
-            )
+            classification.attribute = self._config.mapped_feature(mapping)
         return item
 
     def get_feedback_page(self, filters: FeedbackFilter) -> FeedbackPage:

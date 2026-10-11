@@ -23,7 +23,11 @@ def main() -> int:
         "--report", type=Path, help="Private report containing original unmapped questions."
     )
     parser.add_argument(
-        "--catalog-bundle", type=Path, help="Closed, reviewed catalog staging bundle."
+        "--catalog-bundle",
+        type=Path,
+        action="append",
+        default=[],
+        help="Closed staging bundle (catalog, competitors); repeat for several.",
     )
     parser.add_argument("--as-of", type=date.fromisoformat)
     args = parser.parse_args()
@@ -41,8 +45,8 @@ def main() -> int:
     importer.import_sales(args.input_dir / "sales_volumes.xlsx")
     importer.import_studies(args.input_dir / "F70_G60_G68_G70_customer_studies.xlsx")
     bundle, config, report = importer.finish()
-    if args.catalog_bundle:
-        staging = FileSnapshotRepository(args.catalog_bundle).load_snapshot()
+    for path in args.catalog_bundle:
+        staging = FileSnapshotRepository(path).load_snapshot()
         if any(node.type in {"Requirement", "Decision"} for node in staging.nodes):
             parser.error("Catalog staging must not contain requirements or human Decisions")
         bundle = merge_candidate(bundle, staging)

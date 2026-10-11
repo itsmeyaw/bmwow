@@ -181,3 +181,45 @@ def test_corpus_competitors_respect_the_segment(tmp_path):
     backend = CorpusSearchBackend(root)
     assert set(backend.competitors(["EU"], "premium_sedan")) == {"Same Class", "Untagged"}
     assert set(backend.competitors(["EU"])) == {"Same Class", "Other Class", "Untagged"}
+
+
+async def test_competitor_values_are_staged_with_their_quote(tmp_path, analysis_request, fake_env):
+    from scripts.stage_competitors import competes_edges, competitor_nodes, value_nodes
+
+    web_search.set_search_backend(CorpusSearchBackend(write_corpus(tmp_path / "corpus")))
+    analysis = (await build_graph().ainvoke({"run_id": "stage", "request": analysis_request}))[
+        "analysis"
+    ]
+    entry = {
+        "id": "vehicle:competitor-c",
+        "label": "Competitor C Sedan",
+        "brand": "Competitor",
+        "vehicle_line": "C Sedan",
+        "segment": "premium_sedan",
+        "sold_regions": ["EU"],
+        "competes_with": ["vehicle:ref"],
+        "rationale": "Invented",
+    }
+    found = [
+        f
+        for f in analysis.reports["competition"].findings
+        if f.subject == entry["label"] and f.quantity
+    ]
+    assert found
+    features = {f.attribute: f"feature:{f.attribute}" for f in found}
+    nodes, edges, listing = value_nodes(analysis, [entry], features)
+    signals = [n for n in nodes if n["type"] == "Signal"]
+    evidence = {n["id"]: n for n in nodes if n["type"] == "Evidence"}
+    assert signals and len(listing) == len(signals)
+    for sig in signals:
+        (ev,) = [
+            e["target_id"]
+            for e in edges
+            if e["source_id"] == sig["id"] and e["type"] == "DERIVED_FROM"
+        ]
+        value = sig["properties"]["capability"]["measurement"]["value"]
+        assert f"{value:g}" in evidence[ev]["properties"]["raw_text"].replace(",", "")
+        assert sig["properties"]["context"]["vehicle_model_ids"] == [entry["id"]]
+        assert sig["properties"]["context"]["engine_types"]
+    assert competitor_nodes([entry])[0]["type"] == "VehicleModel"
+    assert competes_edges([entry])[0]["target_id"] == "vehicle:ref"

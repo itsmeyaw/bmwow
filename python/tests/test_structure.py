@@ -63,7 +63,7 @@ async def test_judgments_are_guarded_revised_or_flagged(analysis_request):
         p.attribute for p in analysis.evidence_packages
     ]
     limit = load_rules().structure.max_judged_features
-    assert all(a.assessment == "not_assessed" for a in analysis.feature_assessments[limit:])
+    assert all(a.method == "rule" for a in analysis.feature_assessments[limit:])
 
 
 async def test_judgment_stays_off_without_clearance(analysis_request, monkeypatch, fake_env):
@@ -71,8 +71,10 @@ async def test_judgment_stays_off_without_clearance(analysis_request, monkeypatc
     get_settings.cache_clear()
     analysis = await run(analysis_request)
     assert analysis.evidence_packages
-    assert all(a.assessment == "not_assessed" for a in analysis.feature_assessments)
+    # no judge: every feature keeps the code's rule-based assessment, never a candidate by default
+    assert all(a.method == "rule" and a.certainty == "low" for a in analysis.feature_assessments)
     assert "ALLOW_LLM_ON_INTERNAL_DATA" in analysis.feature_assessments[0].note
+    assert analysis.requirement_candidates == []
     assert not any("# Rubric" in p for p in fake_env["analyst"].prompts)
 
 
@@ -374,3 +376,62 @@ def test_direction_follows_the_unit_first():
 
     assert is_lower_better("performance", "s") and not is_lower_better("performance", "kW")
     assert is_lower_better("fast_charging", "min") and not is_lower_better("fast_charging", "kW")
+
+
+def test_rule_assessment_from_computed_facts():
+    from bmwow.agent.models.evidence import CustomerSignal, EvidencePackage, ValueComparison
+    from bmwow.agent.structure import rule_assessment
+
+    def signal(direction, k, n=1000, lo=None):
+        share = k / n
+        return CustomerSignal(
+            finding_id=f"F-{direction}",
+            direction=direction,
+            region=None,
+            share=share,
+            k=k,
+            n=n,
+            ci_low=share * 0.8 if lo is None else lo,
+            ci_high=share * 1.2,
+            thin=False,
+        )
+
+    rules = load_rules()
+
+    def pkg(*customers, values=()):
+        return EvidencePackage(
+            attribute="x",
+            label="x",
+            importance=0.0,
+            customers=list(customers),
+            competitor_values=list(values),
+        )
+
+    trailing = ValueComparison(
+        unit="km",
+        condition="wltp; bev",
+        region=None,
+        n=3,
+        minimum=500,
+        median=600,
+        maximum=700,
+        lower_is_better=False,
+        ours=550,
+        ours_rank=3,
+        field_size=4,
+        ours_vs_median=-0.08,
+        finding_ids=["F-c1"],
+    )
+    leading = trailing.model_copy(update={"ours": 650, "ours_rank": 1, "ours_vs_median": 0.08})
+    assert rule_assessment(pkg(signal("problem", 30), values=[trailing]), rules).assessment == "gap"
+    r = rule_assessment(pkg(signal("problem", 30), values=[leading]), rules)
+    assert r.assessment == "hygiene_factor" and "F-c1" in r.cited_ids
+    assert (
+        rule_assessment(pkg(signal("strength", 80), signal("problem", 20)), rules).assessment
+        == "strength"
+    )
+    r = rule_assessment(pkg(signal("request", 30), signal("problem", 15)), rules)
+    assert (r.assessment, r.basis) == ("demand", "customers only")
+    assert rule_assessment(pkg(signal("problem", 30)), rules).assessment == "gap"
+    r = rule_assessment(pkg(signal("problem", 5)), rules)
+    assert (r.assessment, r.basis) == ("unclear", "thin")

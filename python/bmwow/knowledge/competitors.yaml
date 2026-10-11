@@ -1,0 +1,49 @@
+# Competitor models for the knowledge layer (public information only). Status: PROPOSED (2026-10-11).
+# scripts/stage_competitors.py turns each entry into a VehicleModel node, a model profile (segment,
+# powertrains, sold regions) and COMPETES_WITH edges to the BMW models it is compared with.
+# A competitor relation is a scoped choice for a segment and its regions, not implied by the brand.
+
+- id: vehicle:mercedes-benz-e-class-w214
+  label: Mercedes-Benz E-Class
+  brand: Mercedes-Benz
+  vehicle_line: E-Class Sedan
+  generation_code: W214
+  aliases: [E-Class, Mercedes E-Class, Mercedes-Benz E-Class Sedan]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice/phev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g60, vehicle:bmw-g68]
+  rationale: Same segment (upper-midsize premium sedan), same price band, sold in the G60 regions.
+- id: vehicle:mercedes-benz-eqe-v295
+  label: Mercedes-Benz EQE
+  brand: Mercedes-Benz
+  vehicle_line: EQE Sedan
+  generation_code: V295
+  aliases: [EQE, Mercedes EQE, Mercedes-EQ EQE]
+  segment: premium_upper_midsize_sedan
+  powertrain: bev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g60, vehicle:bmw-g68]
+  rationale: Battery-electric upper-midsize premium sedan; the comparison for i5 variants.
+- id: vehicle:audi-a6-e-tron
+  label: Audi A6
+  brand: Audi
+  vehicle_line: A6 Sportback e-tron / A6
+  generation_code: null
+  aliases: [Audi A6 Sportback e-tron, A6 e-tron, A6 Sportback e-tron, Audi A6 e-tron]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice/phev/bev
+  sold_regions: [EU, US, CN]
+  competes_with: [vehicle:bmw-g60, vehicle:bmw-g68]
+  rationale: Upper-midsize premium sedan / Sportback with combustion and electric variants.
+- id: vehicle:genesis-g80
+  label: Genesis G80
+  brand: Genesis
+  vehicle_line: G80
+  generation_code: RG3
+  aliases: [G80, Genesis G80 Electrified, Electrified G80]
+  segment: premium_upper_midsize_sedan
+  powertrain: ice/bev
+  sold_regions: [EU, US]
+  competes_with: [vehicle:bmw-g60]
+  rationale: Upper-midsize premium sedan with combustion and electric variants in the US and EU.

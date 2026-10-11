@@ -177,6 +177,27 @@ def test_sql_original_terms_only_receive_reviewed_feature_matches(knowledge_serv
     assert service.get_aspect_mapping(item.aspects[0].aspect_id).rationale == "Invented mapping"
 
 
+@pytest.mark.parametrize("accept", [False, True])
+def test_proposed_term_mappings_feed_features_only_when_the_curation_opts_in(
+    knowledge_service, accept
+):
+    config = knowledge_service.config
+    config.accept_proposed_mappings = accept
+    mapping = VfcMapping(
+        feature_id="feature:parking-controls", status="proposed", rationale="Invented mapping"
+    )
+    config.vfc_mappings["Invented screen"] = mapping  # VFC labels and LLM terms map separately
+    config.aspect_mappings["Invented screen"] = mapping
+    service = CombinedKnowledgeService(
+        InMemoryRepository(knowledge_service.snapshot()), config, MemoryFeedback(), {"G60": MODEL}
+    )
+    item = service.get_feedback_items(FeedbackFilter())[0]
+    expected = "parking_control_usability" if accept else None
+    assert item.classifications[0].attribute == expected
+    assert item.aspects[0].attribute == expected
+    assert item.aspects[0].mapping_status == "proposed"
+
+
 def test_citation_routing_between_graph_and_sql(combined):
     service, repo = combined
     item = service.get_feedback_items(FeedbackFilter(markets=["US"]))[0]

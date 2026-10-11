@@ -31,7 +31,12 @@ customers, trends); code computed every number in it.
 - Use only numbers that are written in the package; do not compute new ones.
 - `widespread` only if a customer share's interval lower bound clearly supports it; otherwise `limited`
   or `unclear`.
-- If the package cannot support a clear assessment, answer `unclear` and say what is missing.
+- A missing view (no catalog value, competitor or trend) lowers your `certainty`; it does not by
+  itself make the assessment `unclear`. Customer evidence alone can support `gap` (customers report
+  problems: we fall short of what they expect), `demand` (they ask for it) or `strength` (they praise
+  it). Answer `unclear` only when the shares are thin or the evidence contradicts itself.
+- The package ends with a rule-based suggestion computed by code. Start from it; if you choose a
+  different assessment, say why in one reasoning sentence with cited ids.
 {{revision}}
 # Evidence package
 

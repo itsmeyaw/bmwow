@@ -305,6 +305,9 @@ class FeatureAssessment(BaseModel):
     guard: list[GuardCheck] = Field(default_factory=list)
     guard_status: Literal["passed", "revised", "flagged", "skipped"] = "skipped"
     note: str = ""  # why the feature was not assessed, if so
+    # judge = LLM with the rubric, guarded; rule = code from the computed shares and comparisons only
+    method: Literal["judge", "rule"] = "judge"
+    rule_suggestion: str = ""  # the code's rule-based result the judge saw (or that was used)
 
 
 # ---------------------------------------------------------------- candidate_agent + PM gate

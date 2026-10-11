@@ -37,3 +37,12 @@ class KnowledgeConfig(Configuration):
     aspect_mappings: dict[str, VfcMapping] = Field(default_factory=dict)
     # Required for combined-model observations; keys are original Evidence IDs.
     sales_groups: dict[str, str] = Field(default_factory=dict)
+    # Explicit opt-in: proposed mappings feed features too (each mention keeps its mapping status).
+    # Default False: only reviewed mappings establish feature associations.
+    accept_proposed_mappings: bool = False
+
+    def mapped_feature(self, mapping: VfcMapping | None) -> str | None:
+        """Feature key a mapping establishes under this curation, else None."""
+        if mapping is None or (mapping.status != "reviewed" and not self.accept_proposed_mappings):
+            return None
+        return self.feature_keys.get(mapping.feature_id)

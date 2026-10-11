@@ -111,15 +111,6 @@ def default_target(assessment: str, c: ValueComparison | None, rules: Rules) -> 
 def _baseline(
     pkg: EvidencePackage, c: ValueComparison | None, theme: SubTheme | None = None
 ) -> tuple[str, str]:
-    absent = ("unavailable", "not available", "not offered")
-    if any(any(word in f.text.lower() for word in absent) for f in pkg.ours):
-        return "known_absent", "The catalog states the feature is unavailable on the current model."
-    if pkg.ours:
-        ours = f" ({_fmt(c.ours)} {c.unit}, {c.condition})" if c and c.ours is not None else ""
-        return (
-            "known_present",
-            f"The current model has the feature{ours} per the baseline evidence.",
-        )
     used = [
         t
         for t in pkg.sub_themes
@@ -129,7 +120,16 @@ def _baseline(
         return (
             "known_present",
             f"Owners of the current model report problems with {used[0].name} "
-            f"({used[0].k} feedback items); the catalog has no entry for it.",
+            f"({used[0].k} feedback items).",
+        )
+    absent = ("unavailable", "not available", "not offered")
+    if pkg.ours and all(any(word in f.text.lower() for word in absent) for f in pkg.ours):
+        return "known_absent", "The catalog states the feature is unavailable on the current model."
+    if pkg.ours:
+        ours = f" ({_fmt(c.ours)} {c.unit}, {c.condition})" if c and c.ours is not None else ""
+        return (
+            "known_present",
+            f"The current model has the feature{ours} per the baseline evidence.",
         )
     return (
         "unknown",
@@ -227,6 +227,8 @@ def build_candidates(
     for pkg in packages:
         a = by_attr.get(pkg.attribute)
         if a is None or a.assessment not in rules.candidates.assessments:
+            continue
+        if a.method == "rule" and not rules.candidates.from_rule_based:
             continue
         if a.guard_status == "flagged":
             continue

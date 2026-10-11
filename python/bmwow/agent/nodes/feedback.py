@@ -127,8 +127,12 @@ def mentions_of(
     for aspect in item.aspects:
         term = (aspect.aspect_term or aspect.aspect_label or aspect.vfc_category or "").strip()
         quote = aspect.quote if aspect.quote and normalize_text(aspect.quote) in text else None
+        # The knowledge layer's term mapping (reviewed, or proposed when the curation opts in) wins.
         feature = resolve_feature(
-            term, aspect.aspect_label, mapped.get(normalize_text(term)), taxonomy
+            term,
+            aspect.aspect_label,
+            getattr(aspect, "attribute", None) or mapped.get(normalize_text(term)),
+            taxonomy,
         )
         area = aspect.vfc_category or ""
         direction = direction_of(aspect.feedback_type, aspect.issue_type)

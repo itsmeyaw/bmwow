@@ -91,6 +91,38 @@ validation. Conflicting context payloads require reconciliation in the manifest.
 A German catalog remains a German claim; a source's European sales label does not
 expand catalog availability. Table symbols, column alignment, and footnotes must
 be visually verified before staging. This importer does not parse arbitrary PDFs.
+`--catalog-bundle` can be repeated (for example a catalog slice and a competitor bundle).
+
+### Competitors and their values
+
+`bmwow/knowledge/competitors.yaml` lists competitor models (public information):
+segment, powertrains, sold regions, and the BMW models they compete with.
+`scripts/stage_competitors.py` turns it into VehicleModel nodes, model profiles (written
+into the curation file), and `COMPETES_WITH` edges. With `--analysis <run>.json`, it also
+stages the competition agent's web-extracted values: each one becomes Evidence
+(`web_excerpt` holding the verbatim quote with the number), a `competitor_capability`
+Signal (measurement, variant, and engine type in `context.engine_types`), and a `CONCERNS`
+edge to its Feature. Provenance marks them as machine extractions that no human has
+reviewed. Review the `--list` output before importing. Stored values are read back
+through `get_attribute_values`, so later runs reuse them instead of extracting them again.
+
+```sh
+uv run python -m scripts.stage_competitors --curation ../data/knowledge/curation.json \
+  --analysis ../data/processed/analyses/<run_id>.json \
+  --output ../data/knowledge/competitors.staging.json --list
+```
+
+`AttributeValue.variant` passes on the capability's variant. Catalog and competitor
+staging set `context.engine_types` (`bev`, `phev`, `ice`), so values are only compared
+within one powertrain.
+
+### Proposed feedback mappings
+
+Feedback aspects carry `attribute` and `mapping_status` from the curated term mappings
+(`vfc_mappings` for VFC labels, `aspect_mappings` for LLM-extracted terms). By default,
+only reviewed mappings set `attribute`. Set `knowledge.accept_proposed_mappings: true`
+in the curation to let proposed mappings feed features too. Their `mapping_status` stays
+`proposed`, so consumers can label them. Leave it off for any reviewed deliverable.
 
 ## Inspect and connect
 

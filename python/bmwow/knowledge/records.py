@@ -42,6 +42,7 @@ class AttributeValue(QualifiedRecord):
     attribute: str
     value: float | str
     unit: str | None = None
+    variant: str | None = None  # the capability's variant / trim as the source names it
     source_note: str = ""
     as_of: dt.date | None = None
     value_range: NumericRange | None = None
@@ -101,6 +102,9 @@ class FeedbackAspect(QualifiedRecord):
     quote: str | None = None
     quote_status: Literal["supported", "missing", "mismatch", "not_applicable"]
     imported_at: dt.datetime | None = None
+    # Set by the knowledge layer from the curated term mapping; the original labels stay unchanged.
+    attribute: str | None = None
+    mapping_status: MappingStatus | None = None
 
 
 class FeedbackRetrieval(Record):
