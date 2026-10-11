@@ -32,6 +32,9 @@ The env file needs `DATABASE_URL`; `--migrate` additionally requires a direct
 `DATABASE_URL_UNPOOLED`. Migrations are never implicit. Test shared migrations on
 an isolated database/Neon branch before applying them to the shared service.
 `--csv-dir`, `--taxonomy-file`, and `--limit` select the input scope.
+The importer uses at most 25 pooled connections, matching its bounded feedback
+concurrency. Legacy embeddings are read only when archiving their individual rows;
+without processing provenance they are never downloaded for reuse.
 
 `feedback_revisions` stores an immutable payload with original rows, classifications,
 source locators, source/text/input hashes, processing signature, enrichment/prompt

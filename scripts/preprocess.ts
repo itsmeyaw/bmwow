@@ -416,7 +416,7 @@ async function main() {
   }
 
   const openai = noEnrichment ? null : new OpenAI({ apiKey: OPENAI_API_KEY, maxRetries: 5 });
-  const pool = new pg.Pool({ connectionString: DATABASE_URL });
+  const pool = new pg.Pool({ connectionString: DATABASE_URL, max: 25 });
   pool.on("error", () => console.error("feedback database connection failed"));
   const csvDir = values["csv-dir"] ?? CSV_DIR;
   const taxonomyPath = values["taxonomy-file"] ?? TAXONOMY_PATH;
@@ -595,7 +595,8 @@ async function main() {
           provenance: FeedbackProvenance | null;
           embedding: string | null;
         }>(
-          "SELECT feedback_explorer_id, revision_id, provenance, embedding::text FROM feedback_entries",
+          "SELECT feedback_explorer_id, revision_id, provenance, " +
+            "CASE WHEN provenance IS NOT NULL THEN embedding::text END AS embedding FROM feedback_entries",
         )
       ).rows.map((r) => [r.feedback_explorer_id, r]),
     );
