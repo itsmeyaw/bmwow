@@ -1,3 +1,87 @@
 # Approved URLs for the local web corpus (scripts/build_web_corpus.py). Public pages only.
 # Each entry: url, tags (competitor:<name> | feature keys | trend), region (EU | US | CN | GLOBAL), why.
-[]
+# Status: PROPOSED (2026-10-11) — download only after review.
+
+# ---------------------------------------------------------------- competitors, EU (WLTP)
+- url: https://ev-database.org/car/3240/Mercedes-Benz-EQE-350plus
+  tags: [competitor:Mercedes-Benz EQE, competitor:Mercedes-Benz E-Class, real_world_range, fast_charging, efficiency]
+  region: EU
+  why: EV Database spec page, EQE 350+ MY25 — WLTP range, 10-80% DC charging time, consumption
+- url: https://ev-database.org/car/3238/Genesis-G80-Electrified
+  tags: [competitor:Genesis G80, real_world_range, fast_charging, efficiency]
+  region: EU
+  why: EV Database spec page, G80 Electrified MY25 — WLTP range, charging, consumption
+- url: https://alternative-fuels-observatory.ec.europa.eu/node/1280
+  tags: [competitor:Audi A6, real_world_range, affordable]
+  region: EU
+  why: EU Alternative Fuels Observatory model listing, A6 Sportback e-tron — range, battery, EU price
+- url: https://alternative-fuels-observatory.ec.europa.eu/node/1281
+  tags: [competitor:Audi A6, real_world_range, affordable]
+  region: EU
+  why: EU Alternative Fuels Observatory, second A6 Sportback e-tron variant — range, battery, EU price
+- url: https://evkx.net/models/audi/a6_e-tron/a6_sportback_e-tron/charging/
+  tags: [competitor:Audi A6, fast_charging]
+  region: EU
+  why: EVKX charging page, A6 Sportback e-tron — 10-80% charging time, peak/average DC power
+
+# ---------------------------------------------------------------- competitors, US (EPA, prices, features)
+- url: https://theevreport.com/2025-audi-a6-sportback-e-tron-unveiled
+  tags: [competitor:Audi A6, real_world_range, fast_charging, affordable]
+  region: US
+  why: US launch coverage — EPA-estimated range, 270 kW charging, US base price
+- url: https://insideevs.com/news/654410/genesis-electrified-g80-epa-range-price/
+  tags: [competitor:Genesis G80, real_world_range, fast_charging, affordable]
+  region: US
+  why: InsideEVs — Electrified G80 EPA range, 10-80% charging claim, US price
+- url: https://cargurus.com/Cars/articles/2025-mercedes-benz-e-class-pricing-specs-release-date
+  tags: [competitor:Mercedes-Benz E-Class, affordable, safety, intuitive_ux]
+  region: US
+  why: CarGurus — 2025 E-Class US trim prices and standard equipment
+- url: https://cargurus.com/Cars/articles/2025-genesis-g80-pricing-specs-release-date
+  tags: [competitor:Genesis G80, affordable, clear_displays, great_sound]
+  region: US
+  why: CarGurus — 2025 G80 US prices, 27-inch display, audio changes
+- url: https://www.motor1.com/news/730430/2025-genesis-g80-price/
+  tags: [competitor:Genesis G80, affordable]
+  region: US
+  why: Motor1 — 2025 G80 US pricing incl. destination
+- url: https://www.truecar.com/overview/mercedes-benz/e-class/2025/
+  tags: [competitor:Mercedes-Benz E-Class, clear_displays, intuitive_ux, easy_updates]
+  region: US
+  why: TrueCar overview — E-Class displays, wireless CarPlay/Android Auto, OTA updates (may be JS-rendered)
+- url: https://www.kbb.com/audi/a6-sportback-e-tron/2025/specs
+  tags: [competitor:Audi A6, real_world_range, rear_space, flexible_storage]
+  region: US
+  why: Kelley Blue Book specs — A6 Sportback e-tron dimensions and specs (may be JS-rendered)
+
+# ---------------------------------------------------------------- trends, US
+- url: https://www.jdpower.com/business/press-releases/2025-us-electric-vehicle-experience-evx-public-charging-study
+  tags: [trend, fast_charging]
+  region: US
+  why: J.D. Power 2025 EVX Public Charging Study — 14% failed charging visits, causes, satisfaction
+- url: https://www.jdpower.com/business/press-releases/2025-us-initial-quality-study-iqs
+  tags: [trend, reliable_software, intuitive_ux]
+  region: US
+  why: J.D. Power 2025 IQS — infotainment most problematic category (42.6 PP100)
+- url: https://www.automotiveworld.com/news/fewer-physical-vehicle-controls-and-more-problematic-touchscreen-make-infotainment-system-a-modern-catch-all-drawer-j-d-power-finds/
+  tags: [trend, physical_controls, intuitive_ux, reliable_software]
+  region: US
+  why: J.D. Power IQS coverage — fewer physical controls, touchscreen problems
+- url: https://www.businesswire.com/news/home/20250626729527/en/Fewer-Physical-Vehicle-Controls-and-More-Problematic-Touchscreen-Make-Infotainment-System-a-Modern-Catch-All-Drawer-J.D.-Power-Finds
+  tags: [trend, physical_controls, intuitive_ux, reliable_software]
+  region: US
+  why: Same J.D. Power release on Business Wire (fallback if jdpower.com blocks plain downloads)
+
+# ---------------------------------------------------------------- trends, EU (regulation)
+- url: https://cms.law/en/nld/legal-updates/eu-legislation-for-hydrogen-refuelling-stations-and-charging-points-introduced-the-alternative-fuels-infrastructure-regulation
+  tags: [trend, fast_charging, regulation]
+  region: EU
+  why: CMS law summary of AFIR (EU 2023/1804) — 150 kW fast chargers every 60 km on TEN-T from 2025
+- url: https://road-safety-charter.ec.europa.eu/resources-knowledge/media-and-press/intelligent-speed-assistance-isa-set-become-mandatory-across_en
+  tags: [trend, safety, regulation]
+  region: EU
+  why: European Commission — Intelligent Speed Assistance mandatory for new cars from July 2024 (GSR2)
+- url: https://single-market-economy.ec.europa.eu/single-market/digital-product-passport/batteries_en
+  tags: [trend, long_battery_life, sustainability, regulation]
+  region: EU
+  why: European Commission — digital battery passport mandatory for EV batteries from 18 February 2027
