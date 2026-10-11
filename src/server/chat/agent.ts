@@ -26,6 +26,8 @@ import {
 } from "@/server/analysis/queries";
 import { parseScope, salesMarket, TOPIC_MAX, webQuery } from "@/server/chat/lib";
 import { searchFeedback } from "@/server/chat/search";
+import { SITUATION_INSTRUCTIONS, situationContext, situationTools } from "@/server/chat/situation";
+import { feedbackCountry, parseSituationPage, regionLabel } from "@/server/chat/situation-lib";
 
 // ponytail: falls back to the preprocessing model; set LLM_STRONG to pick the chat model.
 const MODEL = process.env.LLM_STRONG || "gpt-6-luna";
@@ -285,10 +287,14 @@ function tagPages(messages: UIMessage[]): UIMessage[] {
     const meta = m.metadata as { page?: unknown; attached?: unknown } | undefined;
     if (m.role !== "user" || !meta?.page) return m;
     const attached = attachedText(meta.attached);
+    const situation = parseSituationPage(meta.page);
+    const asked = situation
+      ? `Situation analysis · ${situation.derivate ?? "overview"} · ${regionLabel(situation.region)}`
+      : fmtScope(parseScope(meta.page));
     return {
       ...m,
       parts: [
-        { type: "text", text: `(Asked on: ${fmtScope(parseScope(meta.page))})` },
+        { type: "text", text: `(Asked on: ${asked})` },
         ...(attached ? [{ type: "text" as const, text: attached }] : []),
         ...m.parts,
       ],
@@ -297,15 +303,24 @@ function tagPages(messages: UIMessage[]): UIMessage[] {
 }
 
 export async function chat(messages: UIMessage[], page: unknown): Promise<Response> {
-  let scope = parseScope(page);
+  // On /situation pages the chat reasons from that car's stored run; feedback tools keep its scope.
+  const situation = parseSituationPage(page);
+  let scope = situation
+    ? { derivate: situation.derivate, country: feedbackCountry(situation.region), engine: null }
+    : parseScope(page);
   const car = scope.derivate ? (await listCars()).find((c) => c.derivate === scope.derivate) : null;
   if (scope.derivate && !car) scope = { derivate: null, country: null, engine: null };
+  const context = situation ? await situationContext(situation) : await pageContext(scope);
 
   const result = streamText({
     model: openai(MODEL),
-    instructions: `${INSTRUCTIONS}\n\n${await pageContext(scope)}`,
+    instructions: `${INSTRUCTIONS}\n\n${SITUATION_INSTRUCTIONS}\n\n${context}`,
     messages: await convertToModelMessages(tagPages(messages)),
-    tools: { ...dataTools, searchWeb: webTool(scope, car ? (car.name ?? car.derivate) : null) },
+    tools: {
+      ...dataTools,
+      ...situationTools,
+      searchWeb: webTool(scope, car ? (car.name ?? car.derivate) : null),
+    },
     stopWhen: isStepCount(10),
   });
   return createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream }) });
