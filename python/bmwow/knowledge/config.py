@@ -1,17 +1,17 @@
 """Explicit application curation; unknown model metadata and mappings are not guessed."""
 
-from typing import Literal
-
 from pydantic import BaseModel, ConfigDict, Field
+
+from .types import MappingStatus
+from .types import SearchLocale as LocaleRecord
 
 
 class Configuration(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class SearchLocale(Configuration):
-    country: str
-    lang: str
+class SearchLocale(LocaleRecord, Configuration):
+    """Shared locale fields with strict validation at the curation boundary."""
 
 
 class ModelProfile(Configuration):
@@ -23,7 +23,7 @@ class ModelProfile(Configuration):
 
 class VfcMapping(Configuration):
     feature_id: str
-    status: Literal["proposed", "reviewed"]
+    status: MappingStatus
     rationale: str = Field(min_length=1)
 
 

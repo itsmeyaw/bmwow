@@ -1,8 +1,7 @@
-"""Evidence schemas for the situation analysis hand-off (SPEC §3).
+"""Situation-analysis DTOs, distinct from persisted ontology Evidence/Signal objects.
 
-PROPOSED by the `bmwow/agent/` builder. If a teammate owns `bmwow/agent/models/`, move or merge these here;
-`bmwow/agent/` only imports them from this module. Field names are fixed; new fields must be optional.
-Knowledge-layer records (`ModelNode`, …) are in `bmwow/agent/models/knowledge.py`.
+Knowledge read records are defined in bmwow.knowledge.records. This module owns
+analysis-only definitions and retains its existing import and wire names.
 """
 
 from __future__ import annotations
@@ -16,13 +15,20 @@ from bmwow.knowledge.records import (
     FeedbackAspect,
     FeedbackClassification,
     FeedbackRetrieval,
+    ModelNode,
     QualifiedRecord,
 )
-from bmwow.ontology.models import Measurement
+from bmwow.knowledge.types import SearchLocale as SearchLocale
+from bmwow.ontology.models import (
+    AssessedConfidenceLevel,
+    CapabilityAvailability,
+    EpistemicStatus,
+    Measurement,
+)
 
-from .knowledge import ModelNode
-
-Confidence = Literal["low", "medium", "high"]
+Confidence = AssessedConfidenceLevel
+# Analysis intent includes demand; this is not the ontology's SignalSentiment.
+Polarity = Literal["positive", "negative", "neutral", "demand"]
 AgentName = Literal["baseline", "competition", "feedback", "trends"]
 AGENT_NAMES: tuple[AgentName, ...] = ("baseline", "competition", "feedback", "trends")
 
@@ -37,8 +43,8 @@ class Source(QualifiedRecord):
     excerpt: str  # exact text or rendered row the claim relies on (<= 1200 chars). REQUIRED.
     retrieved_at: datetime
     measurement: Measurement | None = None
-    availability: str | None = None
-    epistemic_status: str | None = None
+    availability: CapabilityAvailability | None = None
+    epistemic_status: EpistemicStatus | None = None
     classifications: list[FeedbackClassification] = Field(default_factory=list)
     aspects: list[FeedbackAspect] = Field(default_factory=list)
     retrieval: FeedbackRetrieval | None = None
@@ -59,6 +65,8 @@ class Quantity(BaseModel):
 
 
 Direction = Literal["problem", "request", "strength", "neutral"]
+TrendHorizon = Literal["now", "1-2y", "3y+"]
+AvailabilityStatus = Literal["ok", "partial", "unavailable"]
 
 
 class RegionTest(BaseModel):
@@ -87,7 +95,7 @@ class Finding(BaseModel):
     agent: AgentName
     attribute: str  # taxonomy key or "unmapped:<proposed_name>"
     claim: str  # one sentence, one claim
-    polarity: Literal["positive", "negative", "neutral", "demand"]  # demand = customers want more
+    polarity: Polarity  # demand = customers want more; separate from sentiment
     subject: str  # "previous_model", "<competitor model>", "market", "customers"
     quantity: Quantity | None = None
     source_ids: list[str]  # >= 1, must resolve to Sources in the same report
@@ -99,7 +107,7 @@ class Finding(BaseModel):
     region: str | None = None
     direction: Direction | None = None
     stats: FindingStats | None = None
-    horizon: Literal["now", "1-2y", "3y+"] | None = None
+    horizon: TrendHorizon | None = None
     n_independent_sources: int | None = None
 
 
@@ -107,7 +115,7 @@ class Availability(BaseModel):
     """Whether a data source could be used in this run; missing data is reported, not hidden."""
 
     source: str  # e.g. "feedback", "feedback:CN", "sales", "studies", "web"
-    status: Literal["ok", "partial", "unavailable"]
+    status: AvailabilityStatus
     reason: str = ""
 
 
@@ -155,11 +163,6 @@ class AnalysisRequest(BaseModel):
     )
 
 
-class SearchLocale(BaseModel):
-    country: str  # e.g. "de"
-    lang: str  # e.g. "en"
-
-
 class SupportedModel(BaseModel):
     """One model registry entry (§4.5); feeds the UI dropdowns."""
 
@@ -173,7 +176,7 @@ class ProductBrief(BaseModel):
 
     reference_model: ModelNode  # from get_model(model_code): name, segment, powertrain, attributes
     regions: list[str]  # validated region codes
-    markets: list[str]  # markets the regions expand to (as used in sales and feedback data)
+    markets: list[str]  # feedback query selectors; source sales/studies retain their own regions
     segment: str  # from reference_model
     competitors: list[ModelNode] = Field(
         default_factory=list
@@ -247,8 +250,8 @@ class CustomerSignal(BaseModel):
 class TrendSignal(BaseModel):
     finding_id: str
     claim: str
-    polarity: Literal["positive", "negative", "neutral", "demand"]
-    horizon: Literal["now", "1-2y", "3y+"] | None
+    polarity: Polarity
+    horizon: TrendHorizon | None
     n_independent_sources: int | None
     thin: bool
 

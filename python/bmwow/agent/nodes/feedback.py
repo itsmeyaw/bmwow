@@ -29,6 +29,7 @@ from bmwow.agent.models.evidence import (
     Confidence,
     Direction,
     FindingStats,
+    Polarity,
     Quantity,
     RegionTest,
     SubTheme,
@@ -44,7 +45,7 @@ from ..stats import is_thin, two_proportion_p, wilson_interval
 from ..taxonomy import Taxonomy
 from ..tools.feedback_stats import exact_dedupe, normalize_text
 from ..tools.knowledge import FeedbackFilter, FeedbackItem
-from .common import AgentContext, Polarity, structured_call
+from .common import AgentContext, structured_call
 
 ALL = "ALL"  # pseudo-region: all requested regions together
 UNCLASSIFIED = "unclassified"

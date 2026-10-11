@@ -15,6 +15,9 @@
 > use [the current agent guide](README.md), [data-layer handoff](../../../docs/data-layer.md),
 > and [ingestion guide](../../../docs/knowledge-ingestion.md) for current setup,
 > record contracts, source scopes, and remaining write/workflow integration.
+> [Definition boundaries](../../../docs/definitions.md) names the current canonical
+> Python definitions. Repeated schema and fallback-config copies have been replaced
+> with references to their owners; remaining builder snippets are historical.
 
 > **For Claude (the builder).** This spec covers **only `bmwow/agent/`**: the four situation-analysis agents
 > (`baseline_agent`, `competition_agent`, `feedback_agent`, `trends_agent`), their tools, and the service
@@ -26,8 +29,9 @@
 > - **The repo structure and the data sources are suggestions, not fixed.** The team is still cleaning
 >   the data and defining file structures. Keep every data access behind the interfaces in §4, so a
 >   changed source or schema means changing one adapter, never an agent.
-> - **The contracts in this file are fixed** (schemas, node names, output envelope, service functions).
->   Code snippets are illustrative. Check the installed versions of LangGraph, LangChain,
+> - **Preserve the implemented contracts** (schemas, node names, output envelope, service functions)
+>   at the canonical definitions linked below. Remaining code snippets are illustrative.
+>   Check the installed versions of LangGraph, LangChain,
 >   langchain-openai and firecrawl-py and adapt call signatures if they differ.
 > - Never invent data. Every claim an agent emits must cite stored evidence.
 
@@ -101,94 +105,27 @@ mount it as one node later.
 
 ## 3. Output contract (what `structure_agent` receives)
 
-Put these in `bmwow/agent/models/evidence.py`. If a teammate owns that file, **propose** them there and don't
-duplicate them in `agent/`. Field names are fixed; add fields only as optional ones.
-
-```python
-Confidence = Literal["low", "medium", "high"]
-AgentName = Literal["baseline", "competition", "feedback", "trends"]
-
-
-class Source(BaseModel):
-    id: str  # "kg:<node_id>", "sql:<query_hash>", "web:<url_hash8>", "fb:<item_id>"
-    kind: Literal["ontology", "sql", "web", "feedback"]
-    ref: str  # node id / SQL text / URL / feedback item id
-    title: str = ""
-    excerpt: str  # exact text or rendered row the claim relies on (<= 1200 chars). REQUIRED.
-    retrieved_at: datetime
-
-
-class Quantity(BaseModel):
-    value: float
-    unit: str  # canonical: "km", "kW", "min", "EUR", "units", "share", ...
-    qualifier: str = ""  # "WLTP", "10-80%", "2024 DE", "median", ...
-
-
-class Finding(BaseModel):
-    id: str  # "F-<agent>-<n>", assigned by code, never by the LLM
-    agent: AgentName
-    attribute: str  # taxonomy key (§4.3) or "unmapped:<proposed_name>"
-    claim: str  # one sentence, one claim
-    polarity: Literal["positive", "negative", "neutral", "demand"]  # demand = customers want more
-    subject: str  # whose attribute: "previous_model", "<competitor model>", "market", "customers"
-    quantity: Quantity | None = None
-    source_ids: list[str]  # >= 1, must resolve to Sources in the same report
-    confidence: Confidence
-    weight: float = 1.0  # set by code only (e.g. share of feedback items)
-
-
-class AgentReport(BaseModel):
-    agent: AgentName
-    status: Literal["ok", "partial", "failed"]
-    findings: list[Finding]
-    sources: list[Source]
-    summary: str  # <= 120 words, for the UI
-    stats: dict[str, float | int] = {}
-    errors: list[str] = []
-
-
-class SituationAnalysis(BaseModel):  # the hand-off object
-    run_id: str
-    request: AnalysisRequest  # what the PM typed (§3.1)
-    brief: ProductBrief  # what the run actually used
-    reports: dict[
-        AgentName, AgentReport
-    ]  # all four keys always present (failed agents: status="failed")
-    created_at: datetime
-```
+The current schemas are defined once in [models/evidence.py](models/evidence.py):
+Source, Quantity, Finding, AgentReport and SituationAnalysis. They retain original
+source qualifications through the shared knowledge records. See
+[definition boundaries](../../../docs/definitions.md) for their relationship to
+persisted ontology objects; no schema copies are maintained in this spec.
 
 ### 3.1 Input: `AnalysisRequest` → resolved `ProductBrief`
 
-The PM enters only this:
-
-```python
-class AnalysisRequest(BaseModel):
-    model_code: (
-        str  # reference model; must be in the model registry (§4.5): currently G60, F70, G68
-    )
-    regions: list[str] | None = None  # optional, codes from §4.4, e.g. ["EU"], ["EU", "US"];
-    # None/empty = all regions the model supports in the registry
-```
-
-The `resolve_request` node (§5.1) turns it into the brief every agent works from:
-
-```python
-class ProductBrief(BaseModel):
-    reference_model: ModelNode  # from get_model(model_code): name, segment, powertrain, attributes
-    regions: list[str]  # validated region codes
-    markets: list[str]  # countries/markets each region expands to (§4.4)
-    segment: str  # from reference_model
-    competitors: list[ModelNode]  # list_competitor_models(segment, regions)
-    focus_areas: list[str] = []  # empty = all areas; the PM may set them in a corrected brief
-    search_locale: dict[str, str]  # region -> {"country": ..., "lang": ...} for web search
-```
+[AnalysisRequest and ProductBrief](models/evidence.py) define the request and
+resolved brief. The PM supplies a model code and optional registry regions.
+Resolution supplies the reference model, curated segment, competitors, feedback
+query selectors, research locales, and warnings. Research locales are typed
+SearchLocale records, not strings. The live registry determines supported models
+and coverage; this spec does not fix a list of three models.
 
 Resolution rules:
 
 - **`model_code` not in the registry → fail fast** with a clear error that lists the valid codes. Don't
   guess a model.
 - **Unknown region → fail fast** and list the valid codes.
-- **Model–region combination not in the registry → fail fast**, e.g. a model that is only sold in `CN`
+- **Model–region combination not in the registry → fail fast**, e.g. a model with data only in `CN`
   requested for `EU`. The error says which regions that model supports.
 - The API and UI should offer **dropdowns filled from the registry** (`service.list_models()`), not free
   text, so invalid input mostly can't be entered in the first place. The validation above still runs on
@@ -213,66 +150,26 @@ def get_model(model_code: str) -> ModelNode | None              # incl. attribut
 def list_portfolio(segment: str | None = None, regions: list[str] | None = None) -> list[ModelNode]
 def list_competitor_models(segment: str, regions: list[str], names: list[str] | None = None) -> list[ModelNode]
 def get_attribute_values(model_id: str, attributes: list[str] | None = None) -> list[AttributeValue]
-def get_feedback_items(filters: FeedbackFilter) -> list[FeedbackItem]       # paginated / iterable OK
+def get_feedback_items(filters: FeedbackFilter) -> list[FeedbackItem]       # bounded / iterable OK
 def search_documents(query: str, kinds: list[str] | None = None, regions: list[str] | None = None,
                      k: int = 10) -> list[DocChunk]           # studies, reports
 ```
 
-Minimum fields the agents rely on (placeholder, the team may extend):
-
-```python
-class AttributeValue(BaseModel):
-    node_id: str
-    attribute: str
-    value: float | str
-    unit: str | None
-    source_note: str = ""
-
-
-class ModelNode(BaseModel):
-    node_id: str
-    model_code: str | None
-    name: str
-    brand: str
-    segment: str
-    powertrain: str | None
-    regions: list[str] = []
-    attributes: list[AttributeValue] = []
-
-
-class FeedbackItem(BaseModel):
-    item_id: str
-    text: str
-    channel: str
-    market: str | None
-    date: date | None
-    rating: float | None
-    model: str | None
-
-
-class DocChunk(BaseModel):
-    node_id: str
-    doc_title: str
-    text: str
-    url: str | None
-    published: date | None
-    regions: list[str] = []
-
-
-class FeedbackFilter(BaseModel):
-    models: list[str] = []
-    markets: list[str] = []
-    since: date | None = None
-    limit: int | None = None
-```
+Read records are defined in [knowledge/records.py](../../knowledge/records.py).
+[models/knowledge.py](models/knowledge.py) re-exports those same classes for old
+imports. AttributeValue, ModelNode, FeedbackItem, DocChunk and FeedbackFilter
+retain the current optional provenance/scope fields; do not re-create the initial
+minimal record sketches.
 
 ### 4.2 `bmwow/agent/knowledge_bridge/sql_client.py` (relational)
 
 ```python
 def sales_volume(models: list[str], markets: list[str] | None = None,
                  period_from: str | None = None, period_to: str | None = None) -> list[SalesRow]
-class SalesRow(BaseModel): model: str; market: str; period: str; units: int
 ```
+
+SalesRow is defined in [knowledge/records.py](../../knowledge/records.py),
+including original model groups, measurements, source status and citations.
 
 Every function result becomes a `Source` in the agent. Ontology results map to `kind="ontology"` with
 `ref=node_id`; SQL results map to `kind="sql"` with `ref` = the query parameters and `excerpt` = the
@@ -281,16 +178,11 @@ rendered rows.
 ### 4.3 Attribute taxonomy
 
 Agents map every finding to a taxonomy attribute. Load it from `bmwow/agent/knowledge_bridge/ontology.py` if the
-ontology defines it; otherwise fall back to `bmwow/agent/taxonomy.yaml`, seeded from the brief:
+ontology defines it; otherwise fall back to `bmwow/agent/taxonomy.yaml`, seeded from the brief.
 
-```yaml
-Exterior:          [iconic_design, exterior_colors, sport_wheels, easy_entry]
-Interior:          [premium_feel, comfortable_seats, seat_ventilation, heated_seats, rear_space, flexible_storage, easy_child_seat_fit]
-Powertrain:        [real_world_range, fast_charging, efficiency, long_battery_life, smooth_ride, dynamic_handling]
-Digital_UX:        [intuitive_ux, clear_displays, physical_controls, reliable_software, fast_app_response, easy_updates, personalization, clear_navigation, great_sound]
-Driver_assistance: [safety, easy_parking]
-Business:          [affordable, low_running_costs, simple_maintenance, sustainability, data_privacy]
-```
+The fallback is maintained once in [taxonomy.yaml](taxonomy.yaml). Its analysis
+areas are not ontology Domain values or coarse VFC categories. Reviewed Feature
+mappings establish identity; similar labels do not.
 
 Findings that fit no attribute get `attribute="unmapped:<name>"` and are kept. Downstream decides what
 to do with them.
@@ -298,34 +190,22 @@ to do with them.
 ### 4.4 Regions
 
 Load the list from the knowledge layer if it defines one; otherwise fall back to `bmwow/agent/regions.yaml`.
-Each region maps to markets (as used in sales and feedback data) and to a web-search locale:
-
-```yaml
-EU: { markets: [DE, FR, IT, ES, NL, ...], search: { country: de, lang: en } }
-US: { markets: [US],                      search: { country: us, lang: en } }
-CN: { markets: [CN],                      search: { country: cn, lang: zh } }
-```
-
-These values are placeholders. The team decides the real region list and market codes, matching the
-data.
+Each registry region supplies feedback query selectors and a research locale.
+The fallback values are maintained once in [regions.yaml](regions.yaml).
+Source-reported sales/study populations retain their own scope, as described in
+[definition boundaries](../../../docs/definitions.md).
 
 ### 4.5 Model registry (the only models the app supports)
 
-Data exists only for three reference models, so the agent rejects any other model. The registry is
-loaded from the knowledge layer if it offers `list_supported_models()`; otherwise from
-`bmwow/agent/models.yaml`:
+The registry is loaded from the knowledge layer when it offers
+`list_supported_models()`; otherwise it uses [models.yaml](models.yaml).
 
-```yaml
-G60: { name: "5 Series Sedan",                  regions: [EU, US, CN] }   # regions: TO CONFIRM with the data
-F70: { name: "1 Series",                        regions: [EU] }           # regions: TO CONFIRM with the data
-G68: { name: "5 Series Sedan long wheelbase",   regions: [CN] }           # regions: TO CONFIRM with the data
-```
-
-- **Names and regions are placeholders** until the team confirms them against the data. The builder
-  must not fill them in from general knowledge.
-- A model's `regions` is the list of regions with data for that model. Resolution (§3.1) validates the
-  requested regions against it.
-- Adding a model later = one registry entry plus its data. No code change.
+- Names, segments, and sale availability require curation rather than inference
+  from general knowledge or feedback coverage.
+- A model's `regions` is the list of regions with data for that model. Resolution
+  validates the requested regions against that coverage.
+- Adding a model means adding its reviewed identity and connected coverage, or
+  updating the explicit fallback. No hard-coded schema list is maintained here.
 
 ---
 
@@ -352,15 +232,8 @@ START ─> resolve_request┼─> feedback_agent ────┼─> collect ─
 
 ### 5.2 State
 
-```python
-class AnalysisState(TypedDict, total=False):
-    run_id: str
-    request: AnalysisRequest
-    brief: ProductBrief
-    resolve_error: str | None
-    reports: Annotated[dict[AgentName, AgentReport], merge_dict]  # each agent writes its own key
-    analysis: SituationAnalysis
-```
+AnalysisState and its report reducer are defined once in [state.py](state.py).
+Each agent writes its own report key.
 
 `merge_dict = lambda a, b: {**(a or {}), **(b or {})}`. Parallel nodes write different keys of the same
 channel, so a reducer is **required** (LangGraph raises `InvalidUpdateError` otherwise).
@@ -455,13 +328,8 @@ channel, so a reducer is **required** (LangGraph raises `InvalidUpdateError` oth
 
 ### 6.5 `tools/web_search.py`
 
-```python
-class SearchBackend(Protocol):
-    async def search(
-        self, query: str, limit: int = 5
-    ) -> list[Source]: ...  # excerpt = best-matching chunk
-    async def scrape(self, url: str) -> Source: ...  # full page markdown → chunked
-```
+The SearchBackend protocol is defined once in
+[tools/web_search.py](tools/web_search.py), including the optional research locale.
 
 - Default: **Firecrawl** (search with markdown scrape options; separate scrape for known URLs). The
   backend is selectable via `SEARCH_BACKEND=firecrawl|openai|brave`; only Firecrawl must be implemented

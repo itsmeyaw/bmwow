@@ -6,7 +6,7 @@ import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any
 
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
@@ -18,15 +18,18 @@ from bmwow.agent.models.evidence import (
     AgentName,
     AgentReport,
     Availability,
+    AvailabilityStatus,
     CandidateFeature,
     Confidence,
     Direction,
     Finding,
     FindingStats,
+    Polarity,
     ProductBrief,
     Quantity,
     Source,
     SubTheme,
+    TrendHorizon,
 )
 
 from ..config import get_settings
@@ -36,7 +39,6 @@ from ..validation import assign_ids, claim_numbers_supported, validate_findings
 
 log = logging.getLogger(__name__)
 
-Polarity = Literal["positive", "negative", "neutral", "demand"]
 SUMMARY_MAX_WORDS = 120
 
 
@@ -91,9 +93,7 @@ class AgentContext:
     sub_themes: list[SubTheme] = field(default_factory=list)
     candidates: list[CandidateFeature] = field(default_factory=list)
 
-    def mark(
-        self, source: str, status: Literal["ok", "partial", "unavailable"], reason: str = ""
-    ) -> None:
+    def mark(self, source: str, status: AvailabilityStatus, reason: str = "") -> None:
         """Record whether a data source could be used; missing data is reported, not an error."""
         self.availability.append(Availability(source=source, status=status, reason=reason))
 
@@ -125,7 +125,7 @@ class AgentContext:
         region: str | None = None,
         direction: Direction | None = None,
         stats: FindingStats | None = None,
-        horizon: Literal["now", "1-2y", "3y+"] | None = None,
+        horizon: TrendHorizon | None = None,
         n_independent_sources: int | None = None,
     ) -> Finding:
         """A finding without its final id (ids are assigned after validation)."""

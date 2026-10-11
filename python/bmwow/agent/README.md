@@ -54,6 +54,13 @@ whole pipeline on the synthetic ontology snapshot.
 competitor features, guard thresholds, judgment and gap-fill budgets. Competition shares
 `MAX_TOOL_CALLS_PER_AGENT` across competitors × features; raise it for real runs.
 
+[Definition boundaries](../../../docs/definitions.md) identifies the owner of each
+shared type and explains why Finding/Signal, Source/SourceDocument, demand/sentiment,
+and feedback/source-region selectors remain distinct. Knowledge records are
+compatibility re-exports, and availability/confidence vocabulary comes from the
+ontology. The original SPEC links to these owners instead of repeating schemas
+or fallback configuration.
+
 ```
 service.py        list_models / resolve / start_analysis / get_analysis / stream_analysis / explain / aclose
                   ← the API layer calls these
@@ -121,7 +128,8 @@ PYTHON_DOTENV_DISABLED=1 uv run python -m scripts.run_analysis scripts/example_r
   from feedback EU membership. The combined read service can retrieve their original
   regional observations explicitly; when the baseline's sales call uses feedback
   country selectors, it cannot select source EU totals with unknown membership. Connecting
-  that context and typed study reads into analysis remains orchestration work.
+  that sales context into analysis remains orchestration work. Typed study scores
+  are already read by the baseline and retain their original measurement metadata.
 - **Curation and current capabilities**: the private template leaves segments and
   Feature mappings for review. Only exact reviewed mappings attach Feature keys;
   original SQL aspect labels remain intact. Attribute reads exclude superseded

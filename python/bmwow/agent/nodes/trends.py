@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field
 
-from bmwow.agent.models.evidence import Direction
+from bmwow.agent.models.evidence import Direction, TrendHorizon
 
 from .. import router
 from ..llm import get_chat_model
@@ -27,7 +27,7 @@ MAX_CANDIDATES = 12
 
 
 class TrendFinding(DraftFinding):
-    horizon: Literal["now", "1-2y", "3y+"]
+    horizon: TrendHorizon
 
 
 class Trend(BaseModel):

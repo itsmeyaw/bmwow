@@ -7,7 +7,16 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from bmwow.ontology.models import Context, Locator, Measurement, NumericRange
+from bmwow.ontology.models import (
+    CapabilityAvailability,
+    Context,
+    EpistemicStatus,
+    Locator,
+    Measurement,
+    NumericRange,
+)
+
+from .types import MappingStatus
 
 
 class Record(BaseModel):
@@ -37,13 +46,8 @@ class AttributeValue(QualifiedRecord):
     as_of: dt.date | None = None
     value_range: NumericRange | None = None
     measurement: Measurement | None = None
-    availability: (
-        Literal[
-            "announced", "standard", "optional", "available_unspecified", "unavailable", "unknown"
-        ]
-        | None
-    ) = None
-    epistemic_status: str | None = None
+    availability: CapabilityAvailability | None = None
+    epistemic_status: EpistemicStatus | None = None
 
 
 class ModelNode(Record):
@@ -62,13 +66,23 @@ class ModelNode(Record):
 
 
 class FeedbackClassification(Record):
+    """Original VFC label projection; legacy wire names refer to Aspect Term/Label."""
+
     feedback_type: str | None
     vfc_category: str | None
     vfc_issue: str | None
     vfc_combined: str | None
     attribute: str | None
-    mapping_status: Literal["proposed", "reviewed"] | None
+    mapping_status: MappingStatus | None
     locator: Locator
+
+    @property
+    def aspect_term(self) -> str | None:
+        return self.vfc_category
+
+    @property
+    def aspect_label(self) -> str | None:
+        return self.vfc_issue
 
 
 class FeedbackAspect(QualifiedRecord):

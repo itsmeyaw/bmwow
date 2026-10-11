@@ -50,7 +50,15 @@ SignalKind = Literal[
     "commercial_indicator",
     "trend_indicator",
 ]
-ConfidenceLevel = Literal["low", "medium", "high", "unassessed"]
+AssessedConfidenceLevel = Literal["low", "medium", "high"]
+ConfidenceLevel = Literal[AssessedConfidenceLevel, "unassessed"]
+CapabilityAvailability = Literal[
+    "announced", "standard", "optional", "available_unspecified", "unavailable", "unknown"
+]
+EpistemicStatus = Literal[
+    "reported_experience", "opinion", "publisher_claim", "inference", "forecast"
+]
+SignalSentiment = Literal["positive", "negative", "mixed", "neutral", "unknown", "not_applicable"]
 RelationshipType = Literal[
     "IN_SOURCE",
     "DERIVED_FROM",
@@ -262,9 +270,7 @@ class AvailabilityCondition(ContractModel):
 class Capability(ContractModel):
     """One evidenced offering or performance claim; identity and customer demand are separate."""
 
-    availability: Literal[
-        "announced", "standard", "optional", "available_unspecified", "unavailable", "unknown"
-    ]
+    availability: CapabilityAvailability
     variant: Text | None
     measurement: Measurement | None
     conditions: list[AvailabilityCondition]
@@ -398,10 +404,8 @@ class ExtractionConfidence(ContractModel):
 
 class SignalProperties(ContractModel):
     statement: Text
-    epistemic_status: Literal[
-        "reported_experience", "opinion", "publisher_claim", "inference", "forecast"
-    ]
-    sentiment: Literal["positive", "negative", "mixed", "neutral", "unknown", "not_applicable"]
+    epistemic_status: EpistemicStatus
+    sentiment: SignalSentiment
     context: Context
     public_context: PublicContext | None
     capability: Capability | None

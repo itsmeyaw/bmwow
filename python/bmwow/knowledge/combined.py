@@ -113,7 +113,7 @@ class CombinedKnowledgeService(KnowledgeService):
             # SQL does not retain a combined VFC string; use an explicit exact-term mapping.
             mapping = self._config.vfc_mappings.get(classification.vfc_combined or "")
             if mapping is None:
-                mapping = self._config.vfc_mappings.get(classification.vfc_category or "")
+                mapping = self._config.vfc_mappings.get(classification.aspect_term or "")
             classification.mapping_status = mapping.status if mapping else None
             classification.attribute = (
                 self._config.feature_keys[mapping.feature_id]

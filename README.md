@@ -63,6 +63,7 @@ integration, TypeScript porting, and Neo4j persistence remain follow-up work.
 
 - [Project plan](docs/project-plan.md): the milestone, team boundaries, Neon, and the BMW data boundary.
 - [Ontology](docs/ontology.md): object meanings, validation, agent tools, and v0.1 migration.
+- [Definition boundaries](docs/definitions.md): shared types, ownership, and distinctions between ontology objects and analysis/read records.
 - [Ontology consumers](docs/ontology-consumers.md): a worked requirement dossier with frontend and orchestration recipes.
 - [Knowledge layer](docs/data-layer.md): snapshot, Neon, and combined reads; identity, source scope, citations, and the v1 handoff.
 - [Knowledge ingestion](docs/knowledge-ingestion.md): combined reads, private sales/study imports, reviewed mappings, and validated candidate writes.
