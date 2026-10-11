@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { PipelineDiagram } from "@/components/situation/pipeline";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +17,7 @@ export default function SituationPage() {
           competitors, customer feedback and trends, with every number traced to its source.
         </p>
       </div>
+      <PipelineDiagram />
       <Suspense fallback={<Skeleton className="h-48 w-full rounded-xl" />}>
         <Cars />
       </Suspense>
