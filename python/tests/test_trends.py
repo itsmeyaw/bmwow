@@ -2,6 +2,7 @@ from bmwow.agent.models.evidence import AnalysisRequest
 from bmwow.agent.nodes import trends
 from bmwow.agent.nodes.common import AgentContext
 from bmwow.agent.resolve import resolve_request
+from bmwow.agent.sources import Budget
 from bmwow.agent.taxonomy import load_taxonomy
 from bmwow.knowledge import KnowledgeUnavailableError
 from tests.fakes import ontology as fake_ontology
@@ -10,7 +11,7 @@ from tests.fakes.data import REF_CODE
 
 async def run_trends():
     brief = await resolve_request(AnalysisRequest(model_code=REF_CODE, regions=["EU", "CN"]))
-    ctx = AgentContext("trends", brief, await load_taxonomy())
+    ctx = AgentContext("trends", brief, await load_taxonomy(), budget=Budget(20, 25))
     await trends.run(ctx)
     return ctx, ctx.build_report()
 
@@ -45,4 +46,17 @@ async def test_missing_documents_are_reported_and_the_web_loop_still_runs(monkey
     _, report = await run_trends()
     docs = next(a for a in report.availability if a.source == "documents")
     assert docs.status == "unavailable" and "not connected" in docs.reason
-    assert report.status in {"ok", "partial"}
+    assert report.status == "ok" and report.findings  # the web loop still produced trends
+
+
+async def test_stored_documents_tool_reports_errors_to_the_model(monkeypatch):
+    from bmwow.agent.sources import Budget, SourceRegistry
+    from bmwow.agent.tools.graph_rag import make_graph_tools
+
+    def not_connected(*args, **kwargs):
+        raise KnowledgeUnavailableError("Documents is not connected.")
+
+    monkeypatch.setattr(fake_ontology, "search_documents", not_connected)
+    (tool,) = make_graph_tools(SourceRegistry(), Budget(5, 5), ["EU"])
+    out = await tool.ainvoke({"query": "charging"})
+    assert out.startswith("ERROR: stored documents are not available")

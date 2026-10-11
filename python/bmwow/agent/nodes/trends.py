@@ -90,9 +90,11 @@ async def run(ctx: AgentContext) -> None:
 
     # 2. Bounded tool loop.
     calls = ctx.budget.max_tool_calls
-    tools = make_graph_tools(ctx.registry, ctx.budget, ctx.brief.regions) + make_web_tools(
-        ctx.registry, ctx.budget, ctx.errors, ctx.brief.search_locale
+    documents_down = any(
+        a.source == "documents" and a.status == "unavailable" for a in ctx.availability
     )
+    tools = [] if documents_down else make_graph_tools(ctx.registry, ctx.budget, ctx.brief.regions)
+    tools += make_web_tools(ctx.registry, ctx.budget, ctx.errors, ctx.brief.search_locale)
     prompt = render_prompt(
         "trends_research",
         brief=ctx.brief,

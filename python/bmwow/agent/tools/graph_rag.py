@@ -86,9 +86,12 @@ def make_graph_tools(
     async def _search_documents(query: str, k: int = 6) -> str:
         if not budget.take("call"):
             return "BUDGET EXHAUSTED: stop calling tools and return your final answer now."
-        chunks = await get_backend().search_documents(
-            query, ["study", "report"], regions, min(k, 10)
-        )
+        try:
+            chunks = await get_backend().search_documents(
+                query, ["study", "report"], regions, min(k, 10)
+            )
+        except Exception as exc:  # report to the model and keep the loop alive (like the web tools)
+            return f"ERROR: stored documents are not available ({exc}); use web_search instead."
         for c in chunks:
             registry.add(doc_source(c), full_text=c.text)
         return render_chunks(chunks)
