@@ -106,11 +106,15 @@ class CorpusSearchBackend:
 
     is_local = True  # searches cost nothing: callers need not spend their web-call budget on them
 
-    def competitors(self, regions: list[str]) -> dict[str, list[str]]:
+    def competitors(self, regions: list[str], segment: str | None = None) -> dict[str, list[str]]:
         """Competitor name -> requested regions it has pages for (from `competitor:<name>` tags).
-        GLOBAL pages count for every requested region."""
+        GLOBAL pages count for every requested region. With a segment, pages tagged with another
+        `segment:<name>` are left out, so only same-class competitors are compared."""
         out: dict[str, list[str]] = {}
         for page in self.pages:
+            tagged = {t.split(":", 1)[1].strip() for t in page.tags if t.startswith("segment:")}
+            if segment and tagged and segment not in tagged:
+                continue
             for tag in page.tags:
                 if not tag.startswith("competitor:"):
                     continue

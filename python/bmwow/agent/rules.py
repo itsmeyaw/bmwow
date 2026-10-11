@@ -51,6 +51,9 @@ class StructureRules(_Rules):
     widespread_min_ci_low: float
     thin_words: list[str]
     lower_is_better: list[str]
+    higher_is_better_units: list[str] = Field(default_factory=list)
+    lower_is_better_units: list[str] = Field(default_factory=list)
+    powertrain_patterns: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class CompetitionRules(_Rules):
@@ -129,6 +132,33 @@ def load_study_mappings(path: Path) -> dict[str, StudyMapping]:
         for question, m in knowledge.get("study_mappings", {}).items()
         if m.get("feature_id") in keys
     }
+
+
+Powertrain = Literal["bev", "phev", "ice"]
+
+
+@cache
+def _compiled_powertrains() -> list[tuple[str, list[re.Pattern[str]]]]:
+    patterns = load_rules().structure.powertrain_patterns
+    return [(pt, [re.compile(x, re.IGNORECASE) for x in xs]) for pt, xs in patterns.items()]
+
+
+def powertrain_of(text: str | None) -> Powertrain | None:
+    """bev / phev / ice from a variant or model name, None if no pattern or several match
+    (plug-in hybrids are checked before combustion, since '530e' must not read as ICE)."""
+    if not text:
+        return None
+    hits = [pt for pt, patterns in _compiled_powertrains() if any(p.search(text) for p in patterns)]
+    if "phev" in hits:
+        return "phev"
+    return hits[0] if len(hits) == 1 else None  # type: ignore[return-value]
+
+
+def is_lower_better(attribute: str, unit: str) -> bool:
+    s, u = load_rules().structure, unit.strip().lower()
+    if u in s.lower_is_better_units:
+        return True
+    return attribute in s.lower_is_better and u not in s.higher_is_better_units
 
 
 def is_generic_term(term: str | None) -> bool:

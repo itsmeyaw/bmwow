@@ -97,6 +97,16 @@ structure:
   thin_words: [thin, small sample, limited data, few items, low n, uncertain]
   # Features where a smaller number is better (charging minutes, price, consumption); others: larger.
   lower_is_better: [fast_charging, affordable, efficiency, low_running_costs]
+  # Units where larger is better even for a lower-is-better feature (charging power, km per kWh).
+  higher_is_better_units: [kw, km/kwh, mi/kwh, mpge, mpg]
+  # Units where smaller is better for any feature (0-100 time, charging time, price, consumption).
+  lower_is_better_units: [s, min, eur, usd, gbp, kwh/100 km, l/100 km, wh/km]
+  # Values are compared only within one powertrain. Patterns on the variant / model name (public
+  # naming conventions); the extraction step may also state the powertrain directly.
+  powertrain_patterns:
+    bev: ['\bi\d\b', 'e-tron', '\beq[a-z]\b', '\beqe\b', 'electrified', '\bbev\b', '\bev\b', 'edrive\d']
+    phev: ['\b\d{3}e\b', 'hybrid', '\bphev\b', 'plug-in', 'e-hybrid', '\b\d{3} ?e\b']
+    ice: ['\b\d{3}[id]\b', 'diesel', 'petrol', 'gasoline', '\btfsi\b', '\btdi\b']
 
 competition:
   # Core features researched for every competitor, with the words a spec page uses for them.
@@ -109,6 +119,15 @@ competition:
     seat_ventilation: ventilated seats
     physical_controls: physical buttons controls
     reliable_software: infotainment software
+    flexible_storage: luggage boot trunk cargo volume litres
+    performance: power kW hp 0-100 acceleration
+    comfortable_seats: massage seats comfort seats
+    driver_assistance: driver assistance adaptive cruise lane keeping
+    clear_displays: display screen inch
+    great_sound: sound system speakers audio
+    climate_comfort: climate control zones
+    smartphone_integration: Apple CarPlay Android Auto wireless
+    easy_parking: parking assistant camera
   results_per_query: 3
   pages_per_feature: 2
 

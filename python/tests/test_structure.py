@@ -309,7 +309,7 @@ def test_comparisons_ignore_variants_and_unit_spelling():
         "real_world_range",
         [
             value(1, 598, "km", "WLTP"),
-            value(2, 777, "kilometres", "WLTP; variant Sportback e-tron"),
+            value(2, 777, "kilometres", "WLTP; variant Sportback quattro"),
             value(3, 520, "km", "EPA"),
         ],
         [],
@@ -318,3 +318,59 @@ def test_comparisons_ignore_variants_and_unit_spelling():
     )
     groups = {(c.unit, c.condition): c.n for c in comps}
     assert groups == {("km", "wltp"): 2, ("km", "epa"): 1}  # variant merged, EPA kept apart
+
+
+def test_comparisons_never_mix_powertrains_and_take_our_best_variant():
+    from datetime import UTC, datetime
+
+    from bmwow.agent.models.evidence import Finding, Quantity, Source
+    from bmwow.agent.structure import _value_comparisons
+
+    now = datetime.now(UTC)
+    src = {"web:1": Source(id="web:1", kind="web", ref="u", excerpt="x", retrieved_at=now)}
+
+    def value(i, v, qualifier, agent="competition", subject=None):
+        return Finding(
+            id=f"F-{agent}-{i}",
+            agent=agent,
+            attribute="fast_charging",
+            claim="c",
+            polarity="neutral",
+            subject=subject or f"C{i}",
+            source_ids=["web:1"],
+            confidence="medium",
+            quantity=Quantity(
+                value=v,
+                unit="min",
+                qualifier=qualifier,
+                origin="record" if agent == "baseline" else "source_text",
+            ),
+        )
+
+    comps = _value_comparisons(
+        "fast_charging",
+        [
+            value(1, 21, "10-80%; variant Sportback e-tron"),
+            value(2, 18, "10-80%; variant EQE 350+"),
+            value(3, 20, "10-80%; variant AMG E 53; powertrain phev"),  # extractor-stated
+            value(4, 25, "10-80%; variant E 450"),  # unknown powertrain: its own group
+        ],
+        [
+            value(5, 31, "10-80%; variant i5 M60 xDrive", "baseline", "G60"),
+            value(6, 30, "10-80%; variant i5 eDrive40", "baseline", "G60"),
+        ],
+        src,
+        load_rules(),
+    )
+    groups = {c.condition: c for c in comps}
+    assert set(groups) == {"10-80%; bev", "10-80%; phev", "10-80%"}
+    bev = groups["10-80%; bev"]
+    assert bev.n == 2 and bev.median == 19.5 and bev.ours == 30  # lower is better: best variant
+    assert groups["10-80%; phev"].ours is None
+
+
+def test_direction_follows_the_unit_first():
+    from bmwow.agent.rules import is_lower_better
+
+    assert is_lower_better("performance", "s") and not is_lower_better("performance", "kW")
+    assert is_lower_better("fast_charging", "min") and not is_lower_better("fast_charging", "kW")

@@ -29,7 +29,7 @@ from bmwow.agent.models.evidence import (
     ValueComparison,
 )
 
-from .rules import Rules
+from .rules import Rules, is_lower_better, powertrain_of
 from .sources import clip
 from .stats import distribution, rank_position, relative_difference
 from .validation import unsupported_numbers
@@ -55,12 +55,45 @@ _UNITS = {
     "$": "usd",
     "us$": "usd",
     "dollars": "usd",
+    "litres": "l",
+    "liters": "l",
+    "litre": "l",
+    "liter": "l",
+    "cubic feet": "cu ft",
+    "cu.ft.": "cu ft",
+    "cu. ft.": "cu ft",
+    "cu.ft": "cu ft",
+    "ft3": "cu ft",
+    "inches": "inch",
+    "in": "inch",
+    '"': "inch",
+    "horsepower": "hp",
+    "bhp": "hp",
+    "kwh/100km": "kwh/100 km",
+    "speakers": "speakers",
+    "loudspeakers": "speakers",
+    "zones": "zone",
+    "seconds": "s",
+    "sec": "s",
+    "secs": "s",
+    "£": "gbp",
+    "gbp": "gbp",
 }
+_MIN_SEC = re.compile(r"^(?:m|min)\s*(\d{1,2})\s*s$")  # "19 m 38 s" read as value 19, unit "m 38 s"
 
 
 def normalize_unit(unit: str) -> str:
     u = unit.strip().lower()
     return _UNITS.get(u, u)
+
+
+def normalize_quantity(value: float, unit: str) -> tuple[float, str]:
+    """Same unit, same spelling; '<min> m <sec> s' becomes minutes. No cross-unit conversion: US cubic
+    feet (SAE) and EU litres (VDA) are measured differently and stay apart."""
+    m = _MIN_SEC.match(unit.strip().lower())
+    if m:
+        return round(value + int(m.group(1)) / 60, 2), "min"
+    return value, normalize_unit(unit)
 
 
 def normalize_condition(text: str) -> str:
@@ -71,20 +104,28 @@ def normalize_condition(text: str) -> str:
 
 
 def _condition(finding: Finding, sources: dict[str, Source]) -> str:
-    """The comparison condition (test standard and constraints) of a value; the ontology's
-    measurement wins over the free-text qualifier. Trim variants and the region are not part of it:
-    they describe a value, they do not make values incomparable."""
+    """The comparison key of a value: test standard (the ontology's measurement wins over the
+    free-text qualifier) plus the powertrain. Trim variants and the region are not part of it, but
+    an EV value is never compared with a plug-in hybrid or combustion one."""
+    standard = ""
     for sid in finding.source_ids:
         m = sources[sid].measurement if sid in sources else None
-        if m is not None and (m.test_standard or m.conditions):
-            return normalize_condition(
-                "; ".join(x for x in [m.test_standard or "", *m.conditions] if x)
-            )
+        if m is not None and m.test_standard:
+            # Free-text footnote conditions stay in the fact text; they are not a matching key.
+            standard = m.test_standard
+            break
     q = finding.quantity.qualifier if finding.quantity else ""
-    q = re.sub(r"\bhorizon \S+", "", q)
-    parts = [x.strip() for x in q.split(";")]
-    parts = [x for x in parts if x and not x.lower().startswith("variant ") and x != finding.region]
-    return normalize_condition("; ".join(parts))
+    parts = [x.strip() for x in re.sub(r"\bhorizon \S+", "", q).split(";")]
+    if not standard:
+        standard = "; ".join(
+            x
+            for x in parts
+            if x and not x.lower().startswith(("variant ", "powertrain ")) and x != finding.region
+        )
+    pt = next((x.split()[1] for x in parts if x.lower().startswith("powertrain ")), None)
+    variant = next((x for x in parts if x.lower().startswith("variant ")), "")
+    pt = pt or powertrain_of(variant) or powertrain_of(parts[0]) or powertrain_of(finding.subject)
+    return normalize_condition("; ".join(x for x in (standard, pt or "") if x))
 
 
 def _fmt(value: float) -> str:
@@ -98,24 +139,25 @@ def _value_comparisons(
     sources: dict[str, Source],
     rules: Rules,
 ) -> list[ValueComparison]:
-    lower = attribute in rules.structure.lower_is_better
-    groups: dict[tuple[str, str, str | None], list[Finding]] = defaultdict(list)
+    groups: dict[tuple[str, str, str | None], list[tuple[Finding, float]]] = defaultdict(list)
     for f in competitor:
         if f.quantity is not None and f.quantity.unit and f.quantity.origin != "computed":
-            key = (normalize_unit(f.quantity.unit), _condition(f, sources), f.region)
-            groups[key].append(f)
-    own: dict[tuple[str, str], float] = {}
+            value, unit = normalize_quantity(f.quantity.value, f.quantity.unit)
+            groups[(unit, _condition(f, sources), f.region)].append((f, value))
+    own: dict[tuple[str, str], float] = {}  # our best variant per unit and condition
     for f in ours:
         if f.quantity is not None and f.quantity.unit and f.quantity.origin == "record":
-            own.setdefault(
-                (normalize_unit(f.quantity.unit), _condition(f, sources)), f.quantity.value
-            )
+            value, unit = normalize_quantity(f.quantity.value, f.quantity.unit)
+            key = (unit, _condition(f, sources))
+            better = min if is_lower_better(attribute, unit) else max
+            own[key] = better(own.get(key, value), value)
     out: list[ValueComparison] = []
     for (unit, condition, region), findings in sorted(groups.items(), key=lambda kv: str(kv[0])):
-        values = [f.quantity.value for f in findings if f.quantity is not None]
+        values = [v for _, v in findings]
         d = distribution(values)
         if d is None:
             continue
+        lower = is_lower_better(attribute, unit)
         mine = own.get((unit, condition))
         if mine is None and (unit, "") in own and not condition:
             mine = own[(unit, "")]
@@ -128,7 +170,7 @@ def _value_comparisons(
             median=d.median,
             maximum=d.maximum,
             lower_is_better=lower,
-            finding_ids=[f.id for f in findings],
+            finding_ids=[f.id for f, _ in findings],
         )
         if mine is not None:
             rank, size = rank_position(mine, values, higher_is_better=not lower)

@@ -201,3 +201,29 @@ async def test_service_pauses_for_the_pm_and_resumes(analysis_request):
     with pytest.raises(ValueError):
         await service.gate_action(run_id, {"action": "done"})
     await service.aclose()
+
+
+def test_problem_reports_mean_the_feature_exists_today():
+    from bmwow.agent.candidates import _baseline
+    from bmwow.agent.models.evidence import EvidencePackage, SubTheme
+
+    def theme(direction, k):
+        return SubTheme(
+            attribute="x",
+            direction=direction,
+            name="auto start-stop",
+            k=k,
+            of=50,
+            method="aspect_term",
+            source_ids=[],
+        )
+
+    pkg = EvidencePackage(
+        attribute="x", label="x", importance=0.1, sub_themes=[theme("problem", 9)]
+    )
+    status, why = _baseline(pkg, None, theme("problem", 9))
+    assert status == "known_present" and "9 feedback items" in why
+    wish_only = EvidencePackage(
+        attribute="x", label="x", importance=0.1, sub_themes=[theme("request", 9)]
+    )
+    assert _baseline(wish_only, None, theme("request", 9))[0] == "unknown"

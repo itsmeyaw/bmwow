@@ -160,3 +160,24 @@ async def test_corpus_names_the_competitors_when_the_knowledge_layer_has_none(
     assert any(
         q.startswith("Competitor D Sedan") and loc.country == "de" for q, loc in backend.searches
     )
+
+
+def test_corpus_competitors_respect_the_segment(tmp_path):
+    root = tmp_path / "corpus"
+    (root / "pages").mkdir(parents=True)
+    for i, (name, segment) in enumerate(
+        [("Same Class", "premium_sedan"), ("Other Class", "compact"), ("Untagged", None)]
+    ):
+        tags = [f"competitor:{name}"] + ([f"segment:{segment}"] if segment else [])
+        page = CorpusPage(
+            url=f"https://example.com/{i}",
+            title=name,
+            retrieved_at="2026-10-11T00:00:00+00:00",
+            markdown="spec " * 100,
+            tags=tags,
+            region="GLOBAL",
+        )
+        (root / "pages" / f"{i}.json").write_text(page.model_dump_json())
+    backend = CorpusSearchBackend(root)
+    assert set(backend.competitors(["EU"], "premium_sedan")) == {"Same Class", "Untagged"}
+    assert set(backend.competitors(["EU"])) == {"Same Class", "Other Class", "Untagged"}

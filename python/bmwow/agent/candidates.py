@@ -108,7 +108,9 @@ def default_target(assessment: str, c: ValueComparison | None, rules: Rules) -> 
     )
 
 
-def _baseline(pkg: EvidencePackage, c: ValueComparison | None) -> tuple[str, str]:
+def _baseline(
+    pkg: EvidencePackage, c: ValueComparison | None, theme: SubTheme | None = None
+) -> tuple[str, str]:
     absent = ("unavailable", "not available", "not offered")
     if any(any(word in f.text.lower() for word in absent) for f in pkg.ours):
         return "known_absent", "The catalog states the feature is unavailable on the current model."
@@ -117,6 +119,17 @@ def _baseline(pkg: EvidencePackage, c: ValueComparison | None) -> tuple[str, str
         return (
             "known_present",
             f"The current model has the feature{ours} per the baseline evidence.",
+        )
+    used = [
+        t
+        for t in pkg.sub_themes
+        if theme is not None and t.name == theme.name and t.direction == "problem" and t.k > 0
+    ]
+    if used:  # owners cannot report problems with something the current model lacks
+        return (
+            "known_present",
+            f"Owners of the current model report problems with {used[0].name} "
+            f"({used[0].k} feedback items); the catalog has no entry for it.",
         )
     return (
         "unknown",
@@ -218,10 +231,10 @@ def build_candidates(
         if a.guard_status == "flagged":
             continue
         c = _comparison(pkg)
-        baseline, rationale = _baseline(pkg, c)
+        theme = _sub_theme(pkg, a.assessment)
+        baseline, rationale = _baseline(pkg, c, theme)
         target = default_target(a.assessment, c, rules)
         facts = _customer_facts(pkg, a.assessment, rules.candidates.max_customer_facts)
-        theme = _sub_theme(pkg, a.assessment)
         evidence = list(
             dict.fromkeys(
                 [f.finding_id for f in pkg.ours]

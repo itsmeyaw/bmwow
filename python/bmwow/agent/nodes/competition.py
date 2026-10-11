@@ -18,7 +18,7 @@ from __future__ import annotations
 import operator
 from dataclasses import dataclass
 from datetime import date, timedelta
-from typing import Annotated, Any, TypedDict
+from typing import Annotated, Any, Literal, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
@@ -30,7 +30,7 @@ from .. import router
 from ..config import get_settings
 from ..llm import get_chat_model
 from ..prompting import render_prompt, render_regions
-from ..rules import load_rules
+from ..rules import load_rules, powertrain_of
 from ..sources import Budget, attribute_source, clip, render_attribute
 from ..tools.knowledge import AttributeValue, ModelNode
 from ..tools.web_search import (
@@ -43,8 +43,8 @@ from ..tools.web_search import (
 from ..validation import number_in_text
 from .common import AgentContext, DraftFindings, run_tool_loop, structured_call
 
-MAX_ATTRIBUTES_PER_COMPETITOR = 12
-PAGE_CHARS = 3500
+MAX_ATTRIBUTES_PER_COMPETITOR = 18
+PAGE_CHARS = 6000
 
 
 class ResearchTask(TypedDict):
@@ -73,6 +73,11 @@ class ExtractedValue(BaseModel):
         description="region or market the value applies to, if the page says"
     )
     variant: str | None = Field(description="trim / engine variant the value applies to, if stated")
+    powertrain: Literal["bev", "phev", "ice", "unknown"] = Field(
+        default="unknown",
+        description="powertrain of that variant: bev (battery electric), phev (plug-in hybrid), "
+        "ice (petrol/diesel/mild hybrid); unknown if the page does not make it clear",
+    )
     quote: str = Field(
         description="verbatim sentence from the page that states it; empty if not found"
     )
@@ -115,11 +120,13 @@ async def run(ctx: AgentContext) -> None:
             tasks.append(_task(ctx, m.name, regions, values))
     elif hasattr(get_search_backend(), "competitors"):
         # The approved web corpus names the competitors; no web discovery needed.
-        corpus_set = get_search_backend().competitors(brief.regions)  # type: ignore[attr-defined]
+        backend = get_search_backend()
+        corpus_set = backend.competitors(brief.regions, brief.segment)  # type: ignore[attr-defined]
         ctx.mark(
             "competitors",
             "partial",
-            "no competitors in the knowledge layer; taken from the curated web corpus",
+            "no competitors in the knowledge layer; taken from the curated web corpus "
+            f"(segment {brief.segment})",
         )
         for name, regions in list(corpus_set.items())[: settings.max_competitors]:
             competitors[name] = Competitor(name, None, regions)
@@ -254,7 +261,8 @@ async def _research(
         if exhausted:
             break
     for sid, (page, features) in pages.items():
-        if not budget.take("page"):
+        # A local corpus page is read once per competitor; only live scrapes use the budget.
+        if not local and not budget.take("page"):
             ctx.mark(f"web:{competitor.name}", "partial", "page budget exhausted")
             break
         await _extract(ctx, competitor, sid, page, list(dict.fromkeys(features)))
@@ -295,7 +303,10 @@ async def _extract(
         quantity = None
         if v.value is not None and v.unit and number_in_text(v.value, v.quote, v.unit):
             variant = f"variant {v.variant}" if v.variant else None
-            qualifier = "; ".join(x for x in (v.test_standard, variant, region) if x)
+            pt = v.powertrain if v.powertrain != "unknown" else None
+            pt = pt or powertrain_of(f"{v.variant or ''} {competitor.name}")
+            powertrain = f"powertrain {pt}" if pt else None
+            qualifier = "; ".join(x for x in (v.test_standard, variant, powertrain, region) if x)
             quantity = Quantity(
                 value=v.value, unit=v.unit.strip(), qualifier=qualifier, origin="source_text"
             )
