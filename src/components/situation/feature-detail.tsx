@@ -11,7 +11,8 @@ import { int, pct } from "@/lib/format";
 import { assessmentSuggestion } from "@/lib/assessment";
 import { cn } from "@/lib/utils";
 import { getFeatureDetail, type Finding, type Signal } from "@/server/situation/queries";
-import { Highlighted } from "@/components/feedback";
+import { VerbatimActions } from "@/components/chat-context";
+import { Verbatim } from "@/components/feedback";
 import {
   AssessmentBadge,
   Cited,
@@ -64,10 +65,13 @@ export async function FeatureDetailView({
   runId,
   attribute,
   where,
+  closeHref,
 }: {
   runId: string;
   attribute: string;
   where: string;
+  /** Where "Find solution" navigates after closing the sheet. */
+  closeHref: string;
 }) {
   const d = await getFeatureDetail(runId, attribute);
   if (!d) return <p className="p-6 text-sm text-muted-foreground">Feature not found.</p>;
@@ -198,21 +202,26 @@ export async function FeatureDetailView({
           empty={!d.quotes.length && "No feedback examples."}
         >
           {d.quotes.map((q) => (
-            <figure
+            <Verbatim
               key={q.sourceId}
+              e={q}
+              marks={q.snippets}
               className={cn(
-                "rounded-lg border border-l-4 p-3 text-sm",
+                "border-l-4",
                 QUOTE_BORDER[q.direction ?? ""] ?? "border-l-muted-foreground/40",
               )}
-            >
-              <blockquote className="leading-relaxed">
-                <Highlighted text={q.text} marks={q.snippets} />
-              </blockquote>
-              <figcaption className="mt-2 text-xs text-muted-foreground">
-                {q.direction ? DIRECTION_LABEL[q.direction] : "–"} ·{" "}
-                <span className="font-mono">{q.sourceId.replace(/^.*:/, "")}</span>
-              </figcaption>
-            </figure>
+              actions={
+                <VerbatimActions
+                  card={{
+                    ...q,
+                    term: q.term ?? sentence(f.label),
+                    category: q.category ?? sentence(f.label),
+                    tone: q.direction === "strength" ? "Positive" : "Negative",
+                  }}
+                  closeHref={closeHref}
+                />
+              }
+            />
           ))}
         </Section>
 

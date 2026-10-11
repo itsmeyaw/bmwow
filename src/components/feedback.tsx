@@ -111,12 +111,23 @@ export function Highlighted({ text, marks }: { text: string; marks: (string | nu
   return <>{out}</>;
 }
 
-export function Verbatim({ e, actions }: { e: Evidence; actions: React.ReactNode }) {
+export function Verbatim({
+  e,
+  actions,
+  marks = [e.quote],
+  className = "",
+}: {
+  e: Evidence;
+  actions: React.ReactNode;
+  /** Phrases to highlight; defaults to the aspect quote. */
+  marks?: (string | null)[];
+  className?: string;
+}) {
   const found = !!e.quote && e.text.toLowerCase().includes(e.quote.toLowerCase());
   return (
-    <figure className="rounded-lg border p-3 text-sm">
+    <figure className={`rounded-lg border p-3 text-sm ${className}`}>
       <blockquote className="leading-relaxed whitespace-pre-line">
-        <Highlighted text={e.text} marks={[e.quote]} />
+        <Highlighted text={e.text} marks={marks} />
       </blockquote>
       {!found && e.quote && (
         <p className="mt-2 text-xs text-muted-foreground">Quote: “{e.quote}”</p>
