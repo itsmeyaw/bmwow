@@ -113,6 +113,17 @@ async def run(ctx: AgentContext) -> None:
             regions = m.regions or brief.regions
             competitors[m.name] = Competitor(m.name, m.brand, regions)
             tasks.append(_task(ctx, m.name, regions, values))
+    elif hasattr(get_search_backend(), "competitors"):
+        # The approved web corpus names the competitors; no web discovery needed.
+        corpus_set = get_search_backend().competitors(brief.regions)  # type: ignore[attr-defined]
+        ctx.mark(
+            "competitors",
+            "partial",
+            "no competitors in the knowledge layer; taken from the curated web corpus",
+        )
+        for name, regions in list(corpus_set.items())[: settings.max_competitors]:
+            competitors[name] = Competitor(name, None, regions)
+            tasks.append(_task(ctx, name, regions, []))
     else:
         ctx.mark(
             "competitors", "partial", "no competitors in the knowledge layer; discovered on the web"
@@ -217,24 +228,31 @@ async def _research(
     """Searches (one per feature, in priority order) and page extractions within the competitor's
     fixed share of the agent budget."""
     rules = load_rules().competition
-    locale = next(iter(_locales(ctx, task["regions"]).values()), None)
+    backend = get_search_backend()
+    local = getattr(backend, "is_local", False)  # a local corpus costs no web calls
+    locales = list(_locales(ctx, task["regions"]).values()) or [None]
     pages: dict[str, tuple[WebPage, list[str]]] = {}  # source id -> page, features it may hold
+    exhausted = False
     for feature in task["attributes"]:
-        if not budget.take("call"):
-            ctx.mark(f"web:{competitor.name}", "partial", "search budget exhausted")
-            break
         query = f"{competitor.name} {_query_terms(ctx, feature)}"
-        try:
-            found = await get_search_backend().search_pages(
-                query, limit=rules.results_per_query, locale=locale
-            )
-        except Exception as exc:  # noqa: BLE001 - report, continue with the next feature
-            ctx.errors.append(f"search {query!r}: {type(exc).__name__}: {exc}")
-            continue
-        kept = [p for p in found if _about(p, competitor)][: rules.pages_per_feature]
-        for page in kept:
-            source = ctx.add_source(page_to_source(page, query), full_text=page.markdown)
-            pages.setdefault(source.id, (page, []))[1].append(feature)
+        for locale in locales:  # every region the competitor is sold in
+            if not local and not budget.take("call"):
+                ctx.mark(f"web:{competitor.name}", "partial", "search budget exhausted")
+                exhausted = True
+                break
+            try:
+                found = await backend.search_pages(
+                    query, limit=rules.results_per_query, locale=locale
+                )
+            except Exception as exc:  # noqa: BLE001 - report, continue with the next feature
+                ctx.errors.append(f"search {query!r}: {type(exc).__name__}: {exc}")
+                continue
+            kept = [p for p in found if _about(p, competitor)][: rules.pages_per_feature]
+            for page in kept:
+                source = ctx.add_source(page_to_source(page, query), full_text=page.markdown)
+                pages.setdefault(source.id, (page, []))[1].append(feature)
+        if exhausted:
+            break
     for sid, (page, features) in pages.items():
         if not budget.take("page"):
             ctx.mark(f"web:{competitor.name}", "partial", "page budget exhausted")

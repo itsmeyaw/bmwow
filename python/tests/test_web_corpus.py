@@ -133,3 +133,30 @@ def test_sources_file_is_valid():
         e.url.startswith("https://") and e.region in build_web_corpus.REGION_COUNTRIES
         for e in entries
     )
+
+
+async def test_corpus_names_the_competitors_when_the_knowledge_layer_has_none(
+    tmp_path, analysis_request, monkeypatch, fake_env
+):
+    from tests.fakes import ontology as fake_ontology
+
+    monkeypatch.setattr(
+        fake_ontology, "list_competitor_models", lambda segment, regions, names=None: []
+    )
+    backend = CorpusSearchBackend(write_corpus(tmp_path / "corpus"))
+    assert backend.competitors(["EU", "CN"])["Competitor D Sedan"] == ["EU"]  # EU-only pages
+    web_search.set_search_backend(backend)
+    analysis = (await build_graph().ainvoke({"run_id": "corpus-set", "request": analysis_request}))[
+        "analysis"
+    ]
+    report = analysis.reports["competition"]
+    note = next(a for a in report.availability if a.source == "competitors")
+    assert "curated web corpus" in note.reason
+    assert report.stats["n_competitors"] == 4 and report.stats.get("n_tool_calls", 0) == 0
+    assert not any("discover" in p for p in fake_env["analyst"].prompts[:1])
+    values = [f for f in report.findings if f.quantity]
+    assert {f.subject for f in values} >= {"Competitor C Sedan"}
+    # searched in every region of a competitor: the EU-only D page is found with the EU locale
+    assert any(
+        q.startswith("Competitor D Sedan") and loc.country == "de" for q, loc in backend.searches
+    )

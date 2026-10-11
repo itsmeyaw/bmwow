@@ -17,6 +17,7 @@ def fake_env(tmp_path, monkeypatch):
     monkeypatch.setenv("DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("KNOWLEDGE_BACKEND", "fake")
     monkeypatch.setenv("OFFLINE_MODE", "false")
+    monkeypatch.setenv("SEARCH_BACKEND", "firecrawl")  # tests never depend on the local .env
     monkeypatch.setenv("AGENT_TIMEOUT_S", "60")
     # Synthetic data only: the LLM steps that would see BMW data run against the fake models.
     monkeypatch.setenv("ALLOW_LLM_ON_INTERNAL_DATA", "true")

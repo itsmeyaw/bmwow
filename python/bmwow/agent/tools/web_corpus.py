@@ -104,6 +104,23 @@ class CorpusSearchBackend:
                 score += TAG_BOOST
         return score
 
+    is_local = True  # searches cost nothing: callers need not spend their web-call budget on them
+
+    def competitors(self, regions: list[str]) -> dict[str, list[str]]:
+        """Competitor name -> requested regions it has pages for (from `competitor:<name>` tags).
+        GLOBAL pages count for every requested region."""
+        out: dict[str, list[str]] = {}
+        for page in self.pages:
+            for tag in page.tags:
+                if not tag.startswith("competitor:"):
+                    continue
+                name = tag.split(":", 1)[1].strip()
+                covered = regions if page.region in ("", "GLOBAL") else [page.region]
+                for region in covered:
+                    if region in regions and region not in out.setdefault(name, []):
+                        out[name].append(region)
+        return {n: sorted(r, key=regions.index) for n, r in sorted(out.items()) if r}
+
     async def search_pages(
         self, query: str, limit: int = 5, locale: SearchLocale | None = None
     ) -> list[WebPage]:
