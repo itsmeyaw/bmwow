@@ -139,6 +139,17 @@ def assign_ids(agent: AgentName, findings: list[Finding]) -> list[Finding]:
     ]
 
 
+def unsupported_numbers(text: str, reference: str) -> list[str]:
+    """Number tokens in `text` of which no reading appears in `reference` ("3,610" is supported by
+    "3610"; its other reading 3.61 does not count against it)."""
+    known = numbers_in(reference)
+    return [
+        m.group(0)
+        for m in _NUM.finditer(text)
+        if not any(_close(c, n) for c in _candidates(m.group(0)) for n in known)
+    ]
+
+
 def claim_numbers_supported(claim: str, cited: list[Source]) -> bool:
     """Every number written in an LLM-authored claim must appear in a cited excerpt."""
     text = " ".join(s.excerpt for s in cited)

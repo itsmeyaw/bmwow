@@ -32,7 +32,7 @@ from bmwow.agent.models.evidence import (
 from .rules import Rules
 from .sources import clip
 from .stats import distribution, rank_position, relative_difference
-from .validation import numbers_in
+from .validation import unsupported_numbers
 
 SIGNIFICANT = 0.05
 
@@ -246,7 +246,10 @@ def assemble(
             ],
             quotes=_quotes(customer, sources, rules.structure.max_quotes_per_package),
             finding_ids=[f.id for fs in found.values() for f in fs],
-            source_ids=sorted({sid for fs in found.values() for f in fs for sid in f.source_ids}),
+            source_ids=sorted(
+                {sid for fs in found.values() for f in fs for sid in f.source_ids}
+                | {sid for t in sub_themes if t.attribute == attribute for sid in t.source_ids}
+            ),
         )
         missing = [
             name
@@ -342,7 +345,7 @@ def guard(
     }
     rendered = render_package(pkg)
     unknown = sorted(cited - known)
-    invented = sorted(numbers_in(text) - numbers_in(rendered))
+    invented = unsupported_numbers(text, rendered)
     checks = [
         GuardCheck(
             rule="cited_ids_exist",

@@ -231,3 +231,51 @@ async def test_failed_gap_fill_is_reported_unavailable(analysis_request, monkeyp
     gap = next(a for a in competition.availability if a.source == "gap_fill")
     assert gap.status == "unavailable" and "TimeoutError" in gap.reason
     assert any("gap_fill" in e for e in competition.errors)
+
+
+def test_guard_accepts_thousand_separators_and_sub_theme_examples():
+    from bmwow.agent.models.evidence import SubTheme
+
+    rules = load_rules()
+    pkg = _pkg(
+        customers=[
+            CustomerSignal(
+                finding_id="F-feedback-1",
+                direction="problem",
+                region="US",
+                share=0.048,
+                k=173,
+                n=3610,
+                ci_low=0.041,
+                ci_high=0.055,
+                thin=False,
+            )
+        ],
+        sub_themes=[
+            SubTheme(
+                attribute="real_world_range",
+                direction="problem",
+                name="Apple CarPlay",
+                k=31,
+                of=173,
+                method="aspect_term",
+                source_ids=["fb:example-1"],
+            )
+        ],
+    )
+    pkg = pkg.model_copy(update={"source_ids": [*pkg.source_ids, "fb:example-1"]})
+    checks = guard(
+        pkg,
+        "gap",
+        "limited",
+        "173 of 3,610 US items report it.",
+        ["F-feedback-1", "fb:example-1"],
+        rules,
+    )
+    assert failed(checks) == set(), checks
+
+
+async def test_sub_theme_examples_are_citable_package_ids(analysis_request):
+    analysis = await run(analysis_request)
+    for p in analysis.evidence_packages:
+        assert {sid for t in p.sub_themes for sid in t.source_ids} <= set(p.source_ids)

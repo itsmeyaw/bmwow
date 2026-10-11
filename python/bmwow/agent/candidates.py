@@ -26,7 +26,7 @@ from bmwow.agent.models.evidence import (
 
 from .rules import Rules
 from .structure import label_of
-from .validation import number_in_text, numbers_in
+from .validation import number_in_text, numbers_in, unsupported_numbers
 
 _VERB = {"improve": "improve", "introduce": "offer", "retain": "keep", "remove": "remove"}
 _DIRECTIONS = {
@@ -344,7 +344,7 @@ def wording_guard(
     c: RequirementCandidate, statement: str, customer_value: str, package_text: str
 ) -> list[GuardCheck]:
     text = f"{statement} {customer_value}"
-    invented = sorted(numbers_in(text) - numbers_in(facts_text(c) + "\n" + package_text))
+    invented = unsupported_numbers(text, facts_text(c) + "\n" + package_text)
     checks = [
         GuardCheck(
             rule="numbers_from_facts",
