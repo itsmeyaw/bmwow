@@ -28,6 +28,7 @@ MIGRATION = ROOT / "migrations" / "0002_analysis.sql"
 TAXONOMY = Path(__file__).resolve().parents[1] / "bmwow" / "agent" / "taxonomy.yaml"
 
 Row = dict[str, Any]
+EXCERPT_CHARS = 600  # keeps the stored excerpt readable while saving shared database space
 
 
 def _area_of() -> dict[str, str]:
@@ -132,6 +133,8 @@ def rows_of(a: SituationAnalysis, data_dir: Path | None = None) -> dict[str, lis
                 "rule_suggestion": x.rule_suggestion if x else None,
                 "guard_status": x.guard_status if x else None,
                 "brand_or_safety_relevant": x.brand_or_safety_relevant if x else None,
+                "cited_ids": list(x.cited_ids) if x else [],
+                "guard": json.dumps([g.model_dump() for g in x.guard if not g.ok]) if x else "[]",
                 "facts": list(p.comparisons),
                 "coverage": list(p.coverage),
                 "is_mapped": not p.attribute.startswith("unmapped:"),
@@ -248,9 +251,19 @@ def rows_of(a: SituationAnalysis, data_dir: Path | None = None) -> dict[str, lis
                 "wording": c.wording,
             }
         )
+    referenced = {
+        *(i for x in a.feature_assessments for i in x.cited_ids),
+        *(i for c in a.requirement_candidates for i in c.evidence_ids),
+        # one example per sub-theme; quote texts are already in analysis_quotes
+        *(t.source_ids[0] for p in a.evidence_packages for t in p.sub_themes if t.source_ids),
+    }
     findings, sources, links = [], {}, []
     for report in a.reports.values():
         for s in report.sources:
+            # Storage is shared: feedback items are copied only when a judgment or requirement
+            # cites them, or as one example per sub-theme (so every cited id resolves); excerpts are capped.
+            if s.kind == "feedback" and s.id not in referenced:
+                continue
             ref = s.references[0] if s.references else None
             sources[s.id] = {
                 "run_id": run,
@@ -260,10 +273,10 @@ def rows_of(a: SituationAnalysis, data_dir: Path | None = None) -> dict[str, lis
                 "title": s.title or None,
                 "ref": s.ref,
                 "url": s.ref if s.kind == "web" else None,
-                "excerpt": s.excerpt,
+                "excerpt": s.excerpt[:EXCERPT_CHARS],
                 "locator": ref.locator.model_dump_json() if ref and ref.locator else None,
                 "retrieved_at": s.retrieved_at,
-                "limitations": list(s.limitations),
+                "limitations": list(dict.fromkeys(s.limitations))[:2],
             }
         for f in report.findings:
             q, st = f.quantity, f.stats
@@ -296,12 +309,14 @@ def rows_of(a: SituationAnalysis, data_dir: Path | None = None) -> dict[str, lis
                 {"run_id": run, "finding_id": f.id, "source_id": sid}
                 for sid in dict.fromkeys(f.source_ids)
             ]
+    cited = {x["source_id"] for x in links}
     out |= {
         "analysis_features": features,
         "analysis_requirements": requirements,
         "analysis_findings": findings,
-        "analysis_sources": list(sources.values()),
-        "analysis_finding_sources": links,
+        # Sources a finding or a judgment cites; only links to stored sources.
+        "analysis_sources": [v for k, v in sources.items() if k in cited or k in referenced],
+        "analysis_finding_sources": [x for x in links if x["source_id"] in sources],
         "analysis_customer_signals": signals,
         "analysis_competitor_values": values,
         "analysis_quotes": quotes,

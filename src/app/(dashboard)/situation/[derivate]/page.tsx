@@ -32,6 +32,9 @@ import {
   type Run,
 } from "@/server/situation/queries";
 
+/** "ALL" reads as "All regions"; single regions keep their code. */
+const regionLabel = (region: string) => (region === "ALL" ? "All" : region);
+
 type Search = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : null);
 
@@ -95,7 +98,7 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
                     "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
                 )}
               >
-                {r.region}
+                {regionLabel(r.region)}
               </Link>
             ))}
           </div>
@@ -131,7 +134,7 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
             <FeatureDetailView
               runId={run.runId}
               attribute={selected.attribute}
-              where={`${run.modelCode} · ${run.region}`}
+              where={`${run.modelCode} · ${regionLabel(run.region)}`}
             />
           </Suspense>
         )}
@@ -213,9 +216,9 @@ function emptyReason(run: Run, features: FeatureRow[]) {
   const fb = run.agentStatus?.feedback;
   const missing = fb?.unavailable.find((u) => u.startsWith("feedback"));
   if (missing)
-    return `No customer feedback for ${run.modelCode} in ${run.region}, so no customer evidence to judge.`;
+    return `No customer feedback for ${run.modelCode} in ${regionLabel(run.region)}, so no customer evidence to judge.`;
   if (!features.some((f) => f.problemShare != null))
-    return `Too few customer feedback items for ${run.modelCode} in ${run.region} to compute shares per feature.`;
+    return `Too few customer feedback items for ${run.modelCode} in ${regionLabel(run.region)} to compute shares per feature.`;
   return "No feature had enough evidence for a recommendation in this run.";
 }
 

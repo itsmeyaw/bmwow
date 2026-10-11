@@ -64,7 +64,7 @@ function CarCard({ code, runs }: { code: string; runs: RunSummary[] }) {
                 className="flex items-center justify-between gap-3 rounded-lg border p-2 text-sm transition-colors hover:bg-muted/50"
               >
                 <span className="flex items-center gap-2">
-                  <Badge variant="secondary">{r.region}</Badge>
+                  <Badge variant="secondary">{r.region === "ALL" ? "All regions" : r.region}</Badge>
                   <span className="text-muted-foreground">{r.features} features analysed</span>
                 </span>
                 <span className="font-medium tabular-nums">
@@ -76,7 +76,9 @@ function CarCard({ code, runs }: { code: string; runs: RunSummary[] }) {
         </ul>
         {lead.topRequirement && (
           <div className="text-sm">
-            <p className="text-xs text-muted-foreground">#1 recommendation ({lead.region})</p>
+            <p className="text-xs text-muted-foreground">
+              #1 recommendation ({lead.region === "ALL" ? "all regions" : lead.region})
+            </p>
             <p className="line-clamp-3">{lead.topRequirement}</p>
           </div>
         )}

@@ -43,8 +43,14 @@ CREATE TABLE IF NOT EXISTS analysis_features (
   facts             TEXT[] NOT NULL DEFAULT '{}',
   coverage          TEXT[] NOT NULL DEFAULT '{}',
   is_mapped         BOOLEAN NOT NULL,
+  cited_ids         TEXT[] NOT NULL DEFAULT '{}',
+  guard             JSONB NOT NULL DEFAULT '[]'::jsonb,
   PRIMARY KEY (run_id, attribute)
 );
+ALTER TABLE analysis_features ADD COLUMN IF NOT EXISTS cited_ids TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE analysis_features ADD COLUMN IF NOT EXISTS guard JSONB NOT NULL DEFAULT '[]'::jsonb;
+COMMENT ON COLUMN analysis_features.cited_ids IS 'Ids the reasoning relies on: analysis_findings.finding_id or analysis_sources.source_id (fb:… = a customer feedback item).';
+COMMENT ON COLUMN analysis_features.guard IS 'Code checks of the LLM judgment that failed (rule, detail); empty when all passed.';
 COMMENT ON TABLE analysis_features IS 'One row per product feature in a run: the evidence summary and the assessment of the feature for the successor model.';
 COMMENT ON COLUMN analysis_features.attribute IS 'Feature key, e.g. fast_charging; "unmapped:<area>" for feedback areas without a feature mapping.';
 COMMENT ON COLUMN analysis_features.area IS 'Feature group: Exterior, Interior, Powertrain, Digital_UX, Driver_assistance, Business, or unmapped.';
@@ -148,7 +154,7 @@ CREATE TABLE IF NOT EXISTS analysis_sources (
   limitations   TEXT[] NOT NULL DEFAULT '{}',
   PRIMARY KEY (run_id, source_id)
 );
-COMMENT ON TABLE analysis_sources IS 'Evidence behind the findings: customer feedback items, BMW catalog rows, study and sales cells, competitor web pages.';
+COMMENT ON TABLE analysis_sources IS 'Evidence behind the findings and judgments: BMW catalog rows, study and sales cells, competitor web pages, and the customer feedback items a judgment or requirement cites (plus one example per sub-theme; quote texts are in analysis_quotes). Excerpts are capped at 600 characters.';
 COMMENT ON COLUMN analysis_sources.kind IS 'feedback (customer feedback item), ontology (BMW catalog / study / sales record), web (competitor or trend web page), sql.';
 COMMENT ON COLUMN analysis_sources.source_type IS 'Finer type: customer_feedback, product_catalog, customer_study, sales_dataset, web_page, model_record.';
 COMMENT ON COLUMN analysis_sources.excerpt IS 'Verbatim text the findings rely on (feedback text, catalog row, quoted web sentence).';

@@ -148,23 +148,29 @@ export type FeatureDetail = {
   sources: Source[];
 };
 
+/** "US", "EU", "CN" for a one-region run; "ALL" for a run over all regions the car is sold in. */
+export const ALL = "ALL";
+const REGION_KEY = sql`(case when cardinality(r.regions) = 1 then r.regions[1] else 'ALL' end)`;
+
 const RUN_COLUMNS = sql`
   r.run_id as "runId", r.model_code as "modelCode", r.model_name as "modelName",
-  r.segment, r.regions[1] as region, r.created_at::text as "createdAt", r.llm_model as "llmModel",
+  r.segment, ${REGION_KEY} as region, r.created_at::text as "createdAt", r.llm_model as "llmModel",
   (select count(*) from analysis_requirements q where q.run_id = r.run_id)::int as requirements,
   (select count(*) from analysis_features f where f.run_id = r.run_id)::int as features,
   (select q.statement from analysis_requirements q where q.run_id = r.run_id
      order by length(q.req_id), q.req_id limit 1) as "topRequirement"`;
 
-/** One run per car and region (the latest export), single-region runs only. */
+/** One run per car and region (the latest export); "ALL" first, then the single regions. */
 export async function listRuns(): Promise<RunSummary[]> {
   "use cache";
   cacheLife("minutes");
   return rows<RunSummary>(sql`
-    select distinct on (r.model_code, r.regions[1]) ${RUN_COLUMNS}
-    from analysis_runs r
-    where cardinality(r.regions) = 1
-    order by r.model_code, r.regions[1], r.created_at desc`);
+    select * from (
+      select distinct on (r.model_code, ${REGION_KEY}) ${RUN_COLUMNS}
+      from analysis_runs r
+      order by r.model_code, ${REGION_KEY}, r.created_at desc
+    ) runs
+    order by "modelCode", region <> 'ALL', region`);
 }
 
 export async function getRun(modelCode: string, region: string): Promise<Run | null> {
@@ -173,7 +179,9 @@ export async function getRun(modelCode: string, region: string): Promise<Run | n
   const [run] = await rows<Run>(sql`
     select ${RUN_COLUMNS}, r.agent_status as "agentStatus", r.notes
     from analysis_runs r
-    where r.model_code = ${modelCode} and r.regions = array[${region}]::text[]
+    where r.model_code = ${modelCode}
+      and (case when ${region} = 'ALL' then cardinality(r.regions) > 1
+                else r.regions = array[${region}]::text[] end)
     order by r.created_at desc limit 1`);
   return run ?? null;
 }

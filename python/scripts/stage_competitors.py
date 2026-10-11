@@ -129,7 +129,7 @@ def value_nodes(
         )
         value, unit = normalize_quantity(q.value, q.unit)
         doc = _id("source:web", src.ref)
-        ev = _id("evidence:web", src.ref, quote)
+        ev = _id("evidence:web", src.ref, quote, who["id"], pt)  # one scope per evidence
         sig = _id("signal:competitor", src.ref, quote, f.attribute, variant or "", str(value))
         context = {
             "vehicle_model_ids": [who["id"]],
@@ -270,7 +270,9 @@ def main() -> None:
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument("--curation", type=Path, required=True)
-    parser.add_argument("--analysis", type=Path)
+    parser.add_argument(
+        "--analysis", type=Path, action="append", default=[], help="saved run; repeat for several"
+    )
     parser.add_argument("--competitors", type=Path, default=COMPETITORS)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--list", action="store_true", help="print the staged values")
@@ -296,9 +298,15 @@ def main() -> None:
     args.curation.write_text(json.dumps(curation, indent=2, ensure_ascii=False) + "\n")
 
     nodes, edges, listing = [], [], []
-    if args.analysis:
-        analysis = SituationAnalysis.model_validate_json(args.analysis.read_text())
-        nodes, edges, listing = value_nodes(analysis, entries, feature_ids)
+    by_id: dict[str, dict[str, Any]] = {}
+    edge_by_id: dict[str, dict[str, Any]] = {}
+    for path in args.analysis:  # values of several runs, merged by id (same quote = same node)
+        analysis = SituationAnalysis.model_validate_json(path.read_text())
+        n, e, rows = value_nodes(analysis, entries, feature_ids)
+        by_id.update({x["id"]: x for x in n if x["id"] not in by_id})
+        edge_by_id.update({x["id"]: x for x in e})
+        listing += rows
+    nodes, edges = list(by_id.values()), list(edge_by_id.values())
     referenced = {e["target_id"] for e in edges} | {t for e in entries for t in e["competes_with"]}
     closure = [
         context[i]
