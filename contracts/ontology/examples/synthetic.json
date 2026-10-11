@@ -1,0 +1,2851 @@
+{
+  "ontology_version": "0.2.0",
+  "purpose": "fixture",
+  "as_of": "2026-10-10",
+  "description": "Entirely synthetic evidence, catalog claims, measurements, and web sources. Reserved example.invalid URLs are never fetched. BMW model names identify context only; no fixture equipment, numbers, approvals, or market conclusions describe actual BMW products.",
+  "nodes": [
+    {
+      "id": "market:US",
+      "entity_key": "market:US",
+      "type": "Market",
+      "label": "United States",
+      "revision": 1,
+      "properties": {
+        "code": "US",
+        "name": "United States",
+        "country_codes": [
+          "US"
+        ],
+        "definition_notes": [
+          "Provided market group; country membership must be configured explicitly."
+        ]
+      }
+    },
+    {
+      "id": "vehicle:bmw-g60",
+      "entity_key": "vehicle:bmw-g60",
+      "type": "VehicleModel",
+      "label": "BMW 5 Series G60",
+      "revision": 1,
+      "properties": {
+        "brand": "BMW",
+        "vehicle_line": "5 Series",
+        "generation_code": "G60",
+        "model_year": null,
+        "variant": null,
+        "aliases": []
+      }
+    },
+    {
+      "id": "vehicle:example-sedan",
+      "entity_key": "vehicle:example-sedan",
+      "type": "VehicleModel",
+      "label": "Example Motors Example Sedan",
+      "revision": 1,
+      "properties": {
+        "brand": "Example Motors",
+        "vehicle_line": "Example Sedan",
+        "generation_code": null,
+        "model_year": null,
+        "variant": null,
+        "aliases": []
+      }
+    },
+    {
+      "id": "feature:parking-controls",
+      "entity_key": "feature:parking-controls",
+      "type": "Feature",
+      "label": "Parking-control usability",
+      "revision": 1,
+      "properties": {
+        "definition": "Parking-control usability",
+        "domains": [
+          "interior"
+        ],
+        "aliases": []
+      }
+    },
+    {
+      "id": "source:fixture-feedback",
+      "entity_key": "source:fixture-feedback",
+      "type": "SourceDocument",
+      "label": "Synthetic feedback_dataset",
+      "revision": 1,
+      "properties": {
+        "source_kind": "feedback_dataset",
+        "origin": "synthetic",
+        "location": {
+          "kind": "local_file",
+          "path": "contracts/ontology/examples/synthetic.json"
+        },
+        "publisher": null,
+        "publication_date": null,
+        "retrieved_at": "2026-10-10T15:47:12Z",
+        "content_hash": null,
+        "source_role": "unknown",
+        "independence_group": null,
+        "access": "public",
+        "quality_notes": [
+          "Synthetic fixture; no real-world claim."
+        ]
+      }
+    },
+    {
+      "id": "source:fixture-public",
+      "entity_key": "source:fixture-public",
+      "type": "SourceDocument",
+      "label": "Synthetic public_discussion",
+      "revision": 1,
+      "properties": {
+        "source_kind": "public_discussion",
+        "origin": "synthetic",
+        "location": {
+          "kind": "web",
+          "url": "https://example.invalid/discussion"
+        },
+        "publisher": null,
+        "publication_date": null,
+        "retrieved_at": "2026-10-10T15:47:12Z",
+        "content_hash": null,
+        "source_role": "unknown",
+        "independence_group": null,
+        "access": "public",
+        "quality_notes": [
+          "Synthetic fixture; no real-world claim."
+        ]
+      }
+    },
+    {
+      "id": "source:fixture-competitor",
+      "entity_key": "source:fixture-competitor",
+      "type": "SourceDocument",
+      "label": "Synthetic competitor_official",
+      "revision": 1,
+      "properties": {
+        "source_kind": "competitor_official",
+        "origin": "synthetic",
+        "location": {
+          "kind": "web",
+          "url": "https://example.invalid/competitor"
+        },
+        "publisher": null,
+        "publication_date": null,
+        "retrieved_at": "2026-10-10T15:47:12Z",
+        "content_hash": null,
+        "source_role": "unknown",
+        "independence_group": null,
+        "access": "public",
+        "quality_notes": [
+          "Synthetic fixture; no real-world claim."
+        ]
+      }
+    },
+    {
+      "id": "source:fixture-trend",
+      "entity_key": "source:fixture-trend",
+      "type": "SourceDocument",
+      "label": "Synthetic industry_report",
+      "revision": 1,
+      "properties": {
+        "source_kind": "industry_report",
+        "origin": "synthetic",
+        "location": {
+          "kind": "web",
+          "url": "https://example.invalid/trend"
+        },
+        "publisher": null,
+        "publication_date": null,
+        "retrieved_at": "2026-10-10T15:47:12Z",
+        "content_hash": null,
+        "source_role": "unknown",
+        "independence_group": null,
+        "access": "public",
+        "quality_notes": [
+          "Synthetic fixture; no real-world claim."
+        ]
+      }
+    },
+    {
+      "id": "evidence:fixture-customer",
+      "entity_key": "evidence:fixture-customer",
+      "type": "Evidence",
+      "label": "Synthetic customer",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "feedback_record",
+        "record_key": "customer",
+        "dedup_key": "evidence:fixture-customer",
+        "source_channel": null,
+        "locator": {
+          "kind": "spreadsheet",
+          "sheet": "Synthetic",
+          "range": "A2"
+        },
+        "raw_text": "Synthetic feedback: I find the parking controls confusing.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "One record or statistic does not establish population prevalence."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-customer",
+      "entity_key": "signal:fixture-customer",
+      "type": "Signal",
+      "label": "Synthetic customer",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "customer_feedback",
+        "statement": "Synthetic feedback: I find the parking controls confusing.",
+        "epistemic_status": "reported_experience",
+        "sentiment": "negative",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "public_context": null,
+        "capability": null,
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-public-positive",
+      "entity_key": "evidence:fixture-public-positive",
+      "type": "Evidence",
+      "label": "Synthetic public-positive",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "web_excerpt",
+        "record_key": "public-positive",
+        "dedup_key": "evidence:fixture-public-positive",
+        "source_channel": null,
+        "locator": {
+          "kind": "web",
+          "selector": null,
+          "text_fragment": "Synthetic opinion: I prefer a clearly identifiable physical parking control."
+        },
+        "raw_text": "Synthetic opinion: I prefer a clearly identifiable physical parking control.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "One record or statistic does not establish population prevalence."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-public-positive",
+      "entity_key": "signal:fixture-public-positive",
+      "type": "Signal",
+      "label": "Synthetic public-positive",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "public_sentiment",
+        "statement": "Synthetic opinion: I prefer a clearly identifiable physical parking control.",
+        "epistemic_status": "opinion",
+        "sentiment": "positive",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "public_context": {
+          "platform": "Example forum",
+          "author_role": "unknown",
+          "ownership_verified": null,
+          "sampling_method": "targeted_search",
+          "sampling_notes": [
+            "Synthetic purposive sample; no population denominator."
+          ]
+        },
+        "capability": null,
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-public-challenge",
+      "entity_key": "evidence:fixture-public-challenge",
+      "type": "Evidence",
+      "label": "Synthetic public-challenge",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "web_excerpt",
+        "record_key": "public-challenge",
+        "dedup_key": "evidence:fixture-public-challenge",
+        "source_channel": null,
+        "locator": {
+          "kind": "web",
+          "selector": null,
+          "text_fragment": "Synthetic opinion: I prefer parking controls on screen and fewer physical switches."
+        },
+        "raw_text": "Synthetic opinion: I prefer parking controls on screen and fewer physical switches.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "One record or statistic does not establish population prevalence."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-public-challenge",
+      "entity_key": "signal:fixture-public-challenge",
+      "type": "Signal",
+      "label": "Synthetic public-challenge",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "public_sentiment",
+        "statement": "Synthetic opinion: I prefer parking controls on screen and fewer physical switches.",
+        "epistemic_status": "opinion",
+        "sentiment": "negative",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "public_context": {
+          "platform": "Example forum",
+          "author_role": "unknown",
+          "ownership_verified": null,
+          "sampling_method": "targeted_search",
+          "sampling_notes": [
+            "Synthetic purposive sample; no population denominator."
+          ]
+        },
+        "capability": null,
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-competitor",
+      "entity_key": "evidence:fixture-competitor",
+      "type": "Evidence",
+      "label": "Synthetic competitor",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "web_excerpt",
+        "record_key": "competitor",
+        "dedup_key": "evidence:fixture-competitor",
+        "source_channel": null,
+        "locator": {
+          "kind": "web",
+          "selector": null,
+          "text_fragment": "Synthetic manufacturer claim: Example Sedan will offer a physical parking control as an option."
+        },
+        "raw_text": "Synthetic manufacturer claim: Example Sedan will offer a physical parking control as an option.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:example-sedan"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "One record or statistic does not establish population prevalence."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-competitor",
+      "entity_key": "signal:fixture-competitor",
+      "type": "Signal",
+      "label": "Synthetic competitor",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "competitor_capability",
+        "statement": "Synthetic manufacturer claim: Example Sedan will offer a physical parking control as an option.",
+        "epistemic_status": "publisher_claim",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:example-sedan"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "public_context": null,
+        "capability": {
+          "availability": "announced",
+          "variant": null,
+          "measurement": null,
+          "notes": [
+            "Synthetic optional offering; not current standard equipment."
+          ],
+          "conditions": []
+        },
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-trend",
+      "entity_key": "evidence:fixture-trend",
+      "type": "Evidence",
+      "label": "Synthetic trend",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "web_excerpt",
+        "record_key": "trend",
+        "dedup_key": "evidence:fixture-trend",
+        "source_channel": null,
+        "locator": {
+          "kind": "web",
+          "selector": null,
+          "text_fragment": "Synthetic report projection: demand for recognizable controls may continue through 2030."
+        },
+        "raw_text": "Synthetic report projection: demand for recognizable controls may continue through 2030.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [],
+          "market_ids": [],
+          "country_codes": [],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": [
+            "Global fixture; applying it to the US and BMW requires an explicit inference."
+          ]
+        },
+        "limitations": [
+          "One record or statistic does not establish population prevalence."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-trend",
+      "entity_key": "signal:fixture-trend",
+      "type": "Signal",
+      "label": "Synthetic trend",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "trend_indicator",
+        "statement": "Synthetic report projection: demand for recognizable controls may continue through 2030.",
+        "epistemic_status": "forecast",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [],
+          "market_ids": [],
+          "country_codes": [],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": [
+            "Global fixture; applying it to the US and BMW requires an explicit inference."
+          ]
+        },
+        "public_context": null,
+        "capability": null,
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "need:fixture-usability",
+      "entity_key": "need:fixture-usability",
+      "type": "CustomerNeed",
+      "label": "Understand how to secure the vehicle",
+      "revision": 1,
+      "properties": {
+        "statement": "Customers need to understand how to secure the vehicle and recognize its parking status.",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "uncertainty": {
+          "level": "high",
+          "reason": "This is a synthetic example.",
+          "limitations": []
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "assumption:fixture-persistence",
+      "entity_key": "assumption:fixture-persistence",
+      "type": "Assumption",
+      "label": "Need persists to successor launch",
+      "revision": 1,
+      "properties": {
+        "statement": "The identified control-usability need remains relevant when the successor launches.",
+        "rationale": "Current feedback motivates a hypothesis about future needs.",
+        "impact_if_false": "The proposal may receive too much priority or need a different implementation.",
+        "validation_plan": "Validate with prospective customers in the target market and compare current external research.",
+        "status": "unvalidated",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "trend:fixture-controls",
+      "entity_key": "trend:fixture-controls",
+      "type": "Trend",
+      "label": "Control usability may remain important",
+      "revision": 1,
+      "properties": {
+        "statement": "Recognizable controls may remain valuable at successor launch.",
+        "trend_kind": "product",
+        "temporal_status": "forecast",
+        "horizon": {
+          "from_year": 2029,
+          "to_year": 2031
+        },
+        "context": {
+          "vehicle_model_ids": [],
+          "market_ids": [],
+          "country_codes": [],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": [
+            "Global fixture; applying it to the US and BMW requires an explicit inference."
+          ]
+        },
+        "uncertainty": {
+          "level": "high",
+          "reason": "The projection is synthetic and unvalidated.",
+          "limitations": []
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "requirement:fixture-parking",
+      "entity_key": "requirement:fixture-parking",
+      "type": "Requirement",
+      "label": "Make parking controls understandable",
+      "revision": 1,
+      "properties": {
+        "statement": "Improve parking-control discoverability and provide unambiguous parking-status feedback.",
+        "customer_value": "Reduce uncertainty and effort when securing the vehicle.",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "scope_role": "successor_of_baseline_models",
+        "horizon_years": 4,
+        "target_launch_year": null,
+        "acceptance_criteria": [
+          {
+            "description": "In a usability study, customers can identify the parking control and correctly interpret parking status without assistance. The numerical threshold is a proposed target for review.",
+            "metric": "parking_task_success",
+            "operator": ">=",
+            "target": 0.9,
+            "unit": "proportion",
+            "basis": "proposed_target",
+            "supporting_evidence_ids": [],
+            "verification_method": "user_study",
+            "test_conditions": [
+              "Recruit prospective customers from the target market.",
+              "Ask first-time users to secure a stationary vehicle without coaching; record control identification and status interpretation."
+            ]
+          }
+        ],
+        "prioritization_rationale": "Review usability value alongside evidence breadth, target-market relevance, existing features, and competing needs. No automatic ranking has been assigned.",
+        "uncertainty": {
+          "level": "high",
+          "reason": "A small example does not establish broad demand or validate the target.",
+          "limitations": [
+            "No sample representativeness or future preference validation."
+          ]
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        },
+        "change_intent": "improve",
+        "baseline_status": "known_present",
+        "baseline_rationale": "A synthetic catalog already offers parking controls. This proposal improves their discoverability and status feedback; it does not assert that the current vehicle lacks them."
+      }
+    },
+    {
+      "id": "decision:fixture-comment",
+      "entity_key": "decision:fixture-comment",
+      "type": "Decision",
+      "label": "Illustrative human review comment",
+      "revision": 1,
+      "properties": {
+        "action": "comment",
+        "actor_type": "human",
+        "actor_id": "fixture-reviewer",
+        "decided_at": "2026-10-10T15:47:12Z",
+        "requirement_revision": 1,
+        "reason": "Synthetic review example: the requirement specifies a usability outcome, not a physical control. Compare physical and on-screen implementations against the opposing opinions before deciding.",
+        "priority": null
+      }
+    },
+    {
+      "id": "source:fixture-catalog",
+      "entity_key": "source:fixture-catalog",
+      "type": "SourceDocument",
+      "label": "Invented US demonstration catalog, September 2026",
+      "revision": 1,
+      "properties": {
+        "source_kind": "product_catalog",
+        "origin": "synthetic",
+        "location": {
+          "kind": "local_file",
+          "path": "contracts/ontology/examples/synthetic.json"
+        },
+        "publisher": "Fictional fixture publisher",
+        "publication_date": "2026-09",
+        "retrieved_at": "2026-10-10T15:47:12Z",
+        "content_hash": null,
+        "source_role": "primary",
+        "independence_group": null,
+        "access": "public",
+        "quality_notes": [
+          "Synthetic fixture; no real-world claim."
+        ]
+      }
+    },
+    {
+      "id": "source:fixture-study",
+      "entity_key": "source:fixture-study",
+      "type": "SourceDocument",
+      "label": "Invented 2025 customer study",
+      "revision": 1,
+      "properties": {
+        "source_kind": "customer_study",
+        "origin": "synthetic",
+        "location": {
+          "kind": "local_file",
+          "path": "contracts/ontology/examples/synthetic.json"
+        },
+        "publisher": "Fictional fixture publisher",
+        "publication_date": "2026-09",
+        "retrieved_at": "2026-10-10T15:47:12Z",
+        "content_hash": null,
+        "source_role": "primary",
+        "independence_group": null,
+        "access": "public",
+        "quality_notes": [
+          "Synthetic fixture; no real-world claim."
+        ]
+      }
+    },
+    {
+      "id": "source:fixture-sales",
+      "entity_key": "source:fixture-sales",
+      "type": "SourceDocument",
+      "label": "Invented combined-model sales projection",
+      "revision": 1,
+      "properties": {
+        "source_kind": "sales_dataset",
+        "origin": "synthetic",
+        "location": {
+          "kind": "local_file",
+          "path": "contracts/ontology/examples/synthetic.json"
+        },
+        "publisher": "Fictional fixture publisher",
+        "publication_date": "2026-09",
+        "retrieved_at": "2026-10-10T15:47:12Z",
+        "content_hash": null,
+        "source_role": "primary",
+        "independence_group": null,
+        "access": "public",
+        "quality_notes": [
+          "Synthetic fixture; no real-world claim."
+        ]
+      }
+    },
+    {
+      "id": "vehicle:bmw-g60-fixture-ev",
+      "entity_key": "vehicle:bmw-g60-fixture-ev",
+      "type": "VehicleModel",
+      "label": "BMW G60 fictional electric variant",
+      "revision": 1,
+      "properties": {
+        "brand": "BMW",
+        "vehicle_line": "5 Series",
+        "generation_code": "G60",
+        "model_year": null,
+        "variant": "Fixture electric variant",
+        "aliases": []
+      }
+    },
+    {
+      "id": "vehicle:bmw-g68",
+      "entity_key": "vehicle:bmw-g68",
+      "type": "VehicleModel",
+      "label": "BMW 5 Series G68",
+      "revision": 1,
+      "properties": {
+        "brand": "BMW",
+        "vehicle_line": "5 Series",
+        "generation_code": "G68",
+        "model_year": null,
+        "variant": null,
+        "aliases": []
+      }
+    },
+    {
+      "id": "feature:ac-charging",
+      "entity_key": "feature:ac-charging",
+      "type": "Feature",
+      "label": "AC charging",
+      "revision": 1,
+      "properties": {
+        "definition": "AC charging",
+        "domains": [
+          "powertrain"
+        ],
+        "aliases": []
+      }
+    },
+    {
+      "id": "feature:electric-range",
+      "entity_key": "feature:electric-range",
+      "type": "Feature",
+      "label": "Electric driving range",
+      "revision": 1,
+      "properties": {
+        "definition": "Electric driving range",
+        "domains": [
+          "powertrain"
+        ],
+        "aliases": []
+      }
+    },
+    {
+      "id": "evidence:fixture-catalog-parking",
+      "entity_key": "evidence:fixture-catalog-parking",
+      "type": "Evidence",
+      "label": "Synthetic catalog entry: Invented parking control; code SYN-PARK; standard equipment.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-catalog-parking",
+        "dedup_key": "evidence:fixture-catalog-parking",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 1,
+          "section": "Invented row 1"
+        },
+        "raw_text": "Synthetic catalog entry: Invented parking control; code SYN-PARK; standard equipment. Task usability has not been measured.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "catalog:fixture-parking",
+      "entity_key": "catalog:fixture-parking",
+      "type": "CatalogItem",
+      "label": "Invented parking control",
+      "revision": 1,
+      "properties": {
+        "item_kind": "equipment",
+        "equipment_code": "SYN-PARK",
+        "description": "Invented parking control",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "conditions": [],
+        "notes": [
+          "Catalog edition identity is source:fixture-catalog; never match equipment codes across editions without review."
+        ],
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-catalog-comfort",
+      "entity_key": "evidence:fixture-catalog-comfort",
+      "type": "Evidence",
+      "label": "Synthetic catalog entry: Invented comfort package; code SYN-COMFORT. ",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-catalog-comfort",
+        "dedup_key": "evidence:fixture-catalog-comfort",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 1,
+          "section": "Invented row 2"
+        },
+        "raw_text": "Synthetic catalog entry: Invented comfort package; code SYN-COMFORT.  The package includes the parking-control option.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "catalog:fixture-comfort",
+      "entity_key": "catalog:fixture-comfort",
+      "type": "CatalogItem",
+      "label": "Invented comfort package",
+      "revision": 1,
+      "properties": {
+        "item_kind": "package",
+        "equipment_code": "SYN-COMFORT",
+        "description": "Invented comfort package",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "conditions": [],
+        "notes": [
+          "Catalog edition identity is source:fixture-catalog; never match equipment codes across editions without review."
+        ],
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-catalog-charging",
+      "entity_key": "evidence:fixture-catalog-charging",
+      "type": "Evidence",
+      "label": "Synthetic catalog entry: Invented higher-power charging module; code SYN-AC. ",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-catalog-charging",
+        "dedup_key": "evidence:fixture-catalog-charging",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 1,
+          "section": "Invented row 3"
+        },
+        "raw_text": "Synthetic catalog entry: Invented higher-power charging module; code SYN-AC. ",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "catalog:fixture-charging",
+      "entity_key": "catalog:fixture-charging",
+      "type": "CatalogItem",
+      "label": "Invented higher-power charging module",
+      "revision": 1,
+      "properties": {
+        "item_kind": "equipment",
+        "equipment_code": "SYN-AC",
+        "description": "Invented higher-power charging module",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "conditions": [],
+        "notes": [
+          "Catalog edition identity is source:fixture-catalog; never match equipment codes across editions without review."
+        ],
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-catalog-trim-smooth",
+      "entity_key": "evidence:fixture-catalog-trim-smooth",
+      "type": "Evidence",
+      "label": "Synthetic catalog entry: Invented smooth trim; code SYN-SMOOTH. ",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-catalog-trim-smooth",
+        "dedup_key": "evidence:fixture-catalog-trim-smooth",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 1,
+          "section": "Invented row 4"
+        },
+        "raw_text": "Synthetic catalog entry: Invented smooth trim; code SYN-SMOOTH. ",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "catalog:fixture-trim-smooth",
+      "entity_key": "catalog:fixture-trim-smooth",
+      "type": "CatalogItem",
+      "label": "Invented smooth trim",
+      "revision": 1,
+      "properties": {
+        "item_kind": "equipment",
+        "equipment_code": "SYN-SMOOTH",
+        "description": "Invented smooth trim",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "conditions": [],
+        "notes": [
+          "Catalog edition identity is source:fixture-catalog; never match equipment codes across editions without review."
+        ],
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-catalog-trim-soft",
+      "entity_key": "evidence:fixture-catalog-trim-soft",
+      "type": "Evidence",
+      "label": "Synthetic catalog entry: Invented soft trim; code SYN-SOFT. ",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-catalog-trim-soft",
+        "dedup_key": "evidence:fixture-catalog-trim-soft",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 1,
+          "section": "Invented row 5"
+        },
+        "raw_text": "Synthetic catalog entry: Invented soft trim; code SYN-SOFT. ",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "catalog:fixture-trim-soft",
+      "entity_key": "catalog:fixture-trim-soft",
+      "type": "CatalogItem",
+      "label": "Invented soft trim",
+      "revision": 1,
+      "properties": {
+        "item_kind": "equipment",
+        "equipment_code": "SYN-SOFT",
+        "description": "Invented soft trim",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "conditions": [],
+        "notes": [
+          "Catalog edition identity is source:fixture-catalog; never match equipment codes across editions without review."
+        ],
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-catalog-retrofit",
+      "entity_key": "evidence:fixture-catalog-retrofit",
+      "type": "Evidence",
+      "label": "Synthetic catalog entry: Invented incompatible retrofit; code SYN-RETRO. ",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-catalog-retrofit",
+        "dedup_key": "evidence:fixture-catalog-retrofit",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 1,
+          "section": "Invented row 6"
+        },
+        "raw_text": "Synthetic catalog entry: Invented incompatible retrofit; code SYN-RETRO. ",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "catalog:fixture-retrofit",
+      "entity_key": "catalog:fixture-retrofit",
+      "type": "CatalogItem",
+      "label": "Invented incompatible retrofit",
+      "revision": 1,
+      "properties": {
+        "item_kind": "equipment",
+        "equipment_code": "SYN-RETRO",
+        "description": "Invented incompatible retrofit",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "conditions": [],
+        "notes": [
+          "Catalog edition identity is source:fixture-catalog; never match equipment codes across editions without review."
+        ],
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-catalog-advanced",
+      "entity_key": "evidence:fixture-catalog-advanced",
+      "type": "Evidence",
+      "label": "Synthetic catalog entry: Invented advanced package; code SYN-ADV. Both the comfort package and charging module are prerequisites. Select at least one of these two trim options. Cannot be combined with the retrofit option.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-catalog-advanced",
+        "dedup_key": "evidence:fixture-catalog-advanced",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 1,
+          "section": "Invented row 7"
+        },
+        "raw_text": "Synthetic catalog entry: Invented advanced package; code SYN-ADV. Both the comfort package and charging module are prerequisites. Select at least one of these two trim options. Cannot be combined with the retrofit option. The package includes the higher-power charging module.",
+        "measurement": null,
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "catalog:fixture-advanced",
+      "entity_key": "catalog:fixture-advanced",
+      "type": "CatalogItem",
+      "label": "Invented advanced package",
+      "revision": 1,
+      "properties": {
+        "item_kind": "package",
+        "equipment_code": "SYN-ADV",
+        "description": "Invented advanced package",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "conditions": [
+          {
+            "kind": "requires_all",
+            "catalog_item_ids": [
+              "catalog:fixture-comfort",
+              "catalog:fixture-charging"
+            ],
+            "description": "Both the comfort package and charging module are prerequisites."
+          },
+          {
+            "kind": "requires_any",
+            "catalog_item_ids": [
+              "catalog:fixture-trim-smooth",
+              "catalog:fixture-trim-soft"
+            ],
+            "description": "Select at least one of these two trim options."
+          },
+          {
+            "kind": "excludes",
+            "catalog_item_ids": [
+              "catalog:fixture-retrofit"
+            ],
+            "description": "Cannot be combined with the retrofit option."
+          }
+        ],
+        "notes": [
+          "Catalog edition identity is source:fixture-catalog; never match equipment codes across editions without review."
+        ],
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "signal:fixture-baseline-parking",
+      "entity_key": "signal:fixture-baseline-parking",
+      "type": "Signal",
+      "label": "Synthetic baseline: parking controls are already standard, but task usability has not been measured.",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "product_capability",
+        "statement": "Synthetic baseline: parking controls are already standard, but task usability has not been measured.",
+        "epistemic_status": "publisher_claim",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "public_context": null,
+        "capability": {
+          "availability": "standard",
+          "variant": null,
+          "measurement": null,
+          "conditions": [],
+          "notes": [
+            "Invented offering; not an actual BMW option."
+          ]
+        },
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-range",
+      "entity_key": "evidence:fixture-range",
+      "type": "Evidence",
+      "label": "Synthetic technical table: configuration-dependent WLTP range is 440–560 km.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-range",
+        "dedup_key": "evidence:fixture-range",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 2,
+          "section": "Invented technical values"
+        },
+        "raw_text": "Synthetic technical table: configuration-dependent WLTP range is 440–560 km.",
+        "measurement": {
+          "metric": "electric_range",
+          "value": null,
+          "value_range": {
+            "minimum": 440.0,
+            "maximum": 560.0
+          },
+          "unit": "km",
+          "statistic": "scalar",
+          "temporal_status": "unknown",
+          "period": null,
+          "sample_size": null,
+          "denominator": null,
+          "scale": null,
+          "comparison_basis": "Configuration-dependent manufacturer interval; not a real-world guarantee.",
+          "population": null,
+          "test_standard": "WLTP",
+          "conditions": [
+            "Different factory configurations produce different endpoints."
+          ],
+          "question": null,
+          "response_category": null,
+          "notes": [
+            "Synthetic values only."
+          ]
+        },
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60-fixture-ev"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [
+            "bev"
+          ],
+          "as_of": null,
+          "scope_notes": [
+            "Fictional variant used only to demonstrate the contract."
+          ]
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-range",
+      "entity_key": "signal:fixture-range",
+      "type": "Signal",
+      "label": "Synthetic electric range interval depends on factory configuration.",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "product_capability",
+        "statement": "Synthetic electric range interval depends on factory configuration.",
+        "epistemic_status": "publisher_claim",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60-fixture-ev"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [
+            "bev"
+          ],
+          "as_of": null,
+          "scope_notes": [
+            "Fictional variant used only to demonstrate the contract."
+          ]
+        },
+        "public_context": null,
+        "capability": {
+          "availability": "available_unspecified",
+          "variant": "Fixture electric variant",
+          "measurement": {
+            "metric": "electric_range",
+            "value": null,
+            "value_range": {
+              "minimum": 440.0,
+              "maximum": 560.0
+            },
+            "unit": "km",
+            "statistic": "scalar",
+            "temporal_status": "unknown",
+            "period": null,
+            "sample_size": null,
+            "denominator": null,
+            "scale": null,
+            "comparison_basis": "Configuration-dependent manufacturer interval; not a real-world guarantee.",
+            "population": null,
+            "test_standard": "WLTP",
+            "conditions": [
+              "Different factory configurations produce different endpoints."
+            ],
+            "question": null,
+            "response_category": null,
+            "notes": [
+              "Synthetic values only."
+            ]
+          },
+          "conditions": [],
+          "notes": [
+            "Invented offering; not an actual BMW option."
+          ]
+        },
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-ac-standard",
+      "entity_key": "evidence:fixture-ac-standard",
+      "type": "Evidence",
+      "label": "Synthetic technical table: standard configuration supports 9 kW AC charging.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-ac-standard",
+        "dedup_key": "evidence:fixture-ac-standard",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 2,
+          "section": "Invented standard charging configuration"
+        },
+        "raw_text": "Synthetic technical table: standard configuration supports 9 kW AC charging.",
+        "measurement": {
+          "metric": "maximum_ac_charging_power",
+          "value": 9.0,
+          "value_range": null,
+          "unit": "kW",
+          "statistic": "scalar",
+          "temporal_status": "unknown",
+          "period": null,
+          "sample_size": null,
+          "denominator": null,
+          "scale": null,
+          "comparison_basis": null,
+          "population": null,
+          "test_standard": "Synthetic charging procedure",
+          "conditions": [
+            "Standard configuration; AC supply and vehicle conditions fixed."
+          ],
+          "question": null,
+          "response_category": null,
+          "notes": [
+            "Synthetic values only."
+          ]
+        },
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60-fixture-ev"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [
+            "bev"
+          ],
+          "as_of": null,
+          "scope_notes": [
+            "Fictional variant used only to demonstrate the contract."
+          ]
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-ac-standard",
+      "entity_key": "signal:fixture-ac-standard",
+      "type": "Signal",
+      "label": "Synthetic standard AC charging capability.",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "product_capability",
+        "statement": "Synthetic standard AC charging capability.",
+        "epistemic_status": "publisher_claim",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60-fixture-ev"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [
+            "bev"
+          ],
+          "as_of": null,
+          "scope_notes": [
+            "Fictional variant used only to demonstrate the contract."
+          ]
+        },
+        "public_context": null,
+        "capability": {
+          "availability": "standard",
+          "variant": "Fixture electric variant",
+          "measurement": {
+            "metric": "maximum_ac_charging_power",
+            "value": 9.0,
+            "value_range": null,
+            "unit": "kW",
+            "statistic": "scalar",
+            "temporal_status": "unknown",
+            "period": null,
+            "sample_size": null,
+            "denominator": null,
+            "scale": null,
+            "comparison_basis": null,
+            "population": null,
+            "test_standard": "Synthetic charging procedure",
+            "conditions": [
+              "Standard configuration; AC supply and vehicle conditions fixed."
+            ],
+            "question": null,
+            "response_category": null,
+            "notes": [
+              "Synthetic values only."
+            ]
+          },
+          "conditions": [],
+          "notes": [
+            "Invented offering; not an actual BMW option."
+          ]
+        },
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-ac-optional",
+      "entity_key": "evidence:fixture-ac-optional",
+      "type": "Evidence",
+      "label": "Synthetic technical table: optional configuration supports 18 kW AC charging.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "catalog_excerpt",
+        "record_key": "evidence:fixture-ac-optional",
+        "dedup_key": "evidence:fixture-ac-optional",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "pdf",
+          "page": 2,
+          "section": "Invented optional charging configuration"
+        },
+        "raw_text": "Synthetic technical table: optional configuration supports 18 kW AC charging.",
+        "measurement": {
+          "metric": "maximum_ac_charging_power",
+          "value": 18.0,
+          "value_range": null,
+          "unit": "kW",
+          "statistic": "scalar",
+          "temporal_status": "unknown",
+          "period": null,
+          "sample_size": null,
+          "denominator": null,
+          "scale": null,
+          "comparison_basis": null,
+          "population": null,
+          "test_standard": "Synthetic charging procedure",
+          "conditions": [
+            "Optional configuration; AC supply and vehicle conditions fixed."
+          ],
+          "question": null,
+          "response_category": null,
+          "notes": [
+            "Synthetic values only."
+          ]
+        },
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60-fixture-ev"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [
+            "bev"
+          ],
+          "as_of": null,
+          "scope_notes": [
+            "Fictional variant used only to demonstrate the contract."
+          ]
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-ac-optional",
+      "entity_key": "signal:fixture-ac-optional",
+      "type": "Signal",
+      "label": "Synthetic optional AC charging capability.",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "product_capability",
+        "statement": "Synthetic optional AC charging capability.",
+        "epistemic_status": "publisher_claim",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60-fixture-ev"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [
+            "bev"
+          ],
+          "as_of": null,
+          "scope_notes": [
+            "Fictional variant used only to demonstrate the contract."
+          ]
+        },
+        "public_context": null,
+        "capability": {
+          "availability": "optional",
+          "variant": "Fixture electric variant",
+          "measurement": {
+            "metric": "maximum_ac_charging_power",
+            "value": 18.0,
+            "value_range": null,
+            "unit": "kW",
+            "statistic": "scalar",
+            "temporal_status": "unknown",
+            "period": null,
+            "sample_size": null,
+            "denominator": null,
+            "scale": null,
+            "comparison_basis": null,
+            "population": null,
+            "test_standard": "Synthetic charging procedure",
+            "conditions": [
+              "Optional configuration; AC supply and vehicle conditions fixed."
+            ],
+            "question": null,
+            "response_category": null,
+            "notes": [
+              "Synthetic values only."
+            ]
+          },
+          "conditions": [
+            {
+              "kind": "requires_all",
+              "catalog_item_ids": [
+                "catalog:fixture-charging"
+              ],
+              "description": "Requires the identified higher-power charging module."
+            }
+          ],
+          "notes": [
+            "Invented offering; not an actual BMW option."
+          ]
+        },
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-study-mean",
+      "entity_key": "evidence:fixture-study-mean",
+      "type": "Evidence",
+      "label": "Invented study mean; no sample count supplied.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "study_statistic",
+        "record_key": "evidence:fixture-study-mean",
+        "dedup_key": "evidence:fixture-study-mean",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "spreadsheet",
+          "sheet": "SyntheticStudy",
+          "range": "B2"
+        },
+        "raw_text": "Invented study mean; no sample count supplied.",
+        "measurement": {
+          "metric": "parking_control_satisfaction",
+          "value": 6.4,
+          "value_range": null,
+          "unit": "unknown_rating_scale",
+          "statistic": "mean",
+          "temporal_status": "historical",
+          "period": {
+            "label": "2025",
+            "start": null,
+            "end": null
+          },
+          "sample_size": null,
+          "denominator": null,
+          "scale": null,
+          "comparison_basis": null,
+          "population": "Invented study population; sampling frame unavailable.",
+          "test_standard": null,
+          "conditions": [],
+          "question": "How satisfied are you with parking-control usability?",
+          "response_category": null,
+          "notes": [
+            "Synthetic values only."
+          ]
+        },
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-study-mean",
+      "entity_key": "signal:fixture-study-mean",
+      "type": "Signal",
+      "label": "Synthetic study finding supports investigating parking-control usability; its scale or sample base remains incomplete.",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "study_finding",
+        "statement": "Synthetic study finding supports investigating parking-control usability; its scale or sample base remains incomplete.",
+        "epistemic_status": "inference",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "public_context": null,
+        "capability": null,
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-study-share",
+      "entity_key": "evidence:fixture-study-share",
+      "type": "Evidence",
+      "label": "Invented study share; no sample count supplied.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "study_statistic",
+        "record_key": "evidence:fixture-study-share",
+        "dedup_key": "evidence:fixture-study-share",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "spreadsheet",
+          "sheet": "SyntheticStudy",
+          "range": "B3"
+        },
+        "raw_text": "Invented study share; no sample count supplied.",
+        "measurement": {
+          "metric": "parking_control_response_share",
+          "value": 0.28,
+          "value_range": null,
+          "unit": "proportion",
+          "statistic": "proportion",
+          "temporal_status": "historical",
+          "period": {
+            "label": "2025",
+            "start": null,
+            "end": null
+          },
+          "sample_size": null,
+          "denominator": null,
+          "scale": null,
+          "comparison_basis": null,
+          "population": "Invented study population; sampling frame unavailable.",
+          "test_standard": null,
+          "conditions": [],
+          "question": "How would you rate parking-control usability?",
+          "response_category": "Difficult to use",
+          "notes": [
+            "Synthetic values only."
+          ]
+        },
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-study-share",
+      "entity_key": "signal:fixture-study-share",
+      "type": "Signal",
+      "label": "Synthetic study finding supports investigating parking-control usability; its scale or sample base remains incomplete.",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "study_finding",
+        "statement": "Synthetic study finding supports investigating parking-control usability; its scale or sample base remains incomplete.",
+        "epistemic_status": "inference",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": []
+        },
+        "public_context": null,
+        "capability": null,
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "Illustrative mapping; no calibrated extraction score."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    },
+    {
+      "id": "evidence:fixture-sales",
+      "entity_key": "evidence:fixture-sales",
+      "type": "Evidence",
+      "label": "Synthetic combined-group 2030 volume; no forecasting method supplied.",
+      "revision": 1,
+      "properties": {
+        "evidence_kind": "sales_statistic",
+        "record_key": "evidence:fixture-sales",
+        "dedup_key": "evidence:fixture-sales",
+        "source_channel": "synthetic",
+        "locator": {
+          "kind": "spreadsheet",
+          "sheet": "SyntheticSales",
+          "range": "E2"
+        },
+        "raw_text": "Synthetic combined-group 2030 volume; no forecasting method supplied.",
+        "measurement": {
+          "metric": "sales_volume",
+          "value": 12400.0,
+          "value_range": null,
+          "unit": "vehicles",
+          "statistic": "count",
+          "temporal_status": "source_reported_future",
+          "period": {
+            "label": "2030",
+            "start": null,
+            "end": null
+          },
+          "sample_size": null,
+          "denominator": null,
+          "scale": null,
+          "comparison_basis": null,
+          "population": "Combined fictional G60/G68 source group",
+          "test_standard": null,
+          "conditions": [
+            "Models are reported as one combined group."
+          ],
+          "question": null,
+          "response_category": null,
+          "notes": [
+            "Entirely invented projection; method and uncertainty unavailable."
+          ]
+        },
+        "raw_classifications": [],
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60",
+            "vehicle:bmw-g68"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": [
+            "One combined source group; do not duplicate or allocate the total per model."
+          ]
+        },
+        "limitations": [
+          "Invented demonstration data; no actual BMW or population claim."
+        ]
+      }
+    },
+    {
+      "id": "signal:fixture-sales",
+      "entity_key": "signal:fixture-sales",
+      "type": "Signal",
+      "label": "A fictional combined-model future volume is planning context, not evidence of customer feature demand.",
+      "revision": 1,
+      "properties": {
+        "signal_kind": "commercial_indicator",
+        "statement": "A fictional combined-model future volume is planning context, not evidence of customer feature demand.",
+        "epistemic_status": "forecast",
+        "sentiment": "not_applicable",
+        "context": {
+          "vehicle_model_ids": [
+            "vehicle:bmw-g60",
+            "vehicle:bmw-g68"
+          ],
+          "market_ids": [
+            "market:US"
+          ],
+          "country_codes": [
+            "US"
+          ],
+          "engine_types": [],
+          "as_of": null,
+          "scope_notes": [
+            "One combined source group; do not duplicate or allocate the total per model."
+          ]
+        },
+        "public_context": null,
+        "capability": null,
+        "extraction_confidence": {
+          "level": "unassessed",
+          "reason": "The future source value and combined-model grouping are preserved without feature-demand interpretation."
+        },
+        "provenance": {
+          "actor_type": "human",
+          "actor_id": "ontology-author",
+          "method": "manual_interpretation",
+          "created_at": "2026-10-10T15:47:12Z",
+          "model": null,
+          "prompt_version": null
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:in_source:evidence:fixture-customer:source:fixture-feedback",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-customer",
+      "target_id": "source:fixture-feedback",
+      "rationale": "Original synthetic fixture excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-customer:evidence:fixture-customer",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-customer",
+      "target_id": "evidence:fixture-customer",
+      "rationale": "Interpretation of the captured excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-customer:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-customer",
+      "target_id": "feature:parking-controls",
+      "rationale": "The excerpt concerns parking controls.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-public-positive:source:fixture-public",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-public-positive",
+      "target_id": "source:fixture-public",
+      "rationale": "Original synthetic fixture excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-public-positive:evidence:fixture-public-positive",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-public-positive",
+      "target_id": "evidence:fixture-public-positive",
+      "rationale": "Interpretation of the captured excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-public-positive:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-public-positive",
+      "target_id": "feature:parking-controls",
+      "rationale": "The excerpt concerns parking controls.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-public-challenge:source:fixture-public",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-public-challenge",
+      "target_id": "source:fixture-public",
+      "rationale": "Original synthetic fixture excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-public-challenge:evidence:fixture-public-challenge",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-public-challenge",
+      "target_id": "evidence:fixture-public-challenge",
+      "rationale": "Interpretation of the captured excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-public-challenge:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-public-challenge",
+      "target_id": "feature:parking-controls",
+      "rationale": "The excerpt concerns parking controls.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-competitor:source:fixture-competitor",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-competitor",
+      "target_id": "source:fixture-competitor",
+      "rationale": "Original synthetic fixture excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-competitor:evidence:fixture-competitor",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-competitor",
+      "target_id": "evidence:fixture-competitor",
+      "rationale": "Interpretation of the captured excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-competitor:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-competitor",
+      "target_id": "feature:parking-controls",
+      "rationale": "The excerpt concerns parking controls.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-trend:source:fixture-trend",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-trend",
+      "target_id": "source:fixture-trend",
+      "rationale": "Original synthetic fixture excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-trend:evidence:fixture-trend",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-trend",
+      "target_id": "evidence:fixture-trend",
+      "rationale": "Interpretation of the captured excerpt.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-trend:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-trend",
+      "target_id": "feature:parking-controls",
+      "rationale": "The excerpt concerns parking controls.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:supports:signal:fixture-customer:need:fixture-usability",
+      "type": "SUPPORTS",
+      "source_id": "signal:fixture-customer",
+      "target_id": "need:fixture-usability",
+      "rationale": "Confusion motivates an understandable-control outcome.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:supports:signal:fixture-public-positive:need:fixture-usability",
+      "type": "SUPPORTS",
+      "source_id": "signal:fixture-public-positive",
+      "target_id": "need:fixture-usability",
+      "rationale": "One opinion suggests a possible implementation; it does not establish prevalence.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:supports:signal:fixture-competitor:need:fixture-usability",
+      "type": "SUPPORTS",
+      "source_id": "signal:fixture-competitor",
+      "target_id": "need:fixture-usability",
+      "rationale": "The optional competitor claim supplies a comparison, not proof of BMW customer demand.",
+      "context_transfer": "Transfer from a fictional competitor to a BMW need; relevance is an assumption."
+    },
+    {
+      "id": "edge:derived_from:trend:fixture-controls:signal:fixture-trend",
+      "type": "DERIVED_FROM",
+      "source_id": "trend:fixture-controls",
+      "target_id": "signal:fixture-trend",
+      "rationale": "The synthetic forecast supplies a projected indicator.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:depends_on:trend:fixture-controls:assumption:fixture-persistence",
+      "type": "DEPENDS_ON",
+      "source_id": "trend:fixture-controls",
+      "target_id": "assumption:fixture-persistence",
+      "rationale": "Projection depends on preference persistence.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:supports:trend:fixture-controls:need:fixture-usability",
+      "type": "SUPPORTS",
+      "source_id": "trend:fixture-controls",
+      "target_id": "need:fixture-usability",
+      "rationale": "The projection motivates testing future relevance.",
+      "context_transfer": "Global forecast applied to US BMW customers is an unvalidated inference."
+    },
+    {
+      "id": "edge:addresses:requirement:fixture-parking:need:fixture-usability",
+      "type": "ADDRESSES",
+      "source_id": "requirement:fixture-parking",
+      "target_id": "need:fixture-usability",
+      "rationale": "The proposal seeks understandable parking controls.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:justified_by:requirement:fixture-parking:signal:fixture-customer",
+      "type": "JUSTIFIED_BY",
+      "source_id": "requirement:fixture-parking",
+      "target_id": "signal:fixture-customer",
+      "rationale": "Current confusion motivates the proposal.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:justified_by:requirement:fixture-parking:signal:fixture-competitor",
+      "type": "JUSTIFIED_BY",
+      "source_id": "requirement:fixture-parking",
+      "target_id": "signal:fixture-competitor",
+      "rationale": "The optional competitor claim provides a benchmark.",
+      "context_transfer": "Competitor-to-BMW transfer does not establish customer demand."
+    },
+    {
+      "id": "edge:justified_by:requirement:fixture-parking:trend:fixture-controls",
+      "type": "JUSTIFIED_BY",
+      "source_id": "requirement:fixture-parking",
+      "target_id": "trend:fixture-controls",
+      "rationale": "Future relevance is a forecast.",
+      "context_transfer": "Global-to-US forecast transfer requires validation."
+    },
+    {
+      "id": "edge:challenges:signal:fixture-public-challenge:requirement:fixture-parking",
+      "type": "CHALLENGES",
+      "source_id": "signal:fixture-public-challenge",
+      "target_id": "requirement:fixture-parking",
+      "rationale": "This opinion limits a possible physical-switch implementation suggested by other signals. It does not oppose the usability need, and the requirement does not mandate a physical switch.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:depends_on:requirement:fixture-parking:assumption:fixture-persistence",
+      "type": "DEPENDS_ON",
+      "source_id": "requirement:fixture-parking",
+      "target_id": "assumption:fixture-persistence",
+      "rationale": "Successor relevance depends on future customer needs.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:need:fixture-usability:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "need:fixture-usability",
+      "target_id": "feature:parking-controls",
+      "rationale": "Need concerns control usability.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:requirement:fixture-parking:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "requirement:fixture-parking",
+      "target_id": "feature:parking-controls",
+      "rationale": "Requirement concerns control usability.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:reviews:decision:fixture-comment:requirement:fixture-parking",
+      "type": "REVIEWS",
+      "source_id": "decision:fixture-comment",
+      "target_id": "requirement:fixture-parking",
+      "rationale": "The fixture shows a comment, not approval.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:competes_with:vehicle:example-sedan:vehicle:bmw-g60",
+      "type": "COMPETES_WITH",
+      "source_id": "vehicle:example-sedan",
+      "target_id": "vehicle:bmw-g60",
+      "rationale": "Fictional competitive selection for illustrating the schema.",
+      "context_transfer": "Illustrative US segment comparison."
+    },
+    {
+      "id": "edge:is_variant_of:vehicle:bmw-g60-fixture-ev:vehicle:bmw-g60",
+      "type": "IS_VARIANT_OF",
+      "source_id": "vehicle:bmw-g60-fixture-ev",
+      "target_id": "vehicle:bmw-g60",
+      "rationale": "Explicit fictional variant within the G60 generation.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-catalog-parking:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-catalog-parking",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:catalog:fixture-parking:evidence:fixture-catalog-parking",
+      "type": "DERIVED_FROM",
+      "source_id": "catalog:fixture-parking",
+      "target_id": "evidence:fixture-catalog-parking",
+      "rationale": "Identity and conditions extracted from this invented catalog entry.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-catalog-comfort:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-catalog-comfort",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:catalog:fixture-comfort:evidence:fixture-catalog-comfort",
+      "type": "DERIVED_FROM",
+      "source_id": "catalog:fixture-comfort",
+      "target_id": "evidence:fixture-catalog-comfort",
+      "rationale": "Identity and conditions extracted from this invented catalog entry.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-catalog-charging:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-catalog-charging",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:catalog:fixture-charging:evidence:fixture-catalog-charging",
+      "type": "DERIVED_FROM",
+      "source_id": "catalog:fixture-charging",
+      "target_id": "evidence:fixture-catalog-charging",
+      "rationale": "Identity and conditions extracted from this invented catalog entry.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-catalog-trim-smooth:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-catalog-trim-smooth",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:catalog:fixture-trim-smooth:evidence:fixture-catalog-trim-smooth",
+      "type": "DERIVED_FROM",
+      "source_id": "catalog:fixture-trim-smooth",
+      "target_id": "evidence:fixture-catalog-trim-smooth",
+      "rationale": "Identity and conditions extracted from this invented catalog entry.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-catalog-trim-soft:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-catalog-trim-soft",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:catalog:fixture-trim-soft:evidence:fixture-catalog-trim-soft",
+      "type": "DERIVED_FROM",
+      "source_id": "catalog:fixture-trim-soft",
+      "target_id": "evidence:fixture-catalog-trim-soft",
+      "rationale": "Identity and conditions extracted from this invented catalog entry.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-catalog-retrofit:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-catalog-retrofit",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:catalog:fixture-retrofit:evidence:fixture-catalog-retrofit",
+      "type": "DERIVED_FROM",
+      "source_id": "catalog:fixture-retrofit",
+      "target_id": "evidence:fixture-catalog-retrofit",
+      "rationale": "Identity and conditions extracted from this invented catalog entry.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-catalog-advanced:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-catalog-advanced",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:catalog:fixture-advanced:evidence:fixture-catalog-advanced",
+      "type": "DERIVED_FROM",
+      "source_id": "catalog:fixture-advanced",
+      "target_id": "evidence:fixture-catalog-advanced",
+      "rationale": "Identity and conditions extracted from this invented catalog entry.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:catalog:fixture-parking:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "catalog:fixture-parking",
+      "target_id": "feature:parking-controls",
+      "rationale": "The option concerns parking controls.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:catalog:fixture-charging:feature:ac-charging",
+      "type": "CONCERNS",
+      "source_id": "catalog:fixture-charging",
+      "target_id": "feature:ac-charging",
+      "rationale": "The option concerns AC charging.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:includes:catalog:fixture-comfort:catalog:fixture-parking",
+      "type": "INCLUDES",
+      "source_id": "catalog:fixture-comfort",
+      "target_id": "catalog:fixture-parking",
+      "rationale": "Invented package membership in the same catalog edition.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:includes:catalog:fixture-advanced:catalog:fixture-charging",
+      "type": "INCLUDES",
+      "source_id": "catalog:fixture-advanced",
+      "target_id": "catalog:fixture-charging",
+      "rationale": "Invented package membership in the same catalog edition.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-baseline-parking:evidence:fixture-catalog-parking",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-baseline-parking",
+      "target_id": "evidence:fixture-catalog-parking",
+      "rationale": "Interpretation of an invented, located source record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-baseline-parking:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-baseline-parking",
+      "target_id": "feature:parking-controls",
+      "rationale": "Canonical subject of the claim.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:describes:signal:fixture-baseline-parking:catalog:fixture-parking",
+      "type": "DESCRIBES",
+      "source_id": "signal:fixture-baseline-parking",
+      "target_id": "catalog:fixture-parking",
+      "rationale": "Scoped claim about the identified catalog option.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:baselined_on:requirement:fixture-parking:signal:fixture-baseline-parking",
+      "type": "BASELINED_ON",
+      "source_id": "requirement:fixture-parking",
+      "target_id": "signal:fixture-baseline-parking",
+      "rationale": "Improve an existing offering rather than claim its absence.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-range:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-range",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-range:evidence:fixture-range",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-range",
+      "target_id": "evidence:fixture-range",
+      "rationale": "Interpretation of an invented, located source record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-range:feature:electric-range",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-range",
+      "target_id": "feature:electric-range",
+      "rationale": "Canonical subject of the claim.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-ac-standard:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-ac-standard",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-ac-standard:evidence:fixture-ac-standard",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-ac-standard",
+      "target_id": "evidence:fixture-ac-standard",
+      "rationale": "Interpretation of an invented, located source record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-ac-standard:feature:ac-charging",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-ac-standard",
+      "target_id": "feature:ac-charging",
+      "rationale": "Canonical subject of the claim.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-ac-optional:source:fixture-catalog",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-ac-optional",
+      "target_id": "source:fixture-catalog",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-ac-optional:evidence:fixture-ac-optional",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-ac-optional",
+      "target_id": "evidence:fixture-ac-optional",
+      "rationale": "Interpretation of an invented, located source record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-ac-optional:feature:ac-charging",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-ac-optional",
+      "target_id": "feature:ac-charging",
+      "rationale": "Canonical subject of the claim.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:describes:signal:fixture-ac-optional:catalog:fixture-charging",
+      "type": "DESCRIBES",
+      "source_id": "signal:fixture-ac-optional",
+      "target_id": "catalog:fixture-charging",
+      "rationale": "The fictional variant can use the generation-scoped catalog option.",
+      "context_transfer": "Variant-scoped capability applied to a generation-scoped catalog identity; availability is asserted only for this fictional variant."
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-study-mean:source:fixture-study",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-study-mean",
+      "target_id": "source:fixture-study",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-study-mean:evidence:fixture-study-mean",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-study-mean",
+      "target_id": "evidence:fixture-study-mean",
+      "rationale": "Interpretation of an invented, located source record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-study-mean:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-study-mean",
+      "target_id": "feature:parking-controls",
+      "rationale": "Canonical subject of the claim.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:supports:signal:fixture-study-mean:need:fixture-usability",
+      "type": "SUPPORTS",
+      "source_id": "signal:fixture-study-mean",
+      "target_id": "need:fixture-usability",
+      "rationale": "Illustrative study finding motivates further research, without asserting prevalence or a cross-market ranking.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-study-share:source:fixture-study",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-study-share",
+      "target_id": "source:fixture-study",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-study-share:evidence:fixture-study-share",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-study-share",
+      "target_id": "evidence:fixture-study-share",
+      "rationale": "Interpretation of an invented, located source record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:concerns:signal:fixture-study-share:feature:parking-controls",
+      "type": "CONCERNS",
+      "source_id": "signal:fixture-study-share",
+      "target_id": "feature:parking-controls",
+      "rationale": "Canonical subject of the claim.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:supports:signal:fixture-study-share:need:fixture-usability",
+      "type": "SUPPORTS",
+      "source_id": "signal:fixture-study-share",
+      "target_id": "need:fixture-usability",
+      "rationale": "Illustrative study finding motivates further research, without asserting prevalence or a cross-market ranking.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:in_source:evidence:fixture-sales:source:fixture-sales",
+      "type": "IN_SOURCE",
+      "source_id": "evidence:fixture-sales",
+      "target_id": "source:fixture-sales",
+      "rationale": "Original invented fixture record.",
+      "context_transfer": null
+    },
+    {
+      "id": "edge:derived_from:signal:fixture-sales:evidence:fixture-sales",
+      "type": "DERIVED_FROM",
+      "source_id": "signal:fixture-sales",
+      "target_id": "evidence:fixture-sales",
+      "rationale": "Interpretation of an invented, located source record.",
+      "context_transfer": null
+    }
+  ]
+}

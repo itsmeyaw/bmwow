@@ -1,0 +1,108 @@
+# Judgment knobs for the situation-analysis nodes (loaded by rules.py).
+# Code reads these to compute facts, choose denominators, sample evidence and guard LLM judgments.
+# Nothing here is a verdict: whether a feature is a gap or a strength is decided by structure_agent.
+
+thin:                      # a share is "thin" (small sample) when n < min_n or k < min_k
+  min_n: 30
+  min_k: 5
+
+feedback:
+  min_k: 3                 # smallest item count reported as a finding
+  max_sources_per_finding: 3
+  max_sub_themes: 6        # per feature and direction
+  # Sub-themes from aspect terms; when most items of a feature only carry generic terms, an LLM groups a
+  # sample of their texts (only with ALLOW_LLM_ON_INTERNAL_DATA=true).
+  generic_share_for_llm: 0.5
+  llm_sample_size: 40
+  max_llm_features: 10
+  candidate_min_k: 3       # unclassified topics reported as candidate features
+  max_candidates: 10
+  # Direction from the aspect's issue type; feedback types override (Wants = request, Likes = strength).
+  # Every other issue type counts as a problem.
+  direction_by_issue_type:
+    Praise: strength
+    Feature Request: request
+    Unclassified: neutral
+  direction_by_feedback_type:
+    Wants: request
+    Likes: strength
+  # Aspect terms that say little about what exactly is meant (case-insensitive; "overall" always counts).
+  generic_terms:
+    - drivetrain
+    - seats
+    - exterior
+    - interior
+    - interior comfort
+    - exterior design
+    - interior design
+    - handling / riding
+    - overall vehicle
+    - vehicle
+    - "general enquiry: customer feedback"
+    - infotainment
+    - body equipment
+  # Population that can experience a feature; other features use all items of the region.
+  denominators:
+    real_world_range: {label: BEV+PHEV, engine_types: [BEV, BEVE, PHEV]}
+    fast_charging: {label: BEV+PHEV, engine_types: [BEV, BEVE, PHEV]}
+    long_battery_life: {label: BEV+PHEV, engine_types: [BEV, BEVE, PHEV]}
+
+# Interim aspect-term -> feature aliases until the ontology maps aspects to features (issue #12).
+# A phrase matches whole words; a trailing * matches word prefixes. First matching feature wins.
+feature_aliases:
+  real_world_range: [electric range, range, range*]
+  fast_charging: [charging speed, charging time, dc charging, fast charging, charg*]
+  efficiency: [fuel economy, fuel consumption, power consumption, efficiency, mileage]
+  long_battery_life: [battery life, battery degradation]
+  seat_ventilation: [ventilat*, seat cooling, cooled seat*]
+  heated_seats: [heated seat*, seat heating]
+  rear_space: [rear seat*, legroom, rear space, back seat*]
+  comfortable_seats: [seat comfort, comfortable seat*]
+  reliable_software: [software, freez*, crash*, reboot*]
+  intuitive_ux: [touch screen*, touchscreen*, idrive, menu*, operation]
+  clear_navigation: [navigation]
+  great_sound: [sound system, audio, speaker*]
+  clear_displays: [display*, head-up display, instrument cluster]
+  physical_controls: [button*, physical control*, knob*]
+  fast_app_response: [app, my bmw app, mobile app]
+  easy_updates: [ota, over-the-air, software update*]
+  personalization: [personali*, my modes]
+  dynamic_handling: [handling, steering, driving dynamics]
+  smooth_ride: [ride comfort, cushioning, damping, suspension]
+  easy_parking: [parking, park assist*]
+  safety: [safety, airbag*, collision]
+  premium_feel: [workmanship, material*, quality feel, premium feel]
+  iconic_design: [styling, grille, exterior design]
+  exterior_colors: [paint, colour*, color*]
+  flexible_storage: [storage, trunk, boot, luggage, cargo]
+  affordable: [price, pricing, value for money]
+  low_running_costs: [running cost*, insurance]
+  simple_maintenance: [maintenance, service interval*]
+  sustainability: [sustainab*, recycled, vegan]
+  data_privacy: [privacy]
+
+structure:
+  max_judged_features: 12  # LLM judgment for the most important features; others stay "not_assessed"
+  max_quotes_per_package: 6
+  widespread_min_ci_low: 0.02   # guard: "widespread" needs a customer share whose CI lower bound reaches this
+  thin_words: [thin, small sample, limited data, few items, low n, uncertain]
+  # Features where a smaller number is better (charging minutes, price, consumption); others: larger.
+  lower_is_better: [fast_charging, affordable, efficiency, low_running_costs]
+
+competition:
+  # Core features researched for every competitor, with the words a spec page uses for them.
+  core_features:
+    real_world_range: range WLTP km
+    fast_charging: DC charging 10-80% minutes
+    efficiency: consumption kWh/100km
+    affordable: base price EUR
+    rear_space: rear legroom mm
+    seat_ventilation: ventilated seats
+    physical_controls: physical buttons controls
+    reliable_software: infotainment software
+  results_per_query: 3
+  pages_per_feature: 2
+
+gap_fill:
+  max_features: 3          # one targeted round for the most important features missing a competitor view
+  min_customer_ci_low: 0.01

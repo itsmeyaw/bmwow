@@ -1,0 +1,276 @@
+{
+  "ontology_version": "0.2.0",
+  "inspected_input_formats": [
+    "xlsx",
+    "pdf"
+  ],
+  "csv_sql_status": "No CSV or populated SQL schema was present during inspection. These mappings use the original headers. A CSV/SQL adapter should preserve them or supply an explicit field map.",
+  "feedback": {
+    "files": [
+      "raw_data/F70_feedback_hackathon.xlsx",
+      "raw_data/G60_feedback_hackathon.xlsx",
+      "raw_data/G70_feedback_hackathon.xlsx"
+    ],
+    "sheet": "Feedback_Explorer",
+    "header_row": 1,
+    "original_record_key": [
+      "source_document_version",
+      "ID"
+    ],
+    "grouping": "Group rows with the same original ID within the same source version. Verify that source channel, vehicle, country, engine, and feedback text agree. Create one Evidence record and preserve every classification and locator. A conflict requires review; never silently select one text.",
+    "columns": {
+      "ID": "Evidence.record_key; part of its stable identity and dedup_key",
+      "Source": "Evidence.source_channel; anonymized channel label does not establish publisher identity or credibility",
+      "Brand": "VehicleModel.brand; preserve raw bracketed label in the raw SQL layer",
+      "Sales Description": "VehicleModel.vehicle_line; normalize bracketed labels using an explicit alias map",
+      "Country": "Evidence.context.country_codes; market mapping is a separate configured lookup",
+      "Derivate (e-code)": "VehicleModel.generation_code; F70, G60, and G70 are distinct baseline models",
+      "Engine Type": "Evidence.context.engine_types; preserve original value in raw storage",
+      "Feedback Type": "Evidence.raw_classifications[].feedback_type; input to a scoped Signal interpretation",
+      "Customer Feedback": "Evidence.raw_text; immutable original feedback text",
+      "Vfc level2 3 Name": "Evidence.raw_classifications[].vfc_combined",
+      "Vfc level2 Name": "Evidence.raw_classifications[].vfc_level2",
+      "Vfc level3 Name": "Evidence.raw_classifications[].vfc_level3"
+    },
+    "engine_aliases": {
+      "ICE": "ice",
+      "PHEV": "phev",
+      "BEVE": "bev"
+    },
+    "unrecognized_engine": "unknown; retain raw value for later mapping",
+    "feedback_type_interpretation": {
+      "Likes": "Candidate positive experience or benefit to preserve",
+      "Difficult to Use": "Candidate usability issue; not automatically a defect",
+      "Wants": "Candidate customer request; not automatically negative sentiment or high priority",
+      "Defect": "Reported problem; preserve reported-experience status without asserting a verified engineering fault",
+      "null": "Unknown; no sentiment or classification is inferred"
+    },
+    "taxonomy_rules": [
+      "Preserve original VFC strings. no_class_found means no assigned source classification; it is not a canonical Feature.",
+      "Use explicit, reviewable VFC-to-Feature mappings. Canonical domains can extend the four broad briefing domains for digital and ownership experience.",
+      "A multi-aspect record can yield several Signals with different sentiment and features.",
+      "The source feedback classifications and an LLM's new interpretations remain distinguishable through provenance.method."
+    ],
+    "counting_rules": [
+      "Classification-row count is not feedback-record count.",
+      "Feedback-record count is not respondent count; no verified cross-source respondent identity is provided.",
+      "Feedback frequencies describe the provided sample and need a denominator before being reported as a rate."
+    ],
+    "unknown_metadata": [
+      "feedback date",
+      "respondent sampling frame",
+      "cross-source respondent identity",
+      "anonymized source publisher"
+    ],
+    "derived_signal_kind": "customer_feedback"
+  },
+  "sales": {
+    "file": "raw_data/sales_volumes.xlsx",
+    "sheets": {
+      "F70": [
+        "F70"
+      ],
+      "G60_G68": [
+        "G60",
+        "G68"
+      ],
+      "G70": [
+        "G70"
+      ]
+    },
+    "columns": [
+      "market",
+      "market_code",
+      "volume_2024",
+      "volume_2025",
+      "volume_2030"
+    ],
+    "normalization": "Unpivot year columns to one typed measurement per model-group, market, and year. metric=sales_volume, unit=vehicles, statistic=count.",
+    "market_labels": {
+      "EU": "Europe",
+      "CN": "China",
+      "US": "USA",
+      "RoW": "Rest of World"
+    },
+    "period": "Preserve the source year as period.label. Do not invent precise observation dates.",
+    "temporal_status": "A year after the captured as_of year is source_reported_future unless a forecasting method is supplied; otherwise retain the reported period and provenance. Never classify a future value as historical.",
+    "grouping_rule": "G60_G68 values are a combined source group. Do not duplicate the total for each model or allocate it without supporting data.",
+    "zero_rule": "Preserve explicit zero volumes; do not replace them with null or infer worldwide model availability.",
+    "unknown_metadata": [
+      "forecast methodology",
+      "forecast uncertainty",
+      "model-specific split of grouped G60/G68 values"
+    ],
+    "derived_signal_kind": "commercial_indicator",
+    "measurement_fields": {
+      "question": null,
+      "response_category": null,
+      "test_standard": null,
+      "value_range": null,
+      "conditions": "Preserve combined-model grouping and any source limitations."
+    }
+  },
+  "customer_studies": {
+    "file": "raw_data/F70_G60_G68_G70_customer_studies.xlsx",
+    "sheets": {
+      "CN_EU_2025": {
+        "year": 2025,
+        "column_context": {
+          "B": {
+            "model": "G68",
+            "market": "CN"
+          },
+          "C": {
+            "model": "G70",
+            "market": "CN"
+          },
+          "D": {
+            "model": "F70",
+            "market": "EU"
+          },
+          "E": {
+            "model": "G60",
+            "market": "EU"
+          },
+          "F": {
+            "model": "G70",
+            "market": "EU"
+          }
+        },
+        "layout": "Question labels in column A precede Mean rows. Resolve the original question for each value cell and retain both locators.",
+        "measurement": {
+          "statistic": "mean",
+          "unit": "unknown_rating_scale",
+          "scale": null,
+          "sample_size": null,
+          "question": "Original question label from column A; retain its locator.",
+          "response_category": null
+        },
+        "rule": "Do not infer scale bounds, convert a mean into sentiment, or compare with US response shares without validated harmonization."
+      },
+      "US_2025": {
+        "year": 2025,
+        "column_context": {
+          "C": {
+            "model": "G60",
+            "market": "US"
+          },
+          "D": {
+            "model": "G70",
+            "market": "US"
+          }
+        },
+        "layout": "Repeated question blocks with response categories in column A and % of column, sample base in column B. Trim header whitespace but retain the original label.",
+        "measurement": {
+          "statistic": "proportion",
+          "unit": "proportion",
+          "sample_size": null,
+          "denominator": null,
+          "question": "Original question heading above the response block; retain its locator.",
+          "response_category": "Original response label in column A; normalized total is a source annotation, not a rating category."
+        },
+        "rule": "Values are stored as fractions such as 0.005. Preserve the response category. Sample total=1 is a normalized total, not a respondent count."
+      }
+    },
+    "evidence_identity": "Source version + sheet + question/response category + model/market + value-cell locator.",
+    "unknown_metadata": [
+      "sample counts",
+      "survey method",
+      "sampling frame",
+      "CN/EU scale bounds",
+      "exact EU country coverage"
+    ],
+    "derived_signal_kind": "study_finding"
+  },
+  "product_catalogs": {
+    "files": {
+      "raw_data/F70_OptionList.PDF": "F70",
+      "raw_data/G60_OptionList.PDF": "G60",
+      "raw_data/G70_OptionList.PDF": "G70"
+    },
+    "source_kind": "product_catalog",
+    "locator": "One-based page and section, with a captured original excerpt; verify column headers, footnotes, and availability symbols visually.",
+    "scope": "The supplied German BMW catalogs provide a market-specific baseline. They do not establish equipment availability in China or the United States.",
+    "extraction_status": "Representative equipment/package/technical-value pages inspected as text and rendered pages. A complete equipment/availability parser is not implemented.",
+    "rules": [
+      "Preserve catalog edition date and effective-period labels separately; do not invent a precise effective date from a month label.",
+      "Keep model, variant, package, standard/optional/announced status, and availability footnotes attached to capability claims.",
+      "PDF text alone can lose column and symbol meanings; ambiguous availability requires review.",
+      "An existing feature does not prove a customer's vehicle was equipped with it or that it meets the customer's need.",
+      "Package membership and resolved item conditions must reference the same original catalog edition. Do not join unrelated options by equipment code alone.",
+      "Missing mention is unknown, not unavailable; only an explicit source claim supports unavailable.",
+      "Separate front/rear seating capabilities and performance complaints from simple equipment presence.",
+      "The current catalog does not prove that an earlier, undated feedback author had the same equipment configuration.",
+      "A known Capability.variant annotation must agree with any explicitly referenced VehicleModel variant."
+    ],
+    "publication_date": "2026-07; observed month label on all three covers, not an invented day or model year.",
+    "derived_signal_kind": "product_capability",
+    "objects": {
+      "CatalogItem": "One edition-specific option or package identity; use item_kind=equipment or package and original equipment_code or null.",
+      "Signal": "A publisher_claim about availability or a technical capability, with original Evidence and model/variant/market context.",
+      "VehicleModel": "Generation and separately identified variants can be connected through IS_VARIANT_OF; do not infer model year from catalog publication date."
+    },
+    "item_identity": [
+      "original_source_document_version",
+      "model_generation",
+      "original_equipment_code_or_located_item_label",
+      "item_kind"
+    ],
+    "relationships": {
+      "CatalogItem DERIVED_FROM Evidence": "Evidence establishes original item identity and conditions.",
+      "CatalogItem CONCERNS Feature": "Reviewable canonical feature mapping.",
+      "Signal DERIVED_FROM Evidence": "Original claim excerpt/table including headers and footnotes.",
+      "Signal DESCRIBES CatalogItem": "Interpreted availability or capability about a known item; technical metrics may omit CatalogItem.",
+      "package CatalogItem INCLUDES CatalogItem": "Same-edition package contents; do not assert variant-independent availability from membership alone."
+    },
+    "conditions": {
+      "requires_all": "All referenced items are prerequisites.",
+      "requires_any": "At least one alternative is required; never convert OR to unconditional AND.",
+      "excludes": "Referenced items cannot be combined under the stated conditions.",
+      "configuration": "Original configuration limitation without a resolved item reference.",
+      "usage": "Original operating/environment restriction.",
+      "unknown": "Condition is unresolved and must be reviewed."
+    },
+    "measurement_mapping": {
+      "genuine_interval": "value=null and value_range={minimum,maximum}; preserve original endpoint order/text in Evidence and describe the range basis in comparison_basis/conditions.",
+      "configuration_alternatives": "Separate scalar observations and capability claims with availability/conditions; slash-separated standard/optional values are not a numeric range.",
+      "unit_conversion": "Only when source unit and value interpretation are explicit; retain source text and conversion provenance. Charging durations need source time units and state-of-charge windows.",
+      "test_standard": "Preserve the named procedure, such as WLTP, or null when missing.",
+      "footnotes": "Keep configuration/environment limitations in Measurement.conditions and Capability.conditions; visually inspect table symbols."
+    }
+  },
+  "sql_adapter_contract": {
+    "raw_tables": "Can mirror current CSV/raw columns. The ontology does not mandate table names or a database provider.",
+    "required_preservation": [
+      "original record ID",
+      "source file/version",
+      "original row/cell/page locator",
+      "raw text/value",
+      "raw classifications",
+      "model and country labels"
+    ],
+    "derived_layer": "Adapt rows to SourceDocument/Evidence, then persist or expose derived nodes and relationships separately. Do not overwrite raw records with generated summaries.",
+    "identity_alignment": "Agree on stable source, evidence, model, feature, and market IDs before connecting orchestration and frontend. Use an explicit map if SQL identifiers differ."
+  },
+  "requirement_synthesis": {
+    "source": "Requirements are agent/human proposals, never original BMW data records.",
+    "intent": [
+      "introduce",
+      "improve",
+      "retain",
+      "remove"
+    ],
+    "baseline": "BASELINED_ON points to an applicable BMW product_capability Signal, matching canonical Feature and scoped model/family.",
+    "known_present": "Required for improve/retain/remove; standard, optional or available_unspecified offerings remain qualified by their availability. Announced is a planned future offering and cannot establish known_present.",
+    "known_absent": "Requires an explicit unavailable capability claim; a failed lookup does not prove absence.",
+    "unknown_introduction": "Requires a forward-looking Assumption link. Include an explicit missing-baseline premise, impact and validation plan; semantic adequacy of that text is reviewed by agents/humans, not proved by graph validation.",
+    "acceptance_criteria": "Label numerical basis, verification_method, and test_conditions. Do not invent an evidence-supported threshold from qualitative comments.",
+    "comparison": "Retain study scale/question/sample limitations, technical units/test conditions, market scope, and opposing evidence.",
+    "launch_year": "If supplied, target_launch_year equals Requirement provenance.created_at year plus horizon_years. Advancing snapshot as_of does not shift an existing revision launch year."
+  },
+  "migration": {
+    "from_version": "0.1.0",
+    "guide": "docs/ontology.md#migrating-v010-consumers-and-local-samples",
+    "status": "Breaking contract extension; existing IDs and Python import path are preserved. Local real-data v0.1 examples require explicit manual migration."
+  }
+}
