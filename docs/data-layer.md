@@ -414,10 +414,13 @@ feedback agent counts the imported aspects per feature, direction and region wit
 it does not embed or cluster Verbatim. It maps an aspect to a feature with
 `FeedbackClassification.attribute` first (the curated VFC mapping), then with interim aliases
 in `python/bmwow/agent/rules.yaml` for features of the active taxonomy only; filling
-`attribute` on the SQL side therefore improves the mapping without agent changes. Baseline
-reads typed study scores and the snapshot's sales; source-region sales routing remains
-orchestration work. Curate catalog capabilities and mappings, then connect validated agent
-candidates, synthesis, and the requirement dossier.
+`attribute` on the SQL side therefore improves the mapping without agent changes. This
+adapter neither uses nor re-creates embeddings. The TypeScript analysis chat
+(`src/server/chat/search.ts`) does query the stored vectors. It uses a hybrid of
+cosine similarity and `search_tsv`, fused with RRF and scoped by car, country,
+and engine. Baseline reads typed study scores and the snapshot's sales; source-region
+sales routing remains orchestration work. Curate catalog capabilities and mappings, then
+connect validated agent candidates, synthesis, and the requirement dossier.
 
 For the frontend, group by feedback identity and render its aspects underneath;
 show Quote status and curated/inferred provenance separately. Retain the optional

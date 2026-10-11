@@ -23,6 +23,8 @@ src/components/ui/    shadcn/ui components (base-vega, hugeicons)
 src/lib/              Client-safe helpers (cn)
 src/server/           Server-only backend logic; ported Python modules land here
   db/schema.ts        Drizzle mirror of migrations/ (Neon Postgres + pgvector)
+  analysis/queries.ts Ranking, evidence, and sales reads behind the analysis pages
+  chat/               Analysis chat agent (/api/chat): page context, tools, hybrid search
 scripts/preprocess.ts Feedback CSV -> OpenAI enrichment -> Neon (docs/preprocess-pipeline-spec.md)
 migrations/           SQL DDL, the source of truth for the Neon schema
 contracts/ontology/   Generated schema/vocabulary/agent contracts, plus hand-kept mappings and fixture
@@ -45,9 +47,48 @@ pnpm preprocess --self-check  # pipeline logic only, no network
 cd python && uv sync --locked && uv run pytest
 ```
 
-The checks are `pnpm lint`, `pnpm fmt:check`, and `pnpm build`, plus the Python
+The checks are `pnpm lint`, `pnpm fmt:check`, `pnpm test`, and `pnpm build`, plus the Python
 checks listed in [`python/README.md`](python/README.md). Agents and contributors
 work in git worktrees; see [AGENTS.md](AGENTS.md).
+
+### Analysis chat
+
+The chat panel on the analysis pages posts to `/api/chat`
+(`src/server/chat/agent.ts`). The client sends only the page scope from the URL:
+car, `region`, and `engine`. The server validates it and puts that page's ranking,
+summary, and sales into the prompt. With no car open, it uses the all-car ranking
+and each car's top priority. The agent grounds its answers with tools. Hybrid
+search (pgvector cosine plus `search_tsv`, fused with RRF) finds verbatims, and
+the analysis queries cover other scopes. Answers cite feedback IDs such as
+`[G70-0042]`, which render as chips that show the verbatim.
+
+It uses `OPENAI_API_KEY` and `LLM_STRONG` (falling back to the preprocessing
+model). Queries are embedded with `text-embedding-3-large` at 1536 dimensions to
+match the stored vectors. Threads live in the browser only. The chat sends
+verbatims and aggregates to OpenAI, the same provider `pnpm preprocess` uses.
+
+### Sales CSV import
+
+Place the private CSV exports in `data/sales/`, with filenames ending in
+` - <model code>.csv`, then run from the repository root:
+
+```sh
+pnpm exec tsx scripts/import-sales.ts --self-check  # synthetic, no network
+pnpm exec tsx scripts/import-sales.ts             # .env database connection
+```
+
+The importer validates all files before writing, applies `migrations/0001_sales.sql`,
+and upserts `sales` in one transaction, verifying every stored value. Reruns update
+matching `(model_code, market_code)` pairs without duplicating them. It uses
+`DATABASE_URL_UNPOOLED`, falling back to `DATABASE_URL` with Neon's pooler suffix
+removed for a direct connection. Existing environment variables take precedence over `.env`.
+
+Only `market_code` is stored; the `market` label is ignored. The three volume columns
+retain their source years and explicit zeros. At the user's request, `G60_G68` is
+temporarily stored as `G60`; its volumes still represent the combined source group,
+not an independently measured G60 total. `source_file` and `source_row` preserve the
+original filename and CSV line number (header is line 1). This raw import does not
+change the ontology's combined-model mapping or classify future volumes as historical.
 
 To inspect SQL feedback across EU member countries, add `--region EU` to the
 inspection command in the [Python setup guide](python/README.md). Direct country

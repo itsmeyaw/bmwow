@@ -1,6 +1,17 @@
-// Mirrors migrations/0000_init.sql (DDL is the source of truth for indexes/constraints).
+// Mirrors migrations/ (DDL is the source of truth for indexes/constraints).
 import { sql } from "drizzle-orm";
-import { customType, numeric, pgTable, text, timestamp, uuid, vector } from "drizzle-orm/pg-core";
+import {
+  check,
+  customType,
+  integer,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+  vector,
+} from "drizzle-orm/pg-core";
 
 const tsvector = customType<{ data: string }>({
   dataType: () => "tsvector",
@@ -40,3 +51,25 @@ export const feedbackAspects = pgTable("feedback_aspects", {
 
 export type NewFeedbackEntry = typeof feedbackEntries.$inferInsert;
 export type NewFeedbackAspect = typeof feedbackAspects.$inferInsert;
+
+export const sales = pgTable(
+  "sales",
+  {
+    modelCode: text("model_code").notNull(),
+    marketCode: text("market_code").notNull(),
+    volume2024: integer("volume_2024").notNull(),
+    volume2025: integer("volume_2025").notNull(),
+    volume2030: integer("volume_2030").notNull(),
+    sourceFile: text("source_file").notNull(),
+    sourceRow: integer("source_row").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.modelCode, table.marketCode] }),
+    check("sales_volume_2024_check", sql`${table.volume2024} >= 0`),
+    check("sales_volume_2025_check", sql`${table.volume2025} >= 0`),
+    check("sales_volume_2030_check", sql`${table.volume2030} >= 0`),
+    check("sales_source_row_check", sql`${table.sourceRow} >= 2`),
+  ],
+);
+
+export type NewSale = typeof sales.$inferInsert;
