@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CATEGORIES, categoryLabel, categoryOf } from "@/lib/feature-category";
 import { int, pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -66,12 +67,17 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
   const run = await getRun(derivate, region);
   if (!run) notFound();
   const features = await listFeatures(run.runId);
-  const recommended = features.filter((f) => f.reqId);
+  const category = CATEGORIES.find((c) => c.key === one(sp.category))?.key ?? null;
+  const inCategory = (f: FeatureRow) => !category || categoryOf(f.attribute, f.area) === category;
+  const allRecommended = features.filter((f) => f.reqId);
+  const recommended = allRecommended.filter(inCategory);
   const assessed = features.filter(
-    (f) => !f.reqId && f.assessment !== "unclear" && f.assessment !== "not_assessed",
+    (f) =>
+      !f.reqId && f.assessment !== "unclear" && f.assessment !== "not_assessed" && inCategory(f),
   );
-  const unclear = features.length - recommended.length - assessed.length;
-  const counts = Map.groupBy(features, (f) => f.assessment);
+  const scoped = features.filter(inCategory); // key figures follow the category filter
+  const unclear = scoped.length - recommended.length - assessed.length;
+  const counts = Map.groupBy(scoped, (f) => f.assessment);
   const selected = features.find((f) => f.attribute === one(sp.feature));
 
   return (
@@ -90,7 +96,7 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
             {regions.map((r) => (
               <Link
                 key={r.region}
-                href={`?region=${r.region}`}
+                href={hrefWith(sp, { region: r.region, feature: null })}
                 scroll={false}
                 className={cn(
                   "rounded-md border px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted",
@@ -118,13 +124,22 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
         />
         <Kpi
           label="Features analysed"
-          value={int(features.length)}
+          value={int(scoped.length)}
           hint={`${int(unclear)} with too little evidence to decide`}
         />
         <DataCoverage run={run} />
       </div>
 
-      <RequirementsTable rows={recommended} sp={sp} emptyReason={emptyReason(run, features)} />
+      <CategoryFilter features={allRecommended} active={category} sp={sp} />
+      <RequirementsTable
+        rows={recommended}
+        sp={sp}
+        emptyReason={
+          category && allRecommended.length
+            ? `No requirement in ${categoryLabel(category)} for this run.`
+            : emptyReason(run, features)
+        }
+      />
       {assessed.length > 0 && <OtherFeatures rows={assessed} unclear={unclear} sp={sp} />}
       <Legend />
 
@@ -144,6 +159,42 @@ async function CarView({ params, searchParams }: PageProps<"/situation/[derivate
         {run.llmModel && ` · ${run.llmModel}`}
       </p>
     </>
+  );
+}
+
+/** One button per category with its requirement count; the choice lives in the URL. */
+function CategoryFilter({
+  features,
+  active,
+  sp,
+}: {
+  features: FeatureRow[];
+  active: string | null;
+  sp: Search;
+}) {
+  const counts = Map.groupBy(features, (f) => categoryOf(f.attribute, f.area));
+  const items = [
+    { key: null, label: "All categories", n: features.length },
+    ...CATEGORIES.map((c) => ({ key: c.key, label: c.label, n: counts.get(c.key)?.length ?? 0 })),
+  ].filter((c) => c.key === null || c.n > 0 || c.key === active);
+  return (
+    <nav className="flex flex-wrap items-center gap-2" aria-label="Filter by category">
+      <span className="text-xs text-muted-foreground">Category</span>
+      {items.map((c) => (
+        <Link
+          key={c.key ?? "all"}
+          href={hrefWith(sp, { category: c.key, feature: null })}
+          scroll={false}
+          className={cn(
+            "rounded-full border px-3 py-1 text-sm transition-colors hover:bg-muted",
+            c.key === active &&
+              "border-primary bg-primary text-primary-foreground hover:bg-primary/90",
+          )}
+        >
+          {c.label} <span className="tabular-nums opacity-70">{c.n}</span>
+        </Link>
+      ))}
+    </nav>
   );
 }
 
@@ -247,8 +298,9 @@ function RequirementsTable({
             <TableRow>
               <TableHead className="w-16">#</TableHead>
               <TableHead>Feature</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead>Assessment</TableHead>
-              <TableHead className="min-w-64">Requirement</TableHead>
+              <TableHead className="min-w-48">Requirement</TableHead>
               <TableHead>Target</TableHead>
               <TableHead className="text-right">Problems</TableHead>
             </TableRow>
@@ -260,6 +312,9 @@ function RequirementsTable({
                 <TableCell>
                   <FeatureLink f={f} sp={sp} />
                   {!f.isMapped && <p className="text-xs text-muted-foreground">feedback area</p>}
+                </TableCell>
+                <TableCell className="text-sm whitespace-nowrap text-muted-foreground">
+                  {categoryLabel(categoryOf(f.attribute, f.area))}
                 </TableCell>
                 <TableCell>
                   <AssessmentBadge value={f.assessment} method={f.method} />
@@ -291,7 +346,7 @@ function RequirementsTable({
             ))}
             {!rows.length && (
               <TableRow>
-                <TableCell colSpan={6} className="whitespace-normal text-muted-foreground">
+                <TableCell colSpan={7} className="whitespace-normal text-muted-foreground">
                   {emptyReason}
                 </TableCell>
               </TableRow>
@@ -318,7 +373,7 @@ function OtherFeatures({ rows, unclear, sp }: { rows: FeatureRow[]; unclear: num
           <TableHeader>
             <TableRow>
               <TableHead>Feature</TableHead>
-              <TableHead>Area</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead>Assessment</TableHead>
               <TableHead className="text-right">Problem share</TableHead>
               <TableHead className="text-right">Competitor comparisons</TableHead>
@@ -331,7 +386,7 @@ function OtherFeatures({ rows, unclear, sp }: { rows: FeatureRow[]; unclear: num
                   <FeatureLink f={f} sp={sp} />
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {f.area.replaceAll("_", " ")}
+                  {categoryLabel(categoryOf(f.attribute, f.area))}
                 </TableCell>
                 <TableCell>
                   <AssessmentBadge value={f.assessment} method={f.method} />

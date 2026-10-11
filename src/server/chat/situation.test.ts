@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { categoryOf } from "../../lib/feature-category";
 import { feedbackCountry, parseSituationPage, shortFeedbackId } from "./situation-lib";
 
 describe("parseSituationPage", () => {
@@ -47,5 +48,20 @@ describe("helpers", () => {
 
   it("shortens stored feedback ids to the cited form", () => {
     expect(shortFeedbackId("fb:evidence:bmw-feedback:G60-0309")).toBe("G60-0309");
+  });
+});
+
+describe("categoryOf", () => {
+  it("uses the taxonomy area of a feature", () => {
+    expect(categoryOf("fast_charging", "Powertrain")).toBe("powertrain");
+    expect(categoryOf("intuitive_ux", "Digital_UX")).toBe("digital");
+  });
+  it("places unmapped feedback areas by name", () => {
+    expect(categoryOf("unmapped:exterior_design_body", "unmapped")).toBe("exterior");
+    expect(categoryOf("unmapped:infotainment_connectivity", "unmapped")).toBe("digital");
+    expect(categoryOf("unmapped:service_docs_support", "unmapped")).toBe("ownership");
+    expect(categoryOf("unmapped:adas_driving_assistance", "unmapped")).toBe("driver_assistance");
+    expect(categoryOf("unmapped:seats_comfort", "unmapped")).toBe("interior");
+    expect(categoryOf("unmapped:something_else", "unmapped")).toBe("other");
   });
 });

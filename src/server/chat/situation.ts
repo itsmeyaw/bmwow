@@ -1,6 +1,7 @@
 import "server-only";
 import { tool } from "ai";
 import { z } from "zod";
+import { categoryLabel, categoryOf } from "@/lib/feature-category";
 import { pct } from "@/lib/format";
 import {
   getFeatureDetail,
@@ -22,6 +23,7 @@ export const SITUATION_INSTRUCTIONS = `## Situation analysis (requirement recomm
 - A run analyses one car in one region (EU, US, CN) or in all its regions ("All"): our current model (price list, studies, sales), competitors (like-for-like values: same unit, test standard and powertrain), customer feedback shares, and trends.
 - Each feature gets an assessment: gap (we fall short of customers or competitors), demand (customers or the market ask for more), hygiene_factor (customers complain but competitors are no better: keep the level, fix the complaints), strength (we lead or customers praise it), unclear (too little evidence).
 - method "judge" = judged by an LLM with a fixed rubric and checked by code rules; "rule" = computed by code from the numbers only (low certainty).
+- Features are grouped into categories: Exterior, Interior, Powertrain, Driver assistance, Digital & UX, Ownership & business.
 - Requirements (REQ-n) are the recommended features, in order of customer impact. A target comes from the competitor median, best in class or today's value; "set by PM" means no comparable number.
 - On a situation page, answer only from that car and region (getSituationRun / getSituationFeature with the page's values). Use another car or region only when the user names it, and say that you switched. On the overview, compare all runs.
 - Cite requirements as [REQ-n] and customer feedback as [G60-0309]-style ids from the tool output. Quote numbers exactly as the tools give them; never compute new shares or targets.
@@ -56,16 +58,16 @@ function featureTable(features: FeatureRow[]) {
   const unclear = features.length - req.length - other.length;
   const reqRows = req.map(
     (f) =>
-      `| ${f.reqId} | ${f.label} (${f.attribute}) | ${f.assessment} (${f.method}) | ${target(f)} | ${f.problemShare == null ? "–" : pct(f.problemShare)} | ${f.requirement ?? ""} |`,
+      `| ${f.reqId} | ${f.label} (${f.attribute}) | ${categoryLabel(categoryOf(f.attribute, f.area))} | ${f.assessment} (${f.method}) | ${target(f)} | ${f.problemShare == null ? "–" : pct(f.problemShare)} | ${f.requirement ?? ""} |`,
   );
   const otherRows = other.map(
     (f) =>
-      `- ${f.label} (${f.attribute}): ${f.assessment} (${f.method}), problem share ${f.problemShare == null ? "–" : pct(f.problemShare)}, ${f.competitorComparisons} competitor comparisons`,
+      `- ${f.label} (${f.attribute}), ${categoryLabel(categoryOf(f.attribute, f.area))}: ${f.assessment} (${f.method}), problem share ${f.problemShare == null ? "–" : pct(f.problemShare)}, ${f.competitorComparisons} competitor comparisons`,
   );
   return `### Recommended requirements
-| REQ | Feature | Assessment | Target | Problem share | Requirement |
-|---|---|---|---|---|---|
-${reqRows.join("\n") || "| – | none | | | | |"}
+| REQ | Feature | Category | Assessment | Target | Problem share | Requirement |
+|---|---|---|---|---|---|---|
+${reqRows.join("\n") || "| – | none | | | | | |"}
 
 ### Other assessed features (not recommended)
 ${otherRows.join("\n") || "- none"}
