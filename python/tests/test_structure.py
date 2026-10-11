@@ -52,7 +52,7 @@ async def test_judgments_are_guarded_revised_or_flagged(analysis_request):
     assert judged
     revised = judged["real_world_range"]
     assert revised.guard_status == "revised" and all(c.ok for c in revised.guard)
-    assert revised.assessment == "gap" and "99" not in revised.reasoning
+    assert revised.assessment == "demand" and "99" not in revised.reasoning
     assert revised.cited_ids and all(i.startswith("F-") for i in revised.cited_ids)
     flagged = judged["reliable_software"]
     assert flagged.guard_status == "flagged"
@@ -157,7 +157,7 @@ def test_guard_rules():
     pkg = _pkg()
     assert "12.0%" in render_package(pkg) or "12" in render_package(pkg)
     ok = guard(
-        pkg, "gap", "limited", "EU complaints and a median of 520 km.", ["F-feedback-1"], rules
+        pkg, "gap", "limited", "EU complaints and a median of 520 km.", ["F-competition-1"], rules
     )
     assert failed(ok) == set()
     assert "cited_ids_exist" in failed(guard(pkg, "gap", "limited", "x", ["F-x-9"], rules))
@@ -166,12 +166,14 @@ def test_guard_rules():
         guard(pkg, "gap", "limited", "37% complain", ["F-feedback-1"], rules)
     )
     # widespread needs CI lower bound >= 2%: the problem share qualifies, a thin praise alone does not
-    assert not failed(guard(pkg, "gap", "widespread", "x", ["F-feedback-1"], rules))
+    assert not failed(guard(pkg, "gap", "widespread", "x", ["F-competition-1"], rules))
     low = _pkg(customers=[pkg.customers[1]])
     assert "widespread_supported" in failed(
         guard(low, "strength", "widespread", "thin", ["F-feedback-2"], rules)
     )
     # each assessment needs its kind of evidence
+    assert "gap_supported" in failed(guard(pkg, "gap", "limited", "x", ["F-feedback-1"], rules))
+    assert not failed(guard(pkg, "demand", "limited", "x", ["F-feedback-1"], rules))
     assert "strength_supported" in failed(
         guard(pkg, "strength", "limited", "x", ["F-feedback-1"], rules)
     )
@@ -190,6 +192,25 @@ def test_guard_rules():
 @pytest.mark.parametrize("assessment", ["unclear"])
 def test_unclear_needs_no_citation(assessment):
     assert not failed(guard(_pkg(), assessment, "unclear", "Evidence too thin.", [], load_rules()))
+
+
+@pytest.mark.parametrize(
+    "update, supported",
+    [
+        ({}, True),
+        ({"ours": None}, False),
+        ({"field_size": None}, False),
+        ({"ours_vs_median": None}, False),
+        ({"ours_vs_median": 0}, False),
+        ({"ours_vs_median": 0.125}, False),
+        ({"lower_is_better": True, "ours_vs_median": 0.125}, True),
+    ],
+)
+def test_underperformance_requires_a_cited_trailing_benchmark(update, supported):
+    pkg = _pkg()
+    pkg.competitor_values = [pkg.competitor_values[0].model_copy(update=update)]
+    checks = guard(pkg, "gap", "limited", "x", ["F-competition-1"], load_rules())
+    assert ("gap_supported" not in failed(checks)) is supported
 
 
 async def test_gap_fill_researches_important_features_once(analysis_request, monkeypatch, fake_env):
@@ -268,7 +289,7 @@ def test_guard_accepts_thousand_separators_and_sub_theme_examples():
     pkg = pkg.model_copy(update={"source_ids": [*pkg.source_ids, "fb:example-1"]})
     checks = guard(
         pkg,
-        "gap",
+        "demand",
         "limited",
         "173 of 3,610 US items report it.",
         ["F-feedback-1", "fb:example-1"],
@@ -432,7 +453,7 @@ def test_rule_assessment_from_computed_facts():
     )
     r = rule_assessment(pkg(signal("request", 30), signal("problem", 15)), rules)
     assert (r.assessment, r.basis) == ("demand", "customers only")
-    assert rule_assessment(pkg(signal("problem", 30)), rules).assessment == "gap"
+    assert rule_assessment(pkg(signal("problem", 30)), rules).assessment == "demand"
     r = rule_assessment(pkg(signal("problem", 5)), rules)
     assert (r.assessment, r.basis) == ("unclear", "thin")
 

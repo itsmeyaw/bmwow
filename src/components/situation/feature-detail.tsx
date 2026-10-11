@@ -8,11 +8,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { int, pct } from "@/lib/format";
+import { assessmentSuggestion } from "@/lib/assessment";
 import { cn } from "@/lib/utils";
 import { getFeatureDetail, type Finding, type Signal } from "@/server/situation/queries";
 import { Highlighted } from "@/components/feedback";
 import {
-  ASSESSMENTS,
   AssessmentBadge,
   Cited,
   DIRECTION_LABEL,
@@ -141,7 +141,7 @@ export async function FeatureDetailView({
           title="Why"
           hint={
             f.method === "judge"
-              ? `Judged by the LLM with a fixed rubric; checked by code rules (${f.guardStatus}). Code suggested: ${ASSESSMENTS[f.ruleSuggestion ?? ""]?.label ?? f.ruleSuggestion}.`
+              ? `Judged by the LLM with a fixed rubric; checked by code rules (${f.guardStatus}). Code suggested: ${assessmentSuggestion(f.ruleSuggestion ?? "")}.`
               : "Rule-based: computed by code from the shares and comparisons (low certainty)."
           }
         >

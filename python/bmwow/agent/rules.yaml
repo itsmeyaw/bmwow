@@ -140,6 +140,7 @@ gap_fill:
   min_customer_ci_low: 0.01
 
 candidates:
+  # Stable IDs: gap = Underperformance (competitor benchmark); demand = Gap (unmet customer need).
   # Assessments that become requirement candidates (unclear / not_assessed / flagged never do).
   assessments: [gap, demand, hygiene_factor, strength]
   # Default target per assessment: competitor_median (parity, evidence-backed), best_in_class, or ours

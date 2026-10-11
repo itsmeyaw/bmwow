@@ -22,6 +22,7 @@ from bmwow.agent.models.evidence import (
     Target,
     TargetOption,
     ValueComparison,
+    assessment_label,
 )
 
 from .rules import Rules
@@ -104,7 +105,7 @@ def default_target(assessment: str, c: ValueComparison | None, rules: Rules) -> 
         unit=c.unit,
         condition=c.condition,
         basis="proposed_target",
-        rule=f"{rule} ({assessment})",
+        rule=f"{rule} ({assessment_label(assessment)})",
     )
 
 
@@ -209,7 +210,7 @@ def template_wording(c: RequirementCandidate) -> tuple[str, str]:
             + "; target value to be set by the PM."
         )
     value = (
-        f"Customers: {fact}." if fact else f"Addresses the {c.assessment.replace('_', ' ')} found."
+        f"Customers: {fact}." if fact else f"Addresses the {assessment_label(c.assessment)} found."
     )
     return statement, value
 

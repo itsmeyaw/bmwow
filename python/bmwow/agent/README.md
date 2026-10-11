@@ -26,9 +26,19 @@ judgment. Missing data is reported per source in `AgentReport.availability`, nev
 | validate | 4 reports | citation and number checks, missing reports filled | validated reports |
 | structure_agent | validated reports | assemble packages (code) → rubric judgment (LLM, cites package ids) → guard (code), one revision then flagged | `evidence_packages`, `feature_assessments` |
 | gap_fill | important features without competitor evidence | one targeted competition round, merged into the competition report | more competitor evidence |
-| candidate_agent | packages + assessments | code: candidates for gap / demand / hygiene_factor / strength (never unclear, not assessed or flagged), change intent and baseline status (ontology rules), target options (ours / competitor median / best in class) and the default target from `rules.yaml`; LLM words the quantitative statement, guarded (states the target, no foreign numbers), else template | `requirement_candidates` (fields mirror the ontology `Requirement`) |
+| candidate_agent | packages + assessments | code: candidates for Underperformance / Gap / Must-have / Strength (never unclear, not assessed or flagged), change intent and baseline status (ontology rules), target options (ours / competitor median / best in class) and the default target from `rules.yaml`; LLM words the quantitative statement, guarded (states the target, no foreign numbers), else template | `requirement_candidates` (fields mirror the ontology `Requirement`) |
 | gate_requirements | candidates | PM actions, one per step: approve / reject, constrain (freeze, cap, floor, set, deprioritize; code recomputes the target), free-text constraints (LLM parses, PM confirms; values the PM did not write are dropped), why (answer from the candidate's evidence only), done | decided candidates, `gate_log` |
 | collect | everything | build + persist the hand-off, optional `store_findings` | `SituationAnalysis` |
+
+**Assessment names.** Product-facing labels are **Underperformance** (stored ID `gap`),
+**Gap** (stored ID `demand`), **Must-have** (`hygiene_factor`), **Strength**, **Unclear**, and
+**Not assessed**. The wire IDs remain stable for saved runs and SQL exports. Underperformance needs
+a comparable competitor benchmark with our own value showing we trail; the guard requires a citation
+to that comparison. Gap covers unmet customer needs evidenced by problems, requests, or market
+trends. Customer-only complaints become Gap. When both apply, the judge prefers Underperformance
+and explains the customer need. Finding/trend polarity `demand` still means request intent.
+Existing saved runs receive the new display labels but retain their original judgments; regenerate
+them to apply the narrower Underperformance definition.
 
 **BMW data and LLMs.** Steps that would send BMW data to an LLM (feedback sub-themes from texts, the
 structure_agent judgment) run only with `ALLOW_LLM_ON_INTERNAL_DATA=true`. With the default `false`,

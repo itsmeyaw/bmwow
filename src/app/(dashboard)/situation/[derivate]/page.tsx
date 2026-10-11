@@ -503,7 +503,7 @@ function OtherFeatures({ rows, unclear, sp }: { rows: FeatureRow[]; unclear: num
           const fs = rows.filter((f) => f.assessment === v);
           if (!fs.length) return null;
           return (
-            <div key={v} className="grid grid-cols-[6rem_1fr] items-start gap-3">
+            <div key={v} className="grid grid-cols-[10rem_1fr] items-start gap-3">
               <span className="pt-0.5">
                 <AssessmentBadge value={v} />
               </span>

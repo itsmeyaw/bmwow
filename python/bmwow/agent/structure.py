@@ -395,6 +395,13 @@ def _pooled(pkg: EvidencePackage, direction: str) -> CustomerSignal | None:
     return max(pooled, key=lambda s: s.n) if pooled else None
 
 
+def _trails_comparison(v: ValueComparison) -> bool:
+    """A comparison proves underperformance only with our value and a worse median delta."""
+    if v.ours is None or not v.field_size or v.ours_vs_median is None:
+        return False
+    return v.ours_vs_median > 0 if v.lower_is_better else v.ours_vs_median < 0
+
+
 def rule_assessment(pkg: EvidencePackage, rules: Rules) -> RuleResult:
     """Assessment from computed facts only (no LLM). Customer shares count by the lower bound of
     their 95% interval; a comparison counts only with our own value in it (same unit, standard and
@@ -413,7 +420,7 @@ def rule_assessment(pkg: EvidencePackage, rules: Rules) -> RuleResult:
         return [x.finding_id for x in xs if x is not None]
 
     if c is not None:
-        worse = (c.ours_vs_median or 0) > 0 if c.lower_is_better else (c.ours_vs_median or 0) < 0
+        worse = _trails_comparison(c)
         where = (
             f"ours {_fmt(c.ours)} {c.unit} vs competitor median {_fmt(c.median)} "
             f"({c.condition or 'same basis'}, rank {c.ours_rank} of {c.field_size})"
@@ -457,7 +464,7 @@ def rule_assessment(pkg: EvidencePackage, rules: Rules) -> RuleResult:
         )
     if pl >= t:
         return RuleResult(
-            assessment="gap",
+            assessment="demand",
             basis="customers only",
             reasoning=f"Customers report problems ({fmt(p, 'problem')}): the current model falls "
             "short of what customers expect; no comparable competitor value.",
@@ -540,9 +547,10 @@ def guard(
     by_dir: dict[str, set[str]] = defaultdict(set)
     for s in pkg.customers:
         by_dir[s.direction].add(s.finding_id)
-    value_ids = {i for v in pkg.competitor_values for i in v.finding_ids}
     better = {i for v in pkg.competitor_values if (v.ours_rank or 99) == 1 for i in v.finding_ids}
-    competitor_ids = value_ids | {f.finding_id for f in pkg.competitor_facts}
+    trailing_ids = {
+        i for v in pkg.competitor_values if _trails_comparison(v) for i in v.finding_ids
+    }
     demand_trends = {t.finding_id for t in pkg.trends if t.polarity == "demand"}
     thin_ids = {s.finding_id for s in pkg.customers if s.thin} | {
         t.finding_id for t in pkg.trends if t.thin
@@ -578,15 +586,18 @@ def guard(
         )
     needs = {
         "gap": (
-            by_dir["problem"] | by_dir["request"] | competitor_ids,
-            "a customer problem/request or competitor evidence",
+            trailing_ids,
+            "a comparable benchmark where our vehicle trails competitors (Underperformance)",
         ),
         "strength": (
             by_dir["strength"] | better,
             "customer praise or a comparison where ours ranks first",
         ),
         "hygiene_factor": (by_dir["problem"], "a customer problem share"),
-        "demand": (by_dir["request"] | demand_trends, "a customer request or a demand trend"),
+        "demand": (
+            by_dir["problem"] | by_dir["request"] | demand_trends,
+            "a customer problem/request or a demand trend showing an unmet need (Gap)",
+        ),
     }
     if assessment in needs:
         ids, what = needs[assessment]

@@ -69,7 +69,7 @@ export function VerdictDonut({ counts }: { counts: Record<string, number> }) {
         {KEYS.map((k) => (
           <li key={k} className="flex items-center gap-2" title={ASSESSMENTS[k].hint}>
             <span className={`size-2.5 rounded-sm ${ASSESSMENTS[k].bar}`} />
-            <span className="w-20">{ASSESSMENTS[k].label}</span>
+            <span className="w-36">{ASSESSMENTS[k].label}</span>
             <span className="font-medium tabular-nums">{int(counts[k] ?? 0)}</span>
           </li>
         ))}

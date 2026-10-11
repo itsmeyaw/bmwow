@@ -18,10 +18,11 @@ customers, trends); code computed every number in it.
 4. Is it **regional** or tied to an engine type?
 5. Does a **trend** make it more or less important for a launch in 3–5 years?
 6. Is it relevant to **safety** or to the BMW brand (driving pleasure, design, premium feel)?
-7. **Assessment**: `gap` (we fall short of what customers or competitors set), `strength` (we lead or
-   customers praise it), `hygiene_factor` (customers complain, but competitors are no better), `demand`
-   (customers or the market ask for more, regardless of competitors), or `unclear` (evidence too thin
-   or contradictory).
+7. **Assessment** (return the stored ID): `gap` = **Underperformance** (a comparable benchmark shows
+   our vehicle trails competitors), `demand` = **Gap** (an unmet customer need: customers report
+   problems, ask for more, or a market trend signals a need), `strength` = **Strength** (we lead or
+   customers praise it), `hygiene_factor` = **Must-have** (customers complain, but competitors are no
+   better), or `unclear` = **Unclear** (evidence too thin or contradictory).
 
 # Rules
 
@@ -32,9 +33,11 @@ customers, trends); code computed every number in it.
 - `widespread` only if a customer share's interval lower bound clearly supports it; otherwise `limited`
   or `unclear`.
 - A missing view (no catalog value, competitor or trend) lowers your `certainty`; it does not by
-  itself make the assessment `unclear`. Customer evidence alone can support `gap` (customers report
-  problems: we fall short of what they expect), `demand` (they ask for it) or `strength` (they praise
-  it). Answer `unclear` only when the shares are thin or the evidence contradicts itself.
+  itself make the assessment `unclear`. Customer evidence alone can support `demand` (Gap: problems
+  or requests show an unmet need) or `strength` (they praise it). `gap` (Underperformance) must cite a
+  comparable competitor value with our own value showing we trail. Where competitive shortfall and
+  customer need both apply, prefer Underperformance; retain the customer need in the reasoning.
+  Answer `unclear` only when the shares are thin or the evidence contradicts itself.
 - The package ends with a rule-based suggestion computed by code. Start from it; if you choose a
   different assessment, say why in one reasoning sentence with cited ids.
 {{revision}}

@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { assessmentLabel } from "@/lib/assessment";
 import { pct } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -11,16 +12,16 @@ export const ASSESSMENTS: Record<
   { label: string; className: string; hint: string; bar: string; fill: string }
 > = {
   gap: {
-    label: "Gap",
+    label: assessmentLabel("gap"),
     className: "bg-destructive/10 text-destructive",
-    hint: "We fall short of what customers expect or competitors offer.",
+    hint: "A comparable benchmark shows we fall behind competitors.",
     bar: "bg-destructive",
     fill: "var(--destructive)",
   },
   demand: {
-    label: "Demand",
+    label: assessmentLabel("demand"),
     className: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
-    hint: "Customers or the market ask for more, regardless of competitors.",
+    hint: "An unmet customer need: customers report problems, ask for more, or the market signals a need.",
     bar: "bg-sky-500",
     fill: "var(--color-sky-500)",
   },
@@ -58,7 +59,10 @@ export const ASSESSMENTS: Record<
 export const VERDICTS = ["gap", "demand", "hygiene_factor", "strength"] as const;
 
 /** Stored texts say "hygiene_factor"; the UI says "must-have". */
-export const unjargon = (text: string) => text.replace(/hygiene[_ ]factors?/gi, "must-have");
+export const unjargon = (text: string) =>
+  text
+    .replace(/hygiene[_ ]factors?/gi, "must-have")
+    .replace(/\((gap|demand)\)/g, (_, id: string) => `(${assessmentLabel(id)})`);
 
 /** A requirement statement without its "The successor should improve" lead, for one-line display. */
 export const plainRequirement = (text: string) => {

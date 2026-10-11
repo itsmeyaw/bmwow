@@ -1,6 +1,7 @@
 import "server-only";
 import { tool } from "ai";
 import { z } from "zod";
+import { assessmentLabel, assessmentSuggestion } from "@/lib/assessment";
 import { categoryLabel, categoryOf } from "@/lib/feature-category";
 import { pct } from "@/lib/format";
 import {
@@ -21,7 +22,7 @@ import { regionLabel, shortFeedbackId, type SituationPage } from "./situation-li
 
 export const SITUATION_INSTRUCTIONS = `## Situation analysis (requirement recommendations)
 - A run analyses one car in one region (EU, US, CN) or in all its regions ("All"): our current model (price list, studies, sales), competitors (like-for-like values: same unit, test standard and powertrain), customer feedback shares, and trends.
-- Each feature gets an assessment: gap (we fall short of customers or competitors), demand (customers or the market ask for more), hygiene_factor, shown to users as "Must-have" (customers complain but competitors are no better: keep the level, fix the complaints; always call it "must-have" in answers), strength (we lead or customers praise it), unclear (too little evidence).
+- Each feature gets an assessment: Underperformance (stored ID gap: a comparable benchmark shows we trail competitors), Gap (stored ID demand: an unmet customer need, supported by problems, requests or market trends), Must-have (stored ID hygiene_factor: customers complain but competitors are no better; keep the level, fix the complaints), Strength (we lead or customers praise it), Unclear (too little evidence). Always use the displayed names in answers; never call the assessment "Demand" or "hygiene_factor". Customer-only complaints support Gap; Underperformance requires a comparable benchmark that shows our vehicle trails. Older runs may use gap for customer-only complaints: explain the supporting evidence and do not claim a competitive shortfall without a benchmark.
 - method "judge" = judged by an LLM with a fixed rubric and checked by code rules; "rule" = computed by code from the numbers only (low certainty).
 - Features are grouped into categories: Exterior, Interior, Powertrain, Driver assistance, Digital & UX, Ownership & business.
 - Requirements (REQ-n) are the recommended features, in order of customer impact. A target comes from the competitor median, best in class or today's value; "set by PM" means no comparable number.
@@ -58,11 +59,11 @@ function featureTable(features: FeatureRow[]) {
   const unclear = features.length - req.length - other.length;
   const reqRows = req.map(
     (f) =>
-      `| ${f.reqId} | ${f.label} (${f.attribute}) | ${categoryLabel(categoryOf(f.attribute, f.area))} | ${f.assessment} (${f.method}) | ${target(f)} | ${f.problemShare == null ? "–" : pct(f.problemShare)} | ${f.requirement ?? ""} |`,
+      `| ${f.reqId} | ${f.label} (${f.attribute}) | ${categoryLabel(categoryOf(f.attribute, f.area))} | ${assessmentLabel(f.assessment)} (${f.method}) | ${target(f)} | ${f.problemShare == null ? "–" : pct(f.problemShare)} | ${f.requirement ?? ""} |`,
   );
   const otherRows = other.map(
     (f) =>
-      `- ${f.label} (${f.attribute}), ${categoryLabel(categoryOf(f.attribute, f.area))}: ${f.assessment} (${f.method}), problem share ${f.problemShare == null ? "–" : pct(f.problemShare)}, ${f.competitorComparisons} competitor comparisons`,
+      `- ${f.label} (${f.attribute}), ${categoryLabel(categoryOf(f.attribute, f.area))}: ${assessmentLabel(f.assessment)} (${f.method}), problem share ${f.problemShare == null ? "–" : pct(f.problemShare)}, ${f.competitorComparisons} competitor comparisons`,
   );
   return `### Recommended requirements
 | REQ | Feature | Category | Assessment | Target | Problem share | Requirement |
@@ -78,11 +79,11 @@ function featureText(d: FeatureDetail) {
   const f = d.feature;
   const r = d.requirement;
   const lines = [
-    `## ${f.label} (${f.attribute}) — ${f.assessment} (${f.method}, certainty ${f.certainty ?? "–"}, rank #${f.rank})`,
+    `## ${f.label} (${f.attribute}) — ${assessmentLabel(f.assessment)} (${f.method}, certainty ${f.certainty ?? "–"}, rank #${f.rank})`,
     f.whatExactly && `What exactly: ${f.whatExactly}`,
     f.reasoning && `Reasoning: ${f.reasoning}`,
     f.ruleSuggestion &&
-      `Code's rule-based suggestion: ${f.ruleSuggestion}; code checks: ${f.guardStatus ?? "–"}`,
+      `Code's rule-based suggestion: ${assessmentSuggestion(f.ruleSuggestion)}; code checks: ${f.guardStatus ?? "–"}`,
     f.facts.length && `Computed facts:\n${f.facts.map((x) => `- ${x}`).join("\n")}`,
     r &&
       `Requirement ${r.reqId}: ${r.statement}\nTarget: ${target(r)}; why: ${r.targetRule ?? "–"}; current model: ${r.baselineStatus} (${r.baselineRationale ?? ""})${

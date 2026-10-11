@@ -285,6 +285,20 @@ class EvidencePackage(BaseModel):
 
 Assessment = Literal["gap", "strength", "hygiene_factor", "demand", "unclear", "not_assessed"]
 
+# Keep stored IDs stable: gap means competitive underperformance; demand means an unmet need.
+ASSESSMENT_LABELS: dict[str, str] = {
+    "gap": "Underperformance",
+    "demand": "Gap",
+    "hygiene_factor": "Must-have",
+    "strength": "Strength",
+    "unclear": "Unclear",
+    "not_assessed": "Not assessed",
+}
+
+
+def assessment_label(value: str) -> str:
+    return ASSESSMENT_LABELS.get(value, value)
+
 
 class GuardCheck(BaseModel):
     rule: str
@@ -330,7 +344,7 @@ class Target(BaseModel):
     unit: str
     condition: str
     basis: Literal["proposed_target", "evidence_supported_target", "human_set_target"]
-    rule: str  # why this value, e.g. "competitor median (gap)" or "PM cap"
+    rule: str  # why this value, e.g. "competitor median (Underperformance)" or "PM cap"
 
 
 class Constraint(BaseModel):

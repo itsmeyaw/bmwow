@@ -396,7 +396,7 @@ class FakeAnalyst:
                 },
             )
         fid, direction, rest = lines[0]
-        assessment = {"problem": "gap", "request": "demand", "strength": "strength"}.get(
+        assessment = {"problem": "demand", "request": "demand", "strength": "strength"}.get(
             direction, "unclear"
         )
         thin = ", thin" in rest

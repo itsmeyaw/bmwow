@@ -15,7 +15,7 @@ import argparse
 import json
 from pathlib import Path
 
-from bmwow.agent.models.evidence import SituationAnalysis
+from bmwow.agent.models.evidence import SituationAnalysis, assessment_label
 
 MAX_FEATURES = 14
 MAX_REGIONS = 3  # categorical slots validated all-pairs; more regions fold into the table view
@@ -103,6 +103,7 @@ def build_data(a: SituationAnalysis) -> dict:
     assessments = {
         x.attribute: {
             "assessment": x.assessment,
+            "assessment_label": assessment_label(x.assessment),
             "what": x.what_exactly,
             "widespread": x.widespread,
             "certainty": x.certainty,
@@ -117,6 +118,7 @@ def build_data(a: SituationAnalysis) -> dict:
             "id": c.id,
             "title": c.title,
             "assessment": c.assessment,
+            "assessment_label": assessment_label(c.assessment),
             "intent": c.change_intent,
             "baseline": c.baseline_status,
             "target": (
@@ -362,7 +364,7 @@ function select(attr) { sel = attr; fs.value = attr; drawDots(); drawDetail(); }
 function drawDetail() {
   const p = D.packages.find(x => x.attribute === sel); const j = D.assessments[sel] || {};
   const box = $("judgment"); box.replaceChildren();
-  box.append(el("div", {}, ""), el("span", {class: "pill"}, `assessment: ${j.assessment || "–"}`), document.createTextNode(" "),
+  box.append(el("div", {}, ""), el("span", {class: "pill"}, `assessment: ${j.assessment_label || "–"}`), document.createTextNode(" "),
     el("span", {class: "pill"}, `widespread: ${j.widespread || "–"}`), document.createTextNode(" "),
     el("span", {class: "pill"}, `certainty: ${j.certainty || "–"}`), document.createTextNode(" "),
     el("span", {class: "pill"}, `guard: ${j.guard || "–"}`));
@@ -422,12 +424,12 @@ function drawComp() {
 
 // tables
 $("cands").append(D.candidates.length ? table([{label: "Id", get: c => c.id}, {label: "Candidate", get: c => c.title},
-  {label: "Assessment → intent", get: c => `${c.assessment} → ${c.intent} (baseline ${c.baseline})`}, {label: "Target", get: c => c.target},
+  {label: "Assessment → intent", get: c => `${c.assessment_label} → ${c.intent} (baseline ${c.baseline})`}, {label: "Target", get: c => c.target},
   {label: "Statement", get: c => c.statement}, {label: "Status", get: c => `${c.status} · priority ${c.priority}`},
   {label: "Open points", get: c => c.open.join("; ")}], D.candidates)
-  : el("p", {class: "small"}, "No candidates: no feature was judged as gap, demand, hygiene factor or strength."));
+  : el("p", {class: "small"}, "No candidates: no feature was judged as Underperformance, Gap, Must-have or Strength."));
 const judged = D.packages.map(p => ({p, j: D.assessments[p.attribute] || {}})).filter(r => r.j.assessment && r.j.assessment !== "not_assessed");
-$("judgTable").append(judged.length ? table([{label: "Feature", get: r => r.p.label}, {label: "Assessment", get: r => r.j.assessment},
+$("judgTable").append(judged.length ? table([{label: "Feature", get: r => r.p.label}, {label: "Assessment", get: r => r.j.assessment_label},
   {label: "Widespread", get: r => r.j.widespread}, {label: "Certainty", get: r => r.j.certainty}, {label: "Guard", get: r => r.j.guard},
   {label: "What exactly", get: r => r.j.what}], judged) : el("p", {class: "small"}, "No judged features in this run."));
 $("trends").append(D.trends.length ? table([{label: "Feature", get: t => t.attribute}, {label: "Horizon", get: t => t.horizon || "–"},

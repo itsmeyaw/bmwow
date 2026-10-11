@@ -35,7 +35,7 @@ from dotenv import dotenv_values
 
 from bmwow.agent import service
 from bmwow.agent.knowledge_bridge import configure_service, ontology, sql_client
-from bmwow.agent.models.evidence import AnalysisRequest
+from bmwow.agent.models.evidence import AnalysisRequest, assessment_label
 from bmwow.agent.tools.knowledge import ModuleBackend, set_backend
 from bmwow.knowledge import create_knowledge_service
 
@@ -58,7 +58,10 @@ def print_list(gate: dict[str, Any]) -> None:
 
 
 def print_one(c: dict[str, Any]) -> None:
-    print(f"\n{c['id']} · {c['title']}  [{c['assessment']} → {c['change_intent']}, {c['status']}]")
+    print(
+        f"\n{c['id']} · {c['title']}  "
+        f"[{assessment_label(c['assessment'])} → {c['change_intent']}, {c['status']}]"
+    )
     print(f"  statement:  {c['statement']}")
     print(f"  value:      {c['customer_value']}")
     print(f"  target:     {_target(c)}" + (f"  ({c['target']['rule']})" if c.get("target") else ""))
