@@ -41,18 +41,50 @@ def label_of(attribute: str) -> str:
     return attribute.removeprefix("unmapped:").replace("_", " ")
 
 
+_UNITS = {
+    "kilometres": "km",
+    "kilometers": "km",
+    "kilometre": "km",
+    "kilometer": "km",
+    "minutes": "min",
+    "minute": "min",
+    "mins": "min",
+    "€": "eur",
+    "euro": "eur",
+    "euros": "eur",
+    "$": "usd",
+    "us$": "usd",
+    "dollars": "usd",
+}
+
+
+def normalize_unit(unit: str) -> str:
+    u = unit.strip().lower()
+    return _UNITS.get(u, u)
+
+
+def normalize_condition(text: str) -> str:
+    """Same test standard, same key: "10% to 80%" == "10-80%", case and spacing ignored."""
+    t = text.lower()
+    t = re.sub(r"(\d+)\s*%?\s*(?:to|-|–|—)\s*(\d+)\s*%", r"\1-\2%", t)
+    return re.sub(r"\s+", " ", t).strip(" ;,")
+
+
 def _condition(finding: Finding, sources: dict[str, Source]) -> str:
     """The comparison condition (test standard and constraints) of a value; the ontology's
-    measurement wins over the free-text qualifier."""
+    measurement wins over the free-text qualifier. Trim variants and the region are not part of it:
+    they describe a value, they do not make values incomparable."""
     for sid in finding.source_ids:
         m = sources[sid].measurement if sid in sources else None
         if m is not None and (m.test_standard or m.conditions):
-            return "; ".join(x for x in [m.test_standard or "", *m.conditions] if x)
+            return normalize_condition(
+                "; ".join(x for x in [m.test_standard or "", *m.conditions] if x)
+            )
     q = finding.quantity.qualifier if finding.quantity else ""
     q = re.sub(r"\bhorizon \S+", "", q)
-    if finding.region:
-        q = re.sub(rf"\b{re.escape(finding.region)}\b", "", q)
-    return re.sub(r"\s+", " ", q).strip(" ;,")
+    parts = [x.strip() for x in q.split(";")]
+    parts = [x for x in parts if x and not x.lower().startswith("variant ") and x != finding.region]
+    return normalize_condition("; ".join(parts))
 
 
 def _fmt(value: float) -> str:
@@ -70,13 +102,13 @@ def _value_comparisons(
     groups: dict[tuple[str, str, str | None], list[Finding]] = defaultdict(list)
     for f in competitor:
         if f.quantity is not None and f.quantity.unit and f.quantity.origin != "computed":
-            key = (f.quantity.unit.strip().lower(), _condition(f, sources).lower(), f.region)
+            key = (normalize_unit(f.quantity.unit), _condition(f, sources), f.region)
             groups[key].append(f)
     own: dict[tuple[str, str], float] = {}
     for f in ours:
         if f.quantity is not None and f.quantity.unit and f.quantity.origin == "record":
             own.setdefault(
-                (f.quantity.unit.strip().lower(), _condition(f, sources).lower()), f.quantity.value
+                (normalize_unit(f.quantity.unit), _condition(f, sources)), f.quantity.value
             )
     out: list[ValueComparison] = []
     for (unit, condition, region), findings in sorted(groups.items(), key=lambda kv: str(kv[0])):

@@ -276,7 +276,8 @@ async def _extract(
         region = region if region in competitor.regions else None
         quantity = None
         if v.value is not None and v.unit and number_in_text(v.value, v.quote, v.unit):
-            qualifier = "; ".join(x for x in (v.test_standard, v.variant, region) if x)
+            variant = f"variant {v.variant}" if v.variant else None
+            qualifier = "; ".join(x for x in (v.test_standard, variant, region) if x)
             quantity = Quantity(
                 value=v.value, unit=v.unit.strip(), qualifier=qualifier, origin="source_text"
             )

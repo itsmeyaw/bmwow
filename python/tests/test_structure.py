@@ -279,3 +279,42 @@ async def test_sub_theme_examples_are_citable_package_ids(analysis_request):
     analysis = await run(analysis_request)
     for p in analysis.evidence_packages:
         assert {sid for t in p.sub_themes for sid in t.source_ids} <= set(p.source_ids)
+
+
+def test_comparisons_ignore_variants_and_unit_spelling():
+    from datetime import UTC, datetime
+
+    from bmwow.agent.models.evidence import Finding, Quantity, Source
+    from bmwow.agent.structure import _value_comparisons, normalize_condition
+
+    assert normalize_condition("10% to 80%") == normalize_condition("10-80%") == "10-80%"
+    now = datetime.now(UTC)
+    src = {"web:1": Source(id="web:1", kind="web", ref="u", excerpt="x", retrieved_at=now)}
+
+    def value(i, v, unit, qualifier, region=None):
+        return Finding(
+            id=f"F-competition-{i}",
+            agent="competition",
+            attribute="real_world_range",
+            claim="c",
+            polarity="neutral",
+            subject=f"C{i}",
+            source_ids=["web:1"],
+            confidence="medium",
+            region=region,
+            quantity=Quantity(value=v, unit=unit, qualifier=qualifier),
+        )
+
+    comps = _value_comparisons(
+        "real_world_range",
+        [
+            value(1, 598, "km", "WLTP"),
+            value(2, 777, "kilometres", "WLTP; variant Sportback e-tron"),
+            value(3, 520, "km", "EPA"),
+        ],
+        [],
+        src,
+        load_rules(),
+    )
+    groups = {(c.unit, c.condition): c.n for c in comps}
+    assert groups == {("km", "wltp"): 2, ("km", "epa"): 1}  # variant merged, EPA kept apart
