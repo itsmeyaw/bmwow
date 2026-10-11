@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [
+    ".agents",
+    ".claude",
+    ".entire",
+    ".factory",
+    ".opencode",
+    ".worktrees",
+    ".next",
+    "contracts",
+    "data",
+    "python",
+    "pnpm-lock.yaml",
+    "skills-lock.json"
+  ]
+}

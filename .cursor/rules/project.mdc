@@ -1,0 +1,7 @@
+---
+description: Shared BMWow repository conventions and teammate handoff
+alwaysApply: true
+---
+
+Read and follow [AGENTS.md](../../AGENTS.md) for package layout, ontology generation,
+validation, data handling, and collaboration. Use [README.md](../../README.md) for setup.
