@@ -402,7 +402,7 @@ function drawComp() {
     const metaEl = sv("text", {x: left - 12, y: 38, "text-anchor": "end"}, clip(meta, 36));
     metaEl.append(sv("title", {}, meta)); svg.append(metaEl);
     svg.append(sv("line", {x1: x(c.min), x2: x(c.max), y1: 26, y2: 26, stroke: "var(--axis)", "stroke-width": 6, "stroke-linecap": "round"}));
-    svg.append(sv("line", {x1: x(c.median), x2: x(c.median), y1: 16, y2: 36, stroke: "var(--ink2)", "stroke-width": 2}));
+    if (c.n > 1) svg.append(sv("line", {x1: x(c.median), x2: x(c.median), y1: 16, y2: 36, stroke: "var(--ink2)", "stroke-width": 2}));
     for (const d of c.dots) { const dot = sv("circle", {cx: x(d.value), cy: 26, r: 5, fill: "var(--s1)", stroke: "var(--surface)", "stroke-width": 2});
       svg.append(dot); const hit = sv("circle", {class: "hit", cx: x(d.value), cy: 26, r: 12});
       hover(hit, [[`${fmt(d.value)} ${c.unit}`, d.subject + (d.variant ? " · " + d.variant : ""), "var(--s1)"]]); svg.append(hit); }
@@ -410,7 +410,10 @@ function drawComp() {
       svg.append(sv("path", {d: `M${cx},${26 - s} L${cx + s},26 L${cx},${26 + s} L${cx - s},26 Z`, fill: "var(--ink)", stroke: "var(--surface)", "stroke-width": 2}));
       svg.append(sv("text", {class: "lbl", x: cx, y: 50, "text-anchor": "middle"}, `ours ${fmt(c.ours)} · rank ${c.rank} of ${c.size}`));
       const hit = sv("circle", {class: "hit", cx, cy: 26, r: 12}); hover(hit, [[`${fmt(c.ours)} ${c.unit}`, `ours · rank ${c.rank} of ${c.size}`, "var(--ink)"]]); svg.append(hit); }
-    svg.append(sv("text", {x: x(c.median), y: 12, "text-anchor": "middle"}, `median ${fmt(c.median)}`));
+    if (c.n > 1) svg.append(sv("text", {x: x(c.median), y: 12, "text-anchor": "middle"}, `median ${fmt(c.median)}`));
+    if (c.n <= 3) c.dots.forEach((d, i) => svg.append(sv("text", {class: "lbl", x: x(d.value) + 10, y: 30 - (c.dots.length - 1 - i) * 13,
+      "text-anchor": x(d.value) > W - 260 ? "end" : "start", dx: x(d.value) > W - 260 ? -20 : 0},
+      `${d.subject} · ${fmt(d.value)} ${c.unit}${d.variant ? " (" + d.variant + ")" : ""}`)));
     host.append(svg); }
   $("compTable").replaceChildren(table([{label: "Feature", get: g => g.p.label}, {label: "Unit · condition", get: g => `${g.c.unit} ${g.c.condition}`},
     {label: "n", num: 1, get: g => g.c.n}, {label: "Min", num: 1, get: g => fmt(g.c.min)}, {label: "Median", num: 1, get: g => fmt(g.c.median)},
