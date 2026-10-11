@@ -1,0 +1,203 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e5]:
+      - list [ref=f5e7]:
+        - listitem [ref=f5e8]:
+          - link "BMWow Customer feedback" [ref=f5e9] [cursor=pointer]:
+            - /url: /feedback
+            - generic [ref=f5e21]:
+              - generic [ref=f5e22]: BMWow
+              - generic [ref=f5e23]: Customer feedback
+      - list [ref=f5e26]:
+        - listitem [ref=f5e27]:
+          - link "Introduction" [ref=f5e28] [cursor=pointer]:
+            - /url: /introduction
+        - listitem [ref=f5e33]:
+          - link "Feedback" [ref=f5e34] [cursor=pointer]:
+            - /url: /feedback
+        - listitem [ref=f5e40]:
+          - link "Analysis" [ref=f5e41] [cursor=pointer]:
+            - /url: /analysis
+      - list [ref=f5e46]:
+        - listitem [ref=f5e47]:
+          - button "PM Product Manager pm@bmw.example" [ref=f5e48]:
+            - generic [ref=f5e49]: PM
+            - generic [ref=f5e51]:
+              - generic [ref=f5e52]: Product Manager
+              - generic [ref=f5e53]: pm@bmw.example
+    - main [ref=f5e54]:
+      - generic [ref=f5e55]:
+        - button "Toggle Sidebar" [ref=f5e56]
+        - separator [ref=f5e58]
+        - navigation "breadcrumb":
+          - list
+      - generic [ref=f5e59]:
+        - generic [ref=f5e60]:
+          - generic [ref=f5e61]:
+            - heading "F70" [level=1] [ref=f5e62]
+            - generic [ref=f5e63]:
+              - generic [ref=f5e64]: BMW 1 Series (F70)
+              - generic [ref=f5e65]: premium compact
+          - generic [ref=f5e66]:
+            - navigation [ref=f5e67]:
+              - text: Market
+              - link "EU" [ref=f5e69] [cursor=pointer]:
+                - /url: "?region=EU"
+            - generic [ref=f5e70]:
+              - text: Feedback engine
+              - combobox "Feedback engine" [ref=f5e71]:
+                - generic [ref=f5e72]: All engines
+              - textbox [aria-hidden] [ref=f5e73]: all
+        - generic [ref=f5e74]:
+          - generic [ref=f5e76]:
+            - generic [ref=f5e77]: Customer feedback
+            - generic [ref=f5e78]: "140"
+            - paragraph [ref=f5e80]: Good sentiment · +0.28
+          - generic [ref=f5e82]:
+            - generic [ref=f5e83]: Feedback with a problem
+            - generic [ref=f5e84]: 34%
+            - paragraph [ref=f5e86]: "Top: Infotainment & Connectivity"
+          - generic [ref=f5e88]:
+            - generic [ref=f5e89]: Recommended requirements
+            - generic [ref=f5e90]: "4"
+            - paragraph [ref=f5e92]: from 40 features analysed
+          - generic [ref=f5e94]:
+            - generic [ref=f5e95]: Evidence complete
+            - generic [ref=f5e96]: 4 of 4
+            - list [ref=f5e98]:
+              - 'listitem "catalog: unavailable no catalog values for F70" [ref=f5e99]': Our model
+              - listitem "Complete" [ref=f5e101]: Competitors
+              - listitem "Complete" [ref=f5e103]: Customers
+              - 'listitem "documents: unavailable no stored studies or reports for these regions" [ref=f5e105]': Trends
+        - generic [ref=f5e107]:
+          - generic [ref=f5e108]:
+            - generic [ref=f5e109]:
+              - generic [ref=f5e110]: Feature verdicts
+              - generic [ref=f5e111]: All categories · hover for meaning
+            - list [ref=f5e117]:
+              - listitem "A comparable benchmark shows we fall behind competitors." [ref=f5e118]:
+                - generic [ref=f5e120]: Underperformance
+                - generic [ref=f5e121]: "3"
+              - 'listitem "An unmet customer need: customers report problems, ask for more, or the market signals a need." [ref=f5e122]':
+                - generic [ref=f5e124]: Gap
+                - generic [ref=f5e125]: "1"
+              - 'listitem "A basic expectation: customers complain, but competitors are no better. Keep the level, fix the complaints." [ref=f5e126]':
+                - generic [ref=f5e128]: Must-have
+                - generic [ref=f5e129]: "0"
+              - listitem "We lead, or customers praise it. Keep it." [ref=f5e130]:
+                - generic [ref=f5e132]: Strength
+                - generic [ref=f5e133]: "2"
+          - generic [ref=f5e135]:
+            - generic [ref=f5e136]: Requirements by category
+            - generic [ref=f5e137]: Click a bar to filter
+        - generic [ref=f5e142]:
+          - generic [ref=f5e143]:
+            - generic [ref=f5e144]: Recommended requirements
+            - generic [ref=f5e145]: By customer impact · click a row for the evidence
+          - table [ref=f5e148]:
+            - rowgroup [ref=f5e149]:
+              - row [ref=f5e150]:
+                - columnheader "#" [ref=f5e151]
+                - columnheader "Feature" [ref=f5e152]
+                - columnheader "Verdict" [ref=f5e153]
+                - columnheader "Requirement" [ref=f5e154]
+                - columnheader "Target" [ref=f5e155]
+                - columnheader "Customer problems" [ref=f5e156]
+            - rowgroup [ref=f5e157]:
+              - row [ref=f5e158]:
+                - cell "REQ-1" [ref=f5e159]
+                - cell [ref=f5e160]:
+                  - link "Infotainment connectivity" [ref=f5e161] [cursor=pointer]:
+                    - /url: "?region=EU&feature=unmapped%3Ainfotainment_connectivity"
+                  - paragraph [ref=f5e162]: Digital & UX
+                - cell "Underperformance" [ref=f5e163]:
+                  - generic "A comparable benchmark shows we fall behind competitors." [ref=f5e164]: Underperformance
+                - cell [ref=f5e165]:
+                  - paragraph [ref=f5e166]: Infotainment connectivity by addressing unresolved software bugs and glitches, which are reported in 5.7% of EU feedback items (8 of 140).
+                - cell "set by PM" [ref=f5e167]
+                - cell "5.7%" [ref=f5e168]
+              - row [ref=f5e173]:
+                - cell "REQ-2" [ref=f5e174]
+                - cell [ref=f5e175]:
+                  - link "Great sound" [ref=f5e176] [cursor=pointer]:
+                    - /url: "?region=EU&feature=great_sound"
+                  - paragraph [ref=f5e177]: Digital & UX
+                - cell "Underperformance" [ref=f5e178]:
+                  - generic "A comparable benchmark shows we fall behind competitors." [ref=f5e179]: Underperformance
+                - cell [ref=f5e180]:
+                  - paragraph [ref=f5e181]: Audio mode, sound, targeting >= 8 speakers (ICE), matching the competitor median.
+                - cell ">= 8 speakers" [ref=f5e182]
+                - cell "3.6%" [ref=f5e183]
+              - row [ref=f5e188]:
+                - cell "REQ-3" [ref=f5e189]
+                - cell [ref=f5e190]:
+                  - link "Powertrain performance" [ref=f5e191] [cursor=pointer]:
+                    - /url: "?region=EU&feature=unmapped%3Apowertrain_performance"
+                  - paragraph [ref=f5e192]: Powertrain
+                - cell "Strength" [ref=f5e193]:
+                  - generic "We lead, or customers praise it. Keep it." [ref=f5e194]: Strength
+                - cell [ref=f5e195]:
+                  - paragraph [ref=f5e196]: Strong and responsive engine power; 8.6% of feedback items in the EU praise it (12 of 140).
+                - cell "set by PM" [ref=f5e197]
+                - cell "3.6%" [ref=f5e198]
+              - row [ref=f5e203]:
+                - cell "REQ-4" [ref=f5e204]
+                - cell [ref=f5e205]:
+                  - link "Intuitive UX" [ref=f5e206] [cursor=pointer]:
+                    - /url: "?region=EU&feature=intuitive_ux"
+                  - paragraph [ref=f5e207]: Digital & UX
+                - cell "Underperformance" [ref=f5e208]:
+                  - generic "A comparable benchmark shows we fall behind competitors." [ref=f5e209]: Underperformance
+                - cell [ref=f5e210]:
+                  - paragraph [ref=f5e211]: Intuitive UX, especially touch-screen operation. In the EU, 2.9% of feedback items report a problem (4 of 140; small sample).
+                - cell "set by PM" [ref=f5e212]
+                - cell "2.9%" [ref=f5e213]
+        - generic [ref=f5e218]:
+          - generic [ref=f5e219]:
+            - generic [ref=f5e220]: Customer voice
+            - generic [ref=f5e221]: Share of 140 feedback items (F70 · EU) · most pressing first · click a bar for verbatims
+            - link "Full ranking" [ref=f5e223] [cursor=pointer]:
+              - /url: /feedback/F70?region=EU
+          - generic [ref=f5e226]:
+            - generic [ref=f5e227]: ← Complaints
+            - generic [ref=f5e228]: Praise →
+        - generic [ref=f5e232]:
+          - generic [ref=f5e233]:
+            - generic [ref=f5e234]: Other assessed features
+            - generic [ref=f5e235]: Not recommended · mostly rule-based, so less certain · 34 more with too little evidence
+          - generic [ref=f5e236]:
+            - generic [ref=f5e237]:
+              - 'generic "An unmet customer need: customers report problems, ask for more, or the market signals a need." [ref=f5e239]': Gap
+              - link "Physical controls" [ref=f5e241] [cursor=pointer]:
+                - /url: "?region=EU&feature=physical_controls"
+            - generic [ref=f5e242]:
+              - generic "We lead, or customers praise it. Keep it." [ref=f5e244]: Strength
+              - link "Dynamic handling" [ref=f5e246] [cursor=pointer]:
+                - /url: "?region=EU&feature=dynamic_handling"
+        - paragraph [ref=f5e247]: Run f70-eu · 10/11/2026, 7:43:05 AM · gpt-6-luna
+    - complementary [ref=f5e248]:
+      - separator "Resize chat" [ref=f5e249]
+      - generic [ref=f5e250]:
+        - button "Collapse chat" [expanded] [ref=f5e251]
+        - generic [ref=f5e252]: Ask about this view
+        - button "New chat" [disabled]
+      - generic [ref=f5e254]:
+        - button "What is the most pressing issue of the F70?" [ref=f5e255]
+        - button "What should be improved from this F70?" [ref=f5e256]
+        - button "What should be added to this F70?" [ref=f5e257]
+      - generic [ref=f5e258]:
+        - textbox "Chat message" [ref=f5e259]:
+          - /placeholder: Ask a question…
+        - button "Send" [disabled]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - button "Copy element"
+          - button "Collapse toolbar" [expanded]
+  - button "Open Next.js Dev Tools" [ref=f5e265] [cursor=pointer]
+  - alert [ref=f5e269]

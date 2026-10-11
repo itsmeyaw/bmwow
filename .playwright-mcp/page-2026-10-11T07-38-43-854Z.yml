@@ -1,0 +1,345 @@
+- generic [active] [ref=f17e1]:
+  - generic [ref=f17e2]:
+    - generic [ref=f17e5]:
+      - list [ref=f17e7]:
+        - listitem [ref=f17e8]:
+          - link "BMWow Customer feedback" [ref=f17e9] [cursor=pointer]:
+            - /url: /analysis
+            - generic [ref=f17e21]:
+              - generic [ref=f17e22]: BMWow
+              - generic [ref=f17e23]: Customer feedback
+      - list [ref=f17e26]:
+        - listitem [ref=f17e27]:
+          - link "Analysis" [ref=f17e28] [cursor=pointer]:
+            - /url: /analysis
+        - listitem [ref=f17e32]:
+          - link "Situation analysis" [ref=f17e33] [cursor=pointer]:
+            - /url: /situation
+      - list [ref=f17e40]:
+        - listitem [ref=f17e41]:
+          - button "PM Product Manager pm@bmw.example" [ref=f17e42]:
+            - generic [ref=f17e43]: PM
+            - generic [ref=f17e45]:
+              - generic [ref=f17e46]: Product Manager
+              - generic [ref=f17e47]: pm@bmw.example
+    - main [ref=f17e48]:
+      - generic [ref=f17e49]:
+        - button "Toggle Sidebar" [ref=f17e50]
+        - separator [ref=f17e52]
+        - navigation "breadcrumb" [ref=f17e53]:
+          - list [ref=f17e54]:
+            - listitem [ref=f17e55]:
+              - link "Analysis" [ref=f17e56] [cursor=pointer]:
+                - /url: /analysis
+            - listitem [aria-hidden] [ref=f17e57]
+            - listitem [ref=f17e60]:
+              - link "G70" [ref=f17e61] [cursor=pointer]:
+                - /url: /analysis/G70
+            - listitem [aria-hidden] [ref=f17e62]
+            - listitem [ref=f17e65]:
+              - link "World" [disabled] [ref=f17e66]
+      - generic [ref=f17e67]:
+        - generic [ref=f17e68]:
+          - generic [ref=f17e69]:
+            - heading "G70" [level=1] [ref=f17e70]
+            - generic [ref=f17e71]:
+              - generic [ref=f17e72]: BMW 7 Series
+              - generic [ref=f17e73]: BEV
+              - generic [ref=f17e74]: ICE
+              - generic [ref=f17e75]: PHEV
+          - generic [ref=f17e76]:
+            - generic [ref=f17e77]:
+              - text: Region
+              - combobox "Region" [ref=f17e78]:
+                - generic [ref=f17e79]: World (4,000)
+              - textbox [aria-hidden] [ref=f17e80]: all
+            - generic [ref=f17e81]:
+              - text: Engine
+              - combobox "Engine" [ref=f17e82]:
+                - generic [ref=f17e83]: All engines
+              - textbox [aria-hidden] [ref=f17e84]: all
+        - generic [ref=f17e85]:
+          - generic [ref=f17e87]:
+            - generic [ref=f17e88]: Feedback
+            - generic [ref=f17e89]: 4,000
+            - paragraph [ref=f17e91]: World
+          - generic [ref=f17e93]:
+            - generic [ref=f17e94]: Net sentiment
+            - generic [ref=f17e95]:
+              - generic [ref=f17e96]: Good
+              - generic [ref=f17e97]: "+0.16"
+          - generic [ref=f17e99]:
+            - generic [ref=f17e100]: Feedback with a problem
+            - generic [ref=f17e101]: 39%
+            - paragraph [ref=f17e103]: 1,565 feedback with a negative aspect
+          - generic [ref=f17e105]:
+            - generic [ref=f17e106]: "#1 priority"
+            - generic [ref=f17e107]: Infotainment & Connectivity
+            - paragraph [ref=f17e109]: 9.1% report a problem
+        - generic [ref=f17e110]:
+          - generic [ref=f17e111]:
+            - generic [ref=f17e112]: What to improve first
+            - generic [ref=f17e113]: Priority = negative reach × severity. Reach is the share of feedback with at least one negative aspect in the category; severity is the mean intensity of those aspects. Demand counts feature requests separately. Click a row for the reasoning and verbatims.
+          - generic [ref=f17e114]:
+            - table [ref=f17e116]:
+              - rowgroup [ref=f17e117]:
+                - row [ref=f17e118]:
+                  - columnheader "#" [ref=f17e119]
+                  - columnheader "Category" [ref=f17e120]
+                  - columnheader "Priority" [ref=f17e121]
+                  - columnheader "Reach" [ref=f17e122]
+                  - columnheader "Severity" [ref=f17e123]
+                  - columnheader "Demand" [ref=f17e124]
+                  - columnheader "Net" [ref=f17e125]
+                  - columnheader "Top issue" [ref=f17e126]
+              - rowgroup [ref=f17e127]:
+                - row [ref=f17e128]:
+                  - cell "1" [ref=f17e129]
+                  - cell [ref=f17e130]:
+                    - link "Infotainment & Connectivity" [ref=f17e131] [cursor=pointer]:
+                      - /url: "?aspect=Infotainment+%26+Connectivity"
+                  - cell "5.2" [ref=f17e132]
+                  - cell "9.1% (363)" [ref=f17e137]:
+                    - text: 9.1%
+                    - generic [ref=f17e138]: (363)
+                  - cell "0.58" [ref=f17e139]
+                  - cell "62" [ref=f17e140]
+                  - cell "-0.09" [ref=f17e141]
+                  - cell "Usability Difficulty" [ref=f17e142]
+                - row [ref=f17e143]:
+                  - cell "2" [ref=f17e144]
+                  - cell [ref=f17e145]:
+                    - link "Exterior Design & Body" [ref=f17e146] [cursor=pointer]:
+                      - /url: "?aspect=Exterior+Design+%26+Body"
+                  - cell "2.4" [ref=f17e147]
+                  - cell "4.1% (165)" [ref=f17e152]:
+                    - text: 4.1%
+                    - generic [ref=f17e153]: (165)
+                  - cell "0.58" [ref=f17e154]
+                  - cell "48" [ref=f17e155]
+                  - cell "+0.28" [ref=f17e156]
+                  - cell "Usability Difficulty" [ref=f17e157]
+                - row [ref=f17e158]:
+                  - cell "3" [ref=f17e159]
+                  - cell [ref=f17e160]:
+                    - link "Powertrain & Performance" [ref=f17e161] [cursor=pointer]:
+                      - /url: "?aspect=Powertrain+%26+Performance"
+                  - cell "2.3" [ref=f17e162]
+                  - cell "3.8% (152)" [ref=f17e167]:
+                    - text: 3.8%
+                    - generic [ref=f17e168]: (152)
+                  - cell "0.60" [ref=f17e169]
+                  - cell "36" [ref=f17e170]
+                  - cell "+0.33" [ref=f17e171]
+                  - cell "Usability Difficulty" [ref=f17e172]
+                - row [ref=f17e173]:
+                  - cell "4" [ref=f17e174]
+                  - cell [ref=f17e175]:
+                    - link "Access, Locking & Keys" [ref=f17e176] [cursor=pointer]:
+                      - /url: "?aspect=Access%2C+Locking+%26+Keys"
+                  - cell "2.0" [ref=f17e177]
+                  - cell "3.3% (130)" [ref=f17e182]:
+                    - text: 3.3%
+                    - generic [ref=f17e183]: (130)
+                  - cell "0.60" [ref=f17e184]
+                  - cell "41" [ref=f17e185]
+                  - cell "-0.07" [ref=f17e186]
+                  - cell "Usability Difficulty" [ref=f17e187]
+                - row [ref=f17e188]:
+                  - cell "5" [ref=f17e189]
+                  - cell [ref=f17e190]:
+                    - link "Service, Docs & Support" [ref=f17e191] [cursor=pointer]:
+                      - /url: "?aspect=Service%2C+Docs+%26+Support"
+                  - cell "1.8" [ref=f17e192]
+                  - cell "2.5% (101)" [ref=f17e197]:
+                    - text: 2.5%
+                    - generic [ref=f17e198]: (101)
+                  - cell "0.72" [ref=f17e199]
+                  - cell "24" [ref=f17e200]
+                  - cell "-0.01" [ref=f17e201]
+                  - cell "Usability Difficulty" [ref=f17e202]
+                - row [ref=f17e203]:
+                  - cell "6" [ref=f17e204]
+                  - cell [ref=f17e205]:
+                    - link "ADAS / Driving Assistance" [ref=f17e206] [cursor=pointer]:
+                      - /url: "?aspect=ADAS+%2F+Driving+Assistance"
+                  - cell "1.7" [ref=f17e207]
+                  - cell "3.2% (128)" [ref=f17e212]:
+                    - text: 3.2%
+                    - generic [ref=f17e213]: (128)
+                  - cell "0.52" [ref=f17e214]
+                  - cell "56" [ref=f17e215]
+                  - cell "-0.03" [ref=f17e216]
+                  - cell "Usability Difficulty" [ref=f17e217]
+                - row [ref=f17e218]:
+                  - cell "7" [ref=f17e219]
+                  - cell [ref=f17e220]:
+                    - link "Instruments & Controls" [ref=f17e221] [cursor=pointer]:
+                      - /url: "?aspect=Instruments+%26+Controls"
+                  - cell "1.5" [ref=f17e222]
+                  - cell "2.6% (103)" [ref=f17e227]:
+                    - text: 2.6%
+                    - generic [ref=f17e228]: (103)
+                  - cell "0.58" [ref=f17e229]
+                  - cell "26" [ref=f17e230]
+                  - cell "-0.16" [ref=f17e231]
+                  - cell "Usability Difficulty" [ref=f17e232]
+                - row [ref=f17e233]:
+                  - cell "8" [ref=f17e234]
+                  - cell [ref=f17e235]:
+                    - link "Electrification & Charging" [ref=f17e236] [cursor=pointer]:
+                      - /url: "?aspect=Electrification+%26+Charging"
+                  - cell "1.5" [ref=f17e237]
+                  - cell "2.4% (97)" [ref=f17e242]:
+                    - text: 2.4%
+                    - generic [ref=f17e243]: (97)
+                  - cell "0.61" [ref=f17e244]
+                  - cell "42" [ref=f17e245]
+                  - cell "-0.12" [ref=f17e246]
+                  - cell "Usability Difficulty" [ref=f17e247]
+                - row [ref=f17e248]:
+                  - cell "9" [ref=f17e249]
+                  - cell [ref=f17e250]:
+                    - link "Climate Control" [ref=f17e251] [cursor=pointer]:
+                      - /url: "?aspect=Climate+Control"
+                  - cell "1.3" [ref=f17e252]
+                  - cell "1.9% (77)" [ref=f17e257]:
+                    - text: 1.9%
+                    - generic [ref=f17e258]: (77)
+                  - cell "0.66" [ref=f17e259]
+                  - cell "17" [ref=f17e260]
+                  - cell "-0.44" [ref=f17e261]
+                  - cell "Usability Difficulty" [ref=f17e262]
+                - row [ref=f17e263]:
+                  - cell "10" [ref=f17e264]
+                  - cell [ref=f17e265]:
+                    - link "Seats & Comfort" [ref=f17e266] [cursor=pointer]:
+                      - /url: "?aspect=Seats+%26+Comfort"
+                  - cell "1.3" [ref=f17e267]
+                  - cell "2.1% (84)" [ref=f17e272]:
+                    - text: 2.1%
+                    - generic [ref=f17e273]: (84)
+                  - cell "0.60" [ref=f17e274]
+                  - cell "39" [ref=f17e275]
+                  - cell "+0.34" [ref=f17e276]
+                  - cell "Usability Difficulty" [ref=f17e277]
+                - row [ref=f17e278]:
+                  - cell "11" [ref=f17e279]
+                  - cell [ref=f17e280]:
+                    - link "Chassis, Ride & Handling" [ref=f17e281] [cursor=pointer]:
+                      - /url: "?aspect=Chassis%2C+Ride+%26+Handling"
+                  - cell "1.2" [ref=f17e282]
+                  - cell "1.9% (77)" [ref=f17e287]:
+                    - text: 1.9%
+                    - generic [ref=f17e288]: (77)
+                  - cell "0.62" [ref=f17e289]
+                  - cell "48" [ref=f17e290]
+                  - cell "+0.52" [ref=f17e291]
+                  - cell "Usability Difficulty" [ref=f17e292]
+                - row [ref=f17e293]:
+                  - cell "12" [ref=f17e294]
+                  - cell [ref=f17e295]:
+                    - link "Visibility & Lighting" [ref=f17e296] [cursor=pointer]:
+                      - /url: "?aspect=Visibility+%26+Lighting"
+                  - cell "1.0" [ref=f17e297]
+                  - cell "1.8% (74)" [ref=f17e302]:
+                    - text: 1.8%
+                    - generic [ref=f17e303]: (74)
+                  - cell "0.56" [ref=f17e304]
+                  - cell "32" [ref=f17e305]
+                  - cell "-0.01" [ref=f17e306]
+                  - cell "Usability Difficulty" [ref=f17e307]
+                - row [ref=f17e308]:
+                  - cell "13" [ref=f17e309]
+                  - cell [ref=f17e310]:
+                    - link "Interior Design & Materials" [ref=f17e311] [cursor=pointer]:
+                      - /url: "?aspect=Interior+Design+%26+Materials"
+                  - cell "0.9" [ref=f17e312]
+                  - cell "1.4% (56)" [ref=f17e317]:
+                    - text: 1.4%
+                    - generic [ref=f17e318]: (56)
+                  - cell "0.66" [ref=f17e319]
+                  - cell "43" [ref=f17e320]
+                  - cell "+0.42" [ref=f17e321]
+                  - cell "Usability Difficulty" [ref=f17e322]
+                - row [ref=f17e323]:
+                  - cell "14" [ref=f17e324]
+                  - cell [ref=f17e325]:
+                    - link "Safety & Restraints" [ref=f17e326] [cursor=pointer]:
+                      - /url: "?aspect=Safety+%26+Restraints"
+                  - cell "0.7" [ref=f17e327]
+                  - cell "1.2% (48)" [ref=f17e332]:
+                    - text: 1.2%
+                    - generic [ref=f17e333]: (48)
+                  - cell "0.58" [ref=f17e334]
+                  - cell "7" [ref=f17e335]
+                  - cell "-0.16" [ref=f17e336]
+                  - cell "Usability Difficulty" [ref=f17e337]
+                - row [ref=f17e338]:
+                  - cell "15" [ref=f17e339]
+                  - cell [ref=f17e340]:
+                    - link "Storage & Luggage" [ref=f17e341] [cursor=pointer]:
+                      - /url: "?aspect=Storage+%26+Luggage"
+                  - cell "0.5" [ref=f17e342]
+                  - cell "0.9% (37)" [ref=f17e347]:
+                    - text: 0.9%
+                    - generic [ref=f17e348]: (37)
+                  - cell "0.58" [ref=f17e349]
+                  - cell "19" [ref=f17e350]
+                  - cell "-0.20" [ref=f17e351]
+                  - cell "Space & Storage Shortfall" [ref=f17e352]
+            - paragraph [ref=f17e353]: 4,000 feedback in scope. 194 feedback with unclassified aspects are not ranked.
+        - generic [ref=f17e354]:
+          - generic [ref=f17e355]:
+            - generic [ref=f17e356]: Strengths to keep
+            - generic [ref=f17e357]: Categories praised by the most feedback.
+          - list [ref=f17e359]:
+            - listitem [ref=f17e360]:
+              - link "Chassis, Ride & Handling 11%" [ref=f17e361] [cursor=pointer]:
+                - /url: "?aspect=Chassis%2C+Ride+%26+Handling&tone=Positive"
+                - generic [ref=f17e362]: Chassis, Ride & Handling
+                - generic [ref=f17e363]: 11%
+            - listitem [ref=f17e367]:
+              - link "Powertrain & Performance 10.0%" [ref=f17e368] [cursor=pointer]:
+                - /url: "?aspect=Powertrain+%26+Performance&tone=Positive"
+                - generic [ref=f17e369]: Powertrain & Performance
+                - generic [ref=f17e370]: 10.0%
+            - listitem [ref=f17e374]:
+              - link "Exterior Design & Body 8.4%" [ref=f17e375] [cursor=pointer]:
+                - /url: "?aspect=Exterior+Design+%26+Body&tone=Positive"
+                - generic [ref=f17e376]: Exterior Design & Body
+                - generic [ref=f17e377]: 8.4%
+    - complementary [ref=f17e381]:
+      - separator "Resize chat" [ref=f17e382]
+      - generic [ref=f17e383]:
+        - button "Collapse chat" [expanded] [ref=f17e384]
+        - generic [ref=f17e385]: Ask about this view
+        - button "New chat" [disabled]
+      - generic [ref=f17e387]:
+        - button "What is the most pressing issue of the G70?" [ref=f17e388]
+        - button "What should be improved from this G70?" [ref=f17e389]
+        - button "What should be added to this G70?" [ref=f17e390]
+      - generic [ref=f17e391]:
+        - textbox "Chat message" [ref=f17e392]:
+          - /placeholder: Ask a question…
+        - button "Send" [disabled]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - button "Copy element"
+          - button "Collapse toolbar" [expanded]
+  - generic [ref=f17e397] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=f17e398]
+    - generic [ref=f17e402]:
+      - button "Open issues overlay" [ref=f17e403]:
+        - generic [ref=f17e404]:
+          - generic [aria-hidden] [ref=f17e405]: "0"
+          - generic [ref=f17e406]: "1"
+        - generic [ref=f17e407]: Issue
+      - button "Collapse issues badge" [ref=f17e408]
+  - alert [ref=f17e411]
