@@ -98,10 +98,19 @@ def normalize_quantity(value: float, unit: str) -> tuple[float, str]:
     return value, normalize_unit(unit)
 
 
+def _charge_time_unit(unit: str, condition: str) -> str:
+    """A charging time written as "21 m" for a 10-80% window means minutes, not metres."""
+    return "min" if unit == "m" and re.search(r"\d+-\d+%", condition) else unit
+
+
 def normalize_condition(text: str) -> str:
     """Same test standard, same key: "10% to 80%" == "10-80%", case and spacing ignored."""
     t = text.lower()
-    t = re.sub(r"(\d+)\s*%?\s*(?:to|-|–|—)\s*(\d+)\s*%", r"\1-\2%", t)
+    t = re.sub(
+        r"(\d+)\s*%?\s*(?:capacity|soc|state of charge|charge)?\s*(?:to|-|–|—)\s*(\d+)\s*%",
+        r"\1-\2%",
+        t,
+    )
     return re.sub(r"\s+", " ", t).strip(" ;,")
 
 
@@ -145,17 +154,26 @@ def _value_comparisons(
     for f in competitor:
         if f.quantity is not None and f.quantity.unit and f.quantity.origin != "computed":
             value, unit = normalize_quantity(f.quantity.value, f.quantity.unit)
-            groups[(unit, _condition(f, sources), f.region)].append((f, value))
+            condition = _condition(f, sources)
+            unit = _charge_time_unit(unit, condition)
+            groups[(unit, condition, f.region)].append((f, value))
     own: dict[tuple[str, str], float] = {}  # our best variant per unit and condition
     for f in ours:
         if f.quantity is not None and f.quantity.unit and f.quantity.origin == "record":
             value, unit = normalize_quantity(f.quantity.value, f.quantity.unit)
-            key = (unit, _condition(f, sources))
+            condition = _condition(f, sources)
+            unit = _charge_time_unit(unit, condition)
+            key = (unit, condition)
             better = min if is_lower_better(attribute, unit) else max
             own[key] = better(own.get(key, value), value)
     out: list[ValueComparison] = []
     for (unit, condition, region), findings in sorted(groups.items(), key=lambda kv: str(kv[0])):
-        values = [v for _, v in findings]
+        # One value per competitor: several pages (or trims) of one model must not outweigh the
+        # others, so each competitor contributes the median of its values; n counts competitors.
+        per_competitor: dict[str, list[float]] = defaultdict(list)
+        for f, v in findings:
+            per_competitor[f.subject].append(v)
+        values = [m.median for vs in per_competitor.values() if (m := distribution(vs))]
         d = distribution(values)
         if d is None:
             continue

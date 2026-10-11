@@ -435,3 +435,47 @@ def test_rule_assessment_from_computed_facts():
     assert rule_assessment(pkg(signal("problem", 30)), rules).assessment == "gap"
     r = rule_assessment(pkg(signal("problem", 5)), rules)
     assert (r.assessment, r.basis) == ("unclear", "thin")
+
+
+def test_charge_windows_and_minute_spellings_join_one_group():
+    from bmwow.agent.structure import _charge_time_unit, normalize_condition
+
+    for text in ("10% capacity to 80%", "10-80%", "10 % to 80 %", "10–80 % SoC"):
+        assert normalize_condition(text).startswith("10-80%"), text
+    assert _charge_time_unit("m", "10-80%; bev") == "min"
+    assert _charge_time_unit("m", "turning circle") == "m"
+
+
+def test_each_competitor_counts_once_in_a_comparison():
+    from datetime import UTC, datetime
+
+    from bmwow.agent.models.evidence import Finding, Quantity, Source
+    from bmwow.agent.structure import _value_comparisons
+
+    now = datetime.now(UTC)
+    src = {"web:1": Source(id="web:1", kind="web", ref="u", excerpt="x", retrieved_at=now)}
+
+    def value(i, subject, v):
+        return Finding(
+            id=f"F-competition-{i}",
+            agent="competition",
+            attribute="fast_charging",
+            claim="c",
+            polarity="neutral",
+            subject=subject,
+            source_ids=["web:1"],
+            confidence="medium",
+            quantity=Quantity(value=v, unit="min", qualifier="10-80%; powertrain bev"),
+        )
+
+    # three pages about A, one each about B and C
+    found = [
+        value(1, "A", 19.6),
+        value(2, "A", 21),
+        value(3, "A", 21),
+        value(4, "B", 25),
+        value(5, "C", 30),
+    ]
+    (c,) = _value_comparisons("fast_charging", found, [], src, load_rules())
+    assert (c.n, c.minimum, c.median, c.maximum) == (3, 21, 25, 30)
+    assert len(c.finding_ids) == 5  # every source finding stays traceable

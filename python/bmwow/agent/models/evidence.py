@@ -216,7 +216,8 @@ class FactRef(BaseModel):
 
 
 class ValueComparison(BaseModel):
-    """Competitor values of one feature that are comparable (same unit, condition and region)."""
+    """Competitor values of one feature that are comparable (same unit, condition and region).
+    n, minimum, median and maximum are over competitors: each contributes the median of its values."""
 
     unit: str
     condition: str  # test standard / qualifier, e.g. "WLTP"; values under different ones never mix
