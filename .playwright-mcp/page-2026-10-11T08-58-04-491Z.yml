@@ -1,0 +1,95 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - generic [ref=f1e5]:
+      - list [ref=f1e7]:
+        - listitem [ref=f1e8]:
+          - link "BMWow Customer feedback" [ref=f1e9] [cursor=pointer]:
+            - /url: /feedback
+            - generic [ref=f1e21]:
+              - generic [ref=f1e22]: BMWow
+              - generic [ref=f1e23]: Customer feedback
+      - list [ref=f1e26]:
+        - listitem [ref=f1e27]:
+          - link "Introduction" [ref=f1e28] [cursor=pointer]:
+            - /url: /introduction
+        - listitem [ref=f1e33]:
+          - link "Feedback" [ref=f1e34] [cursor=pointer]:
+            - /url: /feedback
+        - listitem [ref=f1e40]:
+          - link "Analysis" [ref=f1e41] [cursor=pointer]:
+            - /url: /analysis
+      - list [ref=f1e46]:
+        - listitem [ref=f1e47]:
+          - button "PM Product Manager pm@bmw.example" [ref=f1e48]:
+            - generic [ref=f1e49]: PM
+            - generic [ref=f1e51]:
+              - generic [ref=f1e52]: Product Manager
+              - generic [ref=f1e53]: pm@bmw.example
+    - main [ref=f1e54]:
+      - generic [ref=f1e55]:
+        - button "Toggle Sidebar" [ref=f1e56]
+        - separator [ref=f1e58]
+        - navigation "breadcrumb":
+          - list
+      - generic [ref=f1e59]:
+        - generic [ref=f1e60]:
+          - heading "Introduction" [level=1] [ref=f1e61]
+          - paragraph [ref=f1e62]: How an analysis is made.
+        - generic [ref=f1e63]:
+          - generic [ref=f1e64]:
+            - generic [ref=f1e65]: How it works
+            - generic [ref=f1e66]:
+              - text: From one car and region to traceable requirements. Code computes every number and checks every LLM step; the LLM reads text and judges; the PM decides.
+              - generic [ref=f1e67]:
+                - generic [ref=f1e68]: Code
+                - generic [ref=f1e72]: LLM
+                - generic [ref=f1e76]: PM
+          - application [ref=f1e82]:
+            - generic "Control Panel" [ref=f1e85]:
+              - button "Zoom In" [ref=f1e86] [cursor=pointer]
+              - button "Zoom Out" [ref=f1e89] [cursor=pointer]
+              - button "Fit View" [ref=f1e92] [cursor=pointer]
+              - button "Full screen" [ref=f1e95] [cursor=pointer]
+            - link "React Flow attribution" [ref=f1e99] [cursor=pointer]:
+              - /url: https://reactflow.dev/attribution
+              - text: React Flow
+        - generic [ref=f1e101]:
+          - generic [ref=f1e102]:
+            - generic [ref=f1e103]: Feedback database
+            - generic [ref=f1e104]:
+              - text: A feedback is stored once; each aspect it mentions is its own row, joined by
+              - code [ref=f1e105]: feedback_entry_id
+              - text: . Counting feedbacks counts entries, not aspects.
+          - application [ref=f1e108]:
+            - generic "Control Panel" [ref=f1e111]:
+              - button "Zoom In" [ref=f1e112] [cursor=pointer]
+              - button "Zoom Out" [ref=f1e115] [cursor=pointer]
+              - button "Fit View" [ref=f1e118] [cursor=pointer]
+              - button "Full screen" [ref=f1e121] [cursor=pointer]
+            - link "React Flow attribution" [ref=f1e125] [cursor=pointer]:
+              - /url: https://reactflow.dev/attribution
+              - text: React Flow
+    - complementary [ref=f1e127]:
+      - separator "Resize chat" [ref=f1e128]
+      - generic [ref=f1e129]:
+        - button "Collapse chat" [expanded] [ref=f1e130]
+        - generic [ref=f1e131]: Ask about this view
+        - button "New chat" [disabled]
+      - generic [ref=f1e133]:
+        - button "Which car has the most pressing issue?" [ref=f1e134]
+        - button "What should be improved across all cars?" [ref=f1e135]
+        - button "What should be added to our cars?" [ref=f1e136]
+      - generic [ref=f1e137]:
+        - textbox "Chat message" [ref=f1e138]:
+          - /placeholder: Ask a question…
+        - button "Send" [disabled]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - button "Copy element"
+          - button "Collapse toolbar" [expanded]
