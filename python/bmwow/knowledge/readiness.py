@@ -181,6 +181,10 @@ def inspect_readiness(
         blockers.append("No reviewed catalog theme claim retains a known original scope")
     if sum(bool(item.provenance) for item in page.items) != len(page.items):
         blockers.append("Selected feedback includes imports without version provenance")
+    if any(item.provenance and not item.provenance.origins for item in page.items):
+        blockers.append(
+            "Selected feedback includes archived legacy rows without original source locators"
+        )
     if unresolved:
         blockers.append("Selected evidence includes unresolved citations")
     graph_valid = not validate_bundle(snapshot)

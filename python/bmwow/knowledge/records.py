@@ -14,6 +14,7 @@ from bmwow.ontology.models import (
     Locator,
     Measurement,
     NumericRange,
+    Provenance,
 )
 
 from .types import MappingStatus
@@ -95,6 +96,7 @@ class FeedbackClassification(Record):
     vfc_combined: str | None
     attribute: str | None
     mapping_status: MappingStatus | None
+    mapping_provenance: Provenance | None = None
     locator: Locator
 
     @property
@@ -127,6 +129,7 @@ class FeedbackAspect(QualifiedRecord):
     attribute: str | None = None
     mapping_status: MappingStatus | None = None
     mapping_rationale: str | None = None
+    mapping_provenance: Provenance | None = None
 
 
 class FeedbackRetrieval(Record):

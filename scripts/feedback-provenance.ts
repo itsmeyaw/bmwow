@@ -127,6 +127,60 @@ export async function storeRevision(
     }
     if ((current?.revision_id ?? null) !== expectedRevision)
       throw new Error("Feedback changed during import; reload and retry the selection");
+    // Preserve the pre-versioning projection before replacing it. Its original files,
+    // provider versions, and annotations cannot be reconstructed from database rows.
+    if (current && !current.revision_id) {
+      const legacy = (
+        await client.query(
+          "SELECT to_jsonb(e) - 'embedding' - 'search_tsv' AS parent, embedding::text " +
+            "FROM feedback_entries e WHERE id = $1 FOR UPDATE",
+          [current.id],
+        )
+      ).rows[0];
+      const oldAspects = (
+        await client.query(
+          "SELECT * FROM feedback_aspects WHERE feedback_entry_id = $1 ORDER BY id",
+          [current.id],
+        )
+      ).rows;
+      const oldVersion = provenance(
+        identity,
+        {
+          legacy_database_snapshot: legacy.parent,
+          aspects: JSON.parse(JSON.stringify(oldAspects)),
+        },
+        legacy.parent.raw_feedback,
+        {
+          preprocessing: "legacy-database-snapshot-v1-original-provenance-unknown",
+          enrichment_model: "unknown",
+          prompt_version: "unknown",
+          taxonomy_hash: "unknown",
+          embedding_model: "unknown",
+          embedding_dimensions: legacy.embedding ? JSON.parse(legacy.embedding).length : 0,
+        },
+        [],
+        [],
+      );
+      await client.query(
+        "INSERT INTO feedback_revisions (id, feedback_explorer_id, input_hash, processing_hash, payload, embedding) " +
+          "VALUES ($1,$2,$3,$4,$5::jsonb,$6::vector) ON CONFLICT (id) DO NOTHING",
+        [
+          oldVersion.revision_id,
+          identity,
+          oldVersion.input_hash,
+          oldVersion.processing_hash,
+          JSON.stringify({
+            parent: {
+              ...legacy.parent,
+              revision_id: oldVersion.revision_id,
+              provenance: oldVersion,
+            },
+            aspects: oldAspects,
+          }),
+          legacy.embedding,
+        ],
+      );
+    }
     const parentId = current?.id ?? stableUuid(["feedback", identity]);
     const createdAt = new Date().toISOString();
     const payload = {

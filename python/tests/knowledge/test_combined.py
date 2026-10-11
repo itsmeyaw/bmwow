@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import date
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 import pytest
@@ -175,6 +175,45 @@ def test_sql_original_terms_only_receive_reviewed_feature_matches(knowledge_serv
     assert mapping == config.vfc_mappings["Invented screen"]
     mapping.rationale = "Invented local edit"
     assert service.get_aspect_mapping(item.aspects[0].aspect_id).rationale == "Invented mapping"
+
+
+def test_delegated_mapping_authorship_reaches_feedback_consumers(knowledge_service):
+    from bmwow.ontology.models import Provenance
+
+    created = datetime(2026, 10, 11, tzinfo=UTC)
+    provenance = Provenance(
+        actor_type="software",
+        actor_id="synthetic-local-reviewer",
+        method="llm_extraction",
+        created_at=created,
+        model="synthetic-model@revision",
+        prompt_version="synthetic-v1",
+    )
+    config = knowledge_service.config
+    config.vfc_mappings["Invented screen"] = VfcMapping(
+        feature_id="feature:parking-controls",
+        status="reviewed",
+        rationale="Invented delegated review",
+        reviewed_by=provenance.actor_id,
+        reviewed_at=created,
+        review_provenance=provenance,
+    )
+    service = CombinedKnowledgeService(
+        InMemoryRepository(knowledge_service.snapshot()), config, MemoryFeedback(), {"G60": MODEL}
+    )
+    item = service.get_feedback_items(FeedbackFilter())[0]
+    assert item.aspects[0].mapping_provenance == provenance
+    assert item.classifications[0].mapping_provenance == provenance
+    assert item.aspects[0].attribute == "parking_control_usability"
+    with pytest.raises(ValueError, match="reviewer and time"):
+        VfcMapping(
+            feature_id="feature:parking-controls",
+            status="reviewed",
+            rationale="Invented invalid attribution",
+            reviewed_by="another-reviewer",
+            reviewed_at=created,
+            review_provenance=provenance,
+        )
 
 
 def test_citation_routing_between_graph_and_sql(combined):

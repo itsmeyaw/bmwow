@@ -230,7 +230,11 @@ def project_feedback(parent: Mapping, aspects: list[Mapping], dataset_key: str) 
             note
             for note in DATA_LIMITATIONS
             if not provenance
-            or note not in {DATA_LIMITATIONS[0], DATA_LIMITATIONS[1], DATA_LIMITATIONS[4]}
+            or note
+            not in (
+                {DATA_LIMITATIONS[4]}
+                | ({DATA_LIMITATIONS[0], DATA_LIMITATIONS[1]} if provenance.origins else set())
+            )
         ],
         classifications=classifications,
         aspects=projected,

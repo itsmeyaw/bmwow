@@ -123,6 +123,7 @@ class CombinedKnowledgeService(KnowledgeService):
             if mapping is None:
                 mapping = self._config.vfc_mappings.get(classification.aspect_term or "")
             classification.mapping_status = mapping.status if mapping else None
+            classification.mapping_provenance = mapping.review_provenance if mapping else None
             classification.attribute = (
                 self._config.feature_keys[mapping.feature_id]
                 if mapping and mapping.status == "reviewed"
@@ -139,6 +140,7 @@ class CombinedKnowledgeService(KnowledgeService):
         mapping = mappings.get(aspect.aspect_term or "")
         aspect.mapping_status = mapping.status if mapping else None
         aspect.mapping_rationale = mapping.rationale if mapping else None
+        aspect.mapping_provenance = mapping.review_provenance if mapping else None
         aspect.feature_id = mapping.feature_id if mapping and mapping.status == "reviewed" else None
         aspect.attribute = self._config.feature_keys.get(aspect.feature_id or "")
 

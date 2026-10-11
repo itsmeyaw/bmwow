@@ -58,8 +58,10 @@ read-only Neon feedback. Sales/study workbook import, reviewed mapping configura
 and local candidate acceptance are implemented; see [knowledge ingestion](docs/knowledge-ingestion.md)
 for setup. The local completion workflow covers feedback XLSX export, immutable
 feedback revisions, PDF review candidates, and aggregate readiness checks; see
-[the completion runbook](docs/data-completion.md). Human curation and catalog
-visual review remain necessary before a real case is ready for agents.
+[the completion runbook](docs/data-completion.md). Curation and catalog visual
+review remain necessary before a real case is ready for agents. Explicitly
+delegated software review retains its model/prompt provenance and passes the same
+evidence gates; it never asserts human inspection.
 Requirement/review integration, TypeScript porting, and Neo4j persistence remain
 follow-up work.
 

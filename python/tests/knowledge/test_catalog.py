@@ -11,7 +11,7 @@ from bmwow.knowledge.manifest import initial_manifest
 from bmwow.knowledge.repository import InMemoryRepository
 from bmwow.knowledge.service import KnowledgeService
 from bmwow.ontology import snapshot_fingerprint, validate_bundle
-from bmwow.ontology.models import CatalogItem, Feature
+from bmwow.ontology.models import CatalogItem, Feature, Provenance
 
 AS_OF = date(2026, 10, 11)
 
@@ -155,4 +155,57 @@ def test_catalog_items_require_reviewed_describing_claim_and_original_scope(revi
     assert any(edge.type == "DESCRIBES" and edge.target_id == item.id for edge in staged.edges)
     item.properties.context = item.properties.context.model_copy(update={"country_codes": ["US"]})
     with pytest.raises(ValueError, match="original catalog scope"):
+        stage_catalog(review, manifest, as_of=AS_OF, origin="synthetic")
+
+
+def software_review(review):
+    reviewed(review)
+    claim = review.claims[0]
+    claim.reviewed_by = "synthetic-local-reviewer"
+    claim.review_provenance = Provenance(
+        actor_type="software",
+        actor_id=claim.reviewed_by,
+        method="llm_extraction",
+        created_at=claim.reviewed_at,
+        model="synthetic-offline-model@immutable-revision",
+        prompt_version="synthetic-catalog-review-v1",
+    )
+    return review
+
+
+def test_software_visual_review_retains_actual_authorship(review, manifest):
+    bundle = stage_catalog(software_review(review), manifest, as_of=AS_OF, origin="synthetic")
+    signal = next(node for node in bundle.nodes if node.type == "Signal")
+    assert signal.properties.provenance == review.claims[0].review_provenance
+    assert signal.properties.provenance.actor_type == "software"
+    assert not validate_bundle(bundle)
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("model", None),
+        ("prompt_version", None),
+        ("actor_id", "other"),
+        ("method", "manual_interpretation"),
+    ],
+)
+def test_software_review_rejects_missing_or_misrepresented_provenance(
+    review, manifest, field, value
+):
+    software_review(review)
+    claim = review.claims[0]
+    claim.review_provenance = claim.review_provenance.model_copy(update={field: value})
+    with pytest.raises(ValueError, match="provenance"):
+        stage_catalog(review, manifest, as_of=AS_OF, origin="synthetic")
+
+
+def test_software_review_still_requires_visual_checks_and_exact_quotes(review, manifest):
+    software_review(review)
+    review.claims[0].conditions_checked = False
+    with pytest.raises(ValueError, match="all three"):
+        stage_catalog(review, manifest, as_of=AS_OF, origin="synthetic")
+    review.claims[0].conditions_checked = True
+    review.claims[0].quote = "Synthetic fabricated quotation"
+    with pytest.raises(ValueError, match="quote"):
         stage_catalog(review, manifest, as_of=AS_OF, origin="synthetic")

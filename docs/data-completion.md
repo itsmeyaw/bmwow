@@ -44,6 +44,13 @@ Unchanged versions are skipped, including imports with null embeddings. An advis
 lock and expected revision check reject competing stale writers. Historical replay
 uses its archived enrichment and timestamps.
 
+The first refresh of a pre-versioning row archives its existing database projection,
+including inferred aspects, aspect identities, timestamps, and embeddings, in the
+same transaction. That archive explicitly records unknown original files and
+provider versions; it cannot reconstruct workbook provenance. Failed refreshes
+roll back both the archive and projection. Historical citations remain readable,
+but an archive without original source locators cannot satisfy selected-case readiness.
+
 `--no-enrichment` preserves curated classifications with null intensity scores and
 embeddings. Unlabelled feedback remains available with zero inferred aspects.
 Provider mode uses the existing OpenAI enrichment and embedding path only when BMW
@@ -73,6 +80,15 @@ configs remain readable without the new audit fields. Proposed mappings stay vis
 without establishing a Feature association. Reimport studies after approved mapping
 changes so their evidence-backed findings match the config. Unknown metadata remains
 explicit; unrelated curation decisions can remain pending.
+
+Delegated software review can additionally supply `review_provenance`, using the
+existing ontology `Provenance` type. Record `actor_type: software`, `method:
+llm_extraction`, the actual model/revision and prompt version, and the matching
+reviewer/time. Delegation does not establish human source inspection. The combined
+feedback projection exposes `mapping_provenance` alongside the mapping rationale.
+Keep original source inputs, local model outputs, and decision receipts in ignored
+storage. When private sources must remain on the machine, use an offline local
+runtime with network access denied; no hosted extraction or embedding calls are implied.
 
 ## Review catalogs locally
 
@@ -113,10 +129,15 @@ uv run python -m scripts.review_catalog stage --review ../data/knowledge/catalog
 
 Staging rechecks the source hash and exact quote on the original page, then validates
 a closed SourceDocument → Evidence → product-capability Signal → Feature graph.
-Human interpretation provenance and source-country qualifications travel with the
-claim. Package item references require matching reviewed CatalogItems in the
+Human or explicitly recorded software interpretation provenance and source-country
+qualifications travel with the claim. Software review requires actual visual
+inspection of rendered pages, all three source checks, a model and prompt version,
+and reviewer/time consistency. It passes the same hash, exact-quote, scope and
+graph gates. Software attribution remains software; it does not create a human
+Decision or authenticated acceptance. Package item references require matching reviewed CatalogItems in the
 review's `catalog_items` with a reviewed describing claim; unresolved dependencies can use explicit `unknown`
-conditions. The staging CLI does not accept arbitrary unreviewed availability
+conditions. A CatalogItem's provenance must match one of its describing claims.
+The staging CLI does not accept arbitrary unreviewed availability
 inferences. Merge staging with `import_knowledge --catalog-bundle`, or use the
 existing `FileCandidateStore.accept` with the current snapshot fingerprint for
 atomic local acceptance. Candidate writes are not an authentication boundary.

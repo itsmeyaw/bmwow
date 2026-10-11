@@ -75,3 +75,18 @@ def test_revision_citations_route_through_feedback_service():
     result = service.resolve_citation(f"feedback_revision:bmw-feedback:{REVISION}")
     assert result.provenance.revision_id == REVISION
     assert repo.find_revision("invalid-uuid") is None
+
+
+def test_legacy_archive_is_pinned_but_does_not_claim_recovered_source_provenance():
+    archived = metadata()
+    archived.update(origins=[], raw_classifications=[], original_rows=[])
+    archived["processing"]["preprocessing"] = (
+        "legacy-database-snapshot-v1-original-provenance-unknown"
+    )
+    archived["processing"]["enrichment_model"] = "unknown"
+    item = project_feedback(parent(provenance=archived), [aspect()], "synthetic")
+    assert item.revision_citation == f"feedback_revision:synthetic:{REVISION}"
+    assert item.references[0].source_version is None
+    assert any("source version" in note for note in item.limitations)
+    assert any("unlabelled VFC" in note for note in item.limitations)
+    assert not any("current import" in note for note in item.limitations)

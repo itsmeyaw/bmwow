@@ -89,7 +89,7 @@ function card(parent, title) { const box = element("div", undefined, parent); bo
 function notice(text, error = false) { message.textContent = text; message.className = error ? "error" : ""; }
 function identity() { if (!reviewer.value.trim()) throw Error("Enter your reviewer name or ID before approving an item."); return reviewer.value.trim(); }
 function resetReview(record, control) {
-  if (record.status === "reviewed") { record.status = "proposed"; record.reviewed_by = record.reviewed_at = null; if (control) control.value = "proposed"; }
+  if (record.status === "reviewed") { record.status = "proposed"; record.reviewed_by = record.reviewed_at = record.review_provenance = null; if (control) control.value = "proposed"; }
 }
 function resetCatalogScope() {
   for (const claim of catalog.claims) {
@@ -106,8 +106,8 @@ function resetFeatureMappings(id) {
 }
 function recordStatus(record, value, control, validate) {
   try {
-    if (value === "reviewed") { validate(); record.reviewed_by = identity(); record.reviewed_at = new Date().toISOString(); }
-    else { record.reviewed_by = record.reviewed_at = null; }
+    if (value === "reviewed") { validate(); record.reviewed_by = identity(); record.reviewed_at = new Date().toISOString(); record.review_provenance = null; }
+    else { record.reviewed_by = record.reviewed_at = record.review_provenance = null; }
     record.status = value; notice("Decision recorded in this page. Download the reviewed files when finished.");
   } catch (error) { control.value = record.status; notice(error.message, true); }
 }

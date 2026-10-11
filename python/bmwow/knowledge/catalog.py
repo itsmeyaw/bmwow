@@ -18,11 +18,12 @@ from bmwow.ontology.models import (
     Edge,
     Evidence,
     GraphBundle,
+    Provenance,
     Signal,
     SourceDocument,
 )
 
-from .config import Configuration
+from .config import Configuration, validate_review_provenance
 from .ingestion import merge_candidate
 from .manifest import CurationManifest
 
@@ -49,6 +50,7 @@ class CatalogClaim(Configuration):
     scope_checked: bool = False
     conditions_checked: bool = False
     review_note: str | None = None
+    review_provenance: Provenance | None = None
 
 
 class CatalogReview(Configuration):
@@ -62,6 +64,17 @@ class CatalogReview(Configuration):
     edition_note: str | None = None
     claims: list[CatalogClaim] = Field(default_factory=list)
     catalog_items: list[CatalogItem] = Field(default_factory=list)
+
+
+def _manual_provenance(claim: CatalogClaim) -> Provenance:
+    return Provenance(
+        actor_type="human",
+        actor_id=claim.reviewed_by,
+        method="manual_interpretation",
+        created_at=claim.reviewed_at,
+        model=None,
+        prompt_version=None,
+    )
 
 
 def extract_pages(path: Path) -> list[str]:
@@ -120,6 +133,10 @@ def stage_catalog(
             )
         if claim.feature_id not in features:
             raise ValueError("Review each claim's canonical Feature")
+        if claim.review_provenance is not None:
+            validate_review_provenance(
+                claim.review_provenance, claim.reviewed_by, claim.reviewed_at
+            )
         if claim.page > len(pages) or claim.quote not in pages[claim.page - 1]:
             raise ValueError("Catalog quote is not present on the referenced original page")
     bundle = manifest.seed(as_of, "fixture" if origin == "synthetic" else "production")
@@ -169,12 +186,13 @@ def stage_catalog(
         )
     for item in items.values():
         item_scope = item.properties.context.model_dump(exclude={"scope_notes"})
-        if (
-            item_scope != context.model_dump(exclude={"scope_notes"})
-            or item.properties.provenance.actor_type != "human"
+        if item_scope != context.model_dump(exclude={"scope_notes"}) or not any(
+            (claim.review_provenance or _manual_provenance(claim)) == item.properties.provenance
+            for claim in claims
+            if claim.catalog_item_id == item.id
         ):
             raise ValueError(
-                "CatalogItems require reviewed human provenance and the original catalog scope"
+                "CatalogItems require the describing claim's review provenance and original catalog scope"
             )
         bundle.nodes.append(item.model_copy(deep=True))
     for claim in claims:
@@ -218,14 +236,7 @@ def stage_catalog(
                         public_context=None,
                         capability=claim.capability,
                         extraction_confidence=dict(level="unassessed", reason=claim.review_note),
-                        provenance=dict(
-                            actor_type="human",
-                            actor_id=claim.reviewed_by,
-                            method="manual_interpretation",
-                            created_at=claim.reviewed_at,
-                            model=None,
-                            prompt_version=None,
-                        ),
+                        provenance=claim.review_provenance or _manual_provenance(claim),
                     ),
                 ),
             ]

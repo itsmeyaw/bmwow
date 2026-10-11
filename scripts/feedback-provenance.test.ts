@@ -160,13 +160,90 @@ test(
         (await client.query("SELECT count(*)::int AS n FROM feedback_aspects")).rows[0].n,
         1,
       );
+      const legacyEmbedding = JSON.stringify(Array(1536).fill(0.25));
+      const legacyId = (
+        await client.query(
+          "INSERT INTO feedback_entries (feedback_explorer_id,raw_feedback,embedding) VALUES ($1,$2,$3::vector) RETURNING id",
+          ["synthetic-legacy", "Original unversioned invented feedback", legacyEmbedding],
+        )
+      ).rows[0].id;
+      const legacyAspect = (
+        await client.query(
+          "INSERT INTO feedback_aspects (feedback_entry_id,vfc_category,aspect_term,issue_type,quote_snippet,sentiment,extraction_source) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id",
+          [
+            legacyId,
+            "Seats & Comfort",
+            "invented inference",
+            "Praise",
+            "invented feedback",
+            "Positive",
+            "llm",
+          ],
+        )
+      ).rows[0].id;
+      const refreshed = provenance(
+        "synthetic-legacy",
+        { text: "Updated invented feedback" },
+        "Updated invented feedback",
+        processing,
+        version().origins,
+        [],
+      );
+      const legacyEntry = {
+        ...entry,
+        feedbackExplorerId: "synthetic-legacy",
+        rawFeedback: "Updated invented feedback",
+      };
+      await assert.rejects(
+        storeRevision(
+          client,
+          legacyEntry,
+          [{ ...aspects[0], sentiment: "invalid" }],
+          refreshed,
+          null,
+          null,
+        ),
+      );
+      assert.equal(
+        (
+          await client.query(
+            "SELECT count(*)::int AS n FROM feedback_revisions WHERE feedback_explorer_id=$1",
+            ["synthetic-legacy"],
+          )
+        ).rows[0].n,
+        0,
+      );
+      assert.equal(await storeRevision(client, legacyEntry, [], refreshed, null, null), "written");
+      const archived = (
+        await client.query(
+          "SELECT payload, embedding::text FROM feedback_revisions WHERE feedback_explorer_id=$1 AND id<>$2",
+          ["synthetic-legacy", refreshed.revision_id],
+        )
+      ).rows[0];
+      assert.equal(archived.payload.parent.raw_feedback, "Original unversioned invented feedback");
+      assert.equal(archived.payload.parent.id, legacyId);
+      assert.equal(archived.payload.aspects[0].id, legacyAspect);
+      assert.equal(archived.payload.aspects[0].extraction_source, "llm");
+      assert.equal(archived.payload.parent.provenance.processing.enrichment_model, "unknown");
+      assert.deepEqual(archived.payload.parent.provenance.origins, []);
+      assert.deepEqual(JSON.parse(archived.embedding), JSON.parse(legacyEmbedding));
+      assert.equal(
+        (
+          await client.query("SELECT id FROM feedback_entries WHERE feedback_explorer_id=$1", [
+            "synthetic-legacy",
+          ])
+        ).rows[0].id,
+        legacyId,
+      );
       assert.equal(
         await storeRevision(client, entry, [], original, null, changed.revision_id),
         "written",
       );
       assert.equal(
         (
-          await client.query("SELECT created_at FROM feedback_entries")
+          await client.query(
+            "SELECT created_at FROM feedback_entries WHERE feedback_explorer_id='synthetic-one'",
+          )
         ).rows[0].created_at.toISOString(),
         first.created_at.toISOString(),
       );
