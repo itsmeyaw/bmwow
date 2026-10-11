@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from functools import cache
 from pathlib import Path
@@ -108,6 +109,26 @@ def feature_for_term(term: str | None) -> str | None:
         if any(p.search(text) for p in patterns):
             return feature
     return None
+
+
+class StudyMapping(BaseModel):
+    feature: str
+    status: str
+
+
+def load_study_mappings(path: Path) -> dict[str, StudyMapping]:
+    """Study question -> feature key from the private curation file (proposed or reviewed); empty
+    when the file is missing. The importer only turns reviewed mappings into graph Signals; the agent
+    also reads proposed ones and labels them as such."""
+    if not path.exists():
+        return {}
+    knowledge = json.loads(path.read_text(encoding="utf-8")).get("knowledge", {})
+    keys = knowledge.get("feature_keys", {})
+    return {
+        question.strip().lower(): StudyMapping(feature=keys[m["feature_id"]], status=m["status"])
+        for question, m in knowledge.get("study_mappings", {}).items()
+        if m.get("feature_id") in keys
+    }
 
 
 def is_generic_term(term: str | None) -> bool:

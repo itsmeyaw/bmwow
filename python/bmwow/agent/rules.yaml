@@ -80,6 +80,15 @@ feature_aliases:
   simple_maintenance: [maintenance, service interval*]
   sustainability: [sustainab*, recycled, vegan]
   data_privacy: [privacy]
+  # Proposed additions (2026-10-11) for topics customers and studies cover beyond the keynote list.
+  climate_comfort: [climat*, air condition*, heating, heater*, ventilation system, blower, hvac]
+  quietness: [noise, quiet*, wind noise, road noise, rattl*, squeak*]
+  lighting: [light*, headlight*, lamp*]
+  driver_assistance: [driving assist*, driver assist*, adas, cruise control, lane keeping, highway assistant]
+  keyless_access: [lock*, unlock*, key*, comfort access, door handle*]
+  smartphone_integration: [carplay, android auto, smartphone, mirroring, bluetooth, phone]
+  performance: [acceleration, horsepower, engine power, sportiness]
+  build_quality: [build quality, workmanship, durability, solidity]
 
 structure:
   max_judged_features: 12  # LLM judgment for the most important features; others stay "not_assessed"

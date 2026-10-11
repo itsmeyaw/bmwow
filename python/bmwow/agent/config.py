@@ -68,6 +68,11 @@ class Settings:
         return self.data_dir / "web_corpus"
 
     @property
+    def curation_path(self) -> Path:
+        """Private curation (feature keys, study-question mappings) beside the knowledge snapshot."""
+        return self.data_dir / "knowledge" / "curation.json"
+
+    @property
     def analyses_dir(self) -> Path:
         return self.data_dir / "processed" / "analyses"
 

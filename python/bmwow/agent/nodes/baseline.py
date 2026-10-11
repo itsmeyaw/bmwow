@@ -16,9 +16,11 @@ from typing import Literal
 from bmwow.agent.models.evidence import Quantity
 
 from .. import router
-from ..rules import feature_for_term
+from ..config import get_settings
+from ..models.evidence import Source
+from ..rules import feature_for_term, load_study_mappings
 from ..sources import attribute_source, model_source
-from ..tools.knowledge import ModelNode, SalesRow
+from ..tools.knowledge import ModelNode, SalesRow, StudyScore
 from .common import AgentContext
 
 
@@ -92,47 +94,87 @@ async def run(ctx: AgentContext) -> None:
 
 
 async def _study_findings(ctx: AgentContext) -> None:
-    """One finding per study question, model and region; each score keeps its own scale, statistic
-    and answer category (study scales are never harmonized)."""
+    """One finding per study question and region. A mean is reported as is; a categorical answer
+    distribution becomes one finding listing every category, with the share of the two top-listed
+    categories (source row order) as its quantity. Scales are never harmonized across studies.
+    The feature comes from the curated study mapping (proposed or reviewed), else from the aliases."""
     got = await router.fetch("study_scores", [ctx.brief.model_code], ctx.brief.regions)
+    mappings = load_study_mappings(get_settings().curation_path)
+    groups: dict[tuple[str, str, str, str], list[tuple[StudyScore, Source]]] = defaultdict(list)
     for score, source in zip(got.data, got.sources, strict=True):
-        if score.value is None:
-            continue
-        src = ctx.add_source(source)
-        question = score.question or "overall"
-        feature = feature_for_term(question)
+        if score.value is not None:
+            key = (score.study, score.region, score.question or "overall", score.statistic)
+            groups[key].append((score, source))
+    for (study, region, question, statistic), pairs in groups.items():
+        mapping = mappings.get(question.strip().lower())
+        feature = mapping.feature if mapping else feature_for_term(question)
         attribute = (
             feature
             if feature and feature in ctx.taxonomy.area_of
             else f"unmapped:study_{re.sub(r'[^a-z0-9]+', '_', question.lower()).strip('_')}"
         )
-        unit = score.measurement.unit or ""
-        category = f" answering {score.response_category!r}" if score.response_category else ""
+        how = f"; mapping {mapping.status}" if mapping and attribute == feature else ""
+        source_ids = [ctx.add_source(source).id for _, source in pairs]
+        score = pairs[0][0]
+        model = score.model
+        if score.response_category is None or len(pairs) == 1:
+            unit = score.measurement.unit or ""
+            category = f" answering {score.response_category!r}" if score.response_category else ""
+            claim = (
+                f"In {study} ({region}), {model} has a {statistic} of "
+                f"{score.value:g}{(' ' + unit) if unit else ''}{category} on {question!r}."
+            )
+            quantity = Quantity(
+                value=score.value,
+                unit=unit or statistic,
+                qualifier=f"{study}; {statistic}; {region}{how}",
+                origin="record",
+            )
+        else:
+            ordered = sorted(pairs, key=lambda pair: _row(pair[0]))
+            top = ordered[-2:]
+            share = round(sum(s.value or 0 for s, _ in top), 4)
+            listed = ", ".join(f"{s.response_category} {s.value:.1%}" for s, _ in ordered)
+            names = " + ".join(repr(s.response_category) for s, _ in top)
+            claim = (
+                f"In {study} ({region}), {share:.1%} of {model} answers on {question!r} fall in "
+                f"the two top-listed categories {names} (distribution: {listed})."
+            )
+            quantity = Quantity(
+                value=share,
+                unit="share",
+                qualifier=f"{study}; top-two listed categories; {region}{how}",
+                origin="computed",
+            )
         ctx.add(
             ctx.finding(
                 attribute=attribute,
-                claim=f"In {score.study} ({score.region}), {score.model} has a {score.statistic} of "
-                f"{score.value:g}{(' ' + unit) if unit else ''}{category} on {question!r}.",
+                claim=claim,
                 polarity="neutral",
-                subject=score.model,
-                source_ids=[src.id],
+                subject=model,
+                source_ids=source_ids,
                 confidence="high",
-                quantity=Quantity(
-                    value=score.value,
-                    unit=unit or score.statistic,
-                    qualifier=f"{score.study}; {score.statistic}; {score.region}",
-                    origin="record",
-                ),
-                region=score.region,
+                quantity=quantity,
+                region=region,
                 direction="neutral",
             )
         )
     ctx.stats["n_study_scores"] = len(got.data)
+    ctx.stats["n_study_questions"] = len(groups)
     ctx.mark(
         "studies",
         "ok" if got.data else "unavailable",
         "" if got.data else "no study scores for the model in these regions",
     )
+
+
+def _row(score: StudyScore) -> int:
+    """Source row of a score's cell, which orders a categorical answer scale as the source lists it."""
+    for ref in score.references:
+        match = re.search(r"(\d+)$", getattr(ref.locator, "range", "") or "")
+        if match:
+            return int(match.group(1))
+    return 0
 
 
 def _code(model: ModelNode) -> str:
@@ -157,13 +199,15 @@ def _region_rows(rows: list[SalesRow], region: str, countries: list[str]) -> lis
 async def _sales_findings(ctx: AgentContext, portfolio: list[ModelNode]) -> None:
     brief = ctx.brief
     code = brief.model_code
-    got = await router.fetch("sales_volume", [code], brief.markets)
+    # The sales source reports regions (EU, US, CN) or countries; ask for both grains.
+    markets = list(dict.fromkeys([*brief.regions, *brief.markets]))
+    got = await router.fetch("sales_volume", [code], markets)
     rows: list[SalesRow] = got.data
     for source in got.sources:
         ctx.add_source(source)
     fallback = got.sources[0].id
     if not rows:
-        ctx.errors.append(f"no sales rows for {code} in {', '.join(brief.markets)}")
+        ctx.errors.append(f"no sales rows for {code} in {', '.join(markets)}")
         return
 
     actual = [row for row in rows if row.status == "actual" and _model_specific(row, code)]
@@ -215,7 +259,7 @@ async def _sales_findings(ctx: AgentContext, portfolio: list[ModelNode]) -> None
     names = [_code(model) for model in portfolio]
     if not names:
         return
-    port = await router.fetch("sales_volume", names, brief.markets)
+    port = await router.fetch("sales_volume", names, markets)
     for source in port.sources:
         ctx.add_source(source)
     # Only comparable actuals can enter portfolio shares. Group totals cannot be allocated.
