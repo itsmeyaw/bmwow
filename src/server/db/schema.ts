@@ -1,9 +1,28 @@
-// Mirrors migrations/0000_init.sql (DDL is the source of truth for indexes/constraints).
+// Mirrors migrations/0000_init.sql and 0001_feedback_provenance.sql (DDL owns indexes/constraints).
 import { sql } from "drizzle-orm";
-import { customType, numeric, pgTable, text, timestamp, uuid, vector } from "drizzle-orm/pg-core";
+import {
+  customType,
+  jsonb,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  vector,
+} from "drizzle-orm/pg-core";
 
 const tsvector = customType<{ data: string }>({
   dataType: () => "tsvector",
+});
+
+export const feedbackRevisions = pgTable("feedback_revisions", {
+  id: uuid("id").primaryKey(),
+  feedbackExplorerId: text("feedback_explorer_id").notNull(),
+  inputHash: text("input_hash").notNull(),
+  processingHash: text("processing_hash").notNull(),
+  payload: jsonb("payload").notNull(),
+  embedding: vector("embedding", { dimensions: 1536 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const feedbackEntries = pgTable("feedback_entries", {
@@ -16,6 +35,8 @@ export const feedbackEntries = pgTable("feedback_entries", {
   derivateCode: text("derivate_code"),
   engineType: text("engine_type"),
   rawFeedback: text("raw_feedback").notNull(),
+  revisionId: uuid("revision_id").references(() => feedbackRevisions.id),
+  provenance: jsonb("provenance"),
   embedding: vector("embedding", { dimensions: 1536 }),
   searchTsv: tsvector("search_tsv").generatedAlwaysAs(sql`to_tsvector('english', raw_feedback)`),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -14,6 +14,7 @@ from bmwow.ontology.models import (
     Locator,
     Measurement,
     NumericRange,
+    Provenance,
 )
 
 from .types import MappingStatus
@@ -29,6 +30,27 @@ class EvidenceReference(Record):
     source_id: str
     record_key: str
     locator: Locator
+    source_version: str | None = None
+
+
+class FeedbackOrigin(Record):
+    source_file: str
+    source_hash: str = Field(pattern=r"^sha256:[a-f0-9]{64}$")
+    locator: Locator
+
+
+class FeedbackProvenance(Record):
+    schema_version: Literal[1]
+    revision_id: str = Field(
+        pattern=r"^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+    )
+    input_hash: str = Field(pattern=r"^sha256:[a-f0-9]{64}$")
+    text_hash: str = Field(pattern=r"^sha256:[a-f0-9]{64}$")
+    processing_hash: str = Field(pattern=r"^sha256:[a-f0-9]{64}$")
+    processing: dict[str, str | int]
+    origins: list[FeedbackOrigin]
+    raw_classifications: list[dict] = Field(default_factory=list)
+    original_rows: list[dict] = Field(default_factory=list)
 
 
 class QualifiedRecord(Record):
@@ -74,6 +96,7 @@ class FeedbackClassification(Record):
     vfc_combined: str | None
     attribute: str | None
     mapping_status: MappingStatus | None
+    mapping_provenance: Provenance | None = None
     locator: Locator
 
     @property
@@ -102,6 +125,12 @@ class FeedbackAspect(QualifiedRecord):
     quote_status: Literal["supported", "missing", "mismatch", "not_applicable"]
     imported_at: dt.datetime | None = None
 
+    feature_id: str | None = None
+    attribute: str | None = None
+    mapping_status: MappingStatus | None = None
+    mapping_rationale: str | None = None
+    mapping_provenance: Provenance | None = None
+
 
 class FeedbackRetrieval(Record):
     """Denominator and selection metadata for one bounded retrieval."""
@@ -126,6 +155,8 @@ class FeedbackItem(QualifiedRecord):
     aspects: list[FeedbackAspect] = Field(default_factory=list)
     retrieval: FeedbackRetrieval | None = None
     imported_at: dt.datetime | None = None
+    provenance: FeedbackProvenance | None = None
+    revision_citation: str | None = None
 
 
 class FeedbackPage(Record):

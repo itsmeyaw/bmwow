@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from collections.abc import Callable, Iterator, Mapping
@@ -33,15 +34,16 @@ from .records import (
     FeedbackFilter,
     FeedbackItem,
     FeedbackPage,
+    FeedbackProvenance,
     FeedbackRetrieval,
 )
 
 DATA_LIMITATIONS = [
-    "The SQL import does not identify a source version or original file/CSV location.",
-    "Original unlabelled VFC classifications cannot be reconstructed from these tables.",
+    "Legacy SQL imports may lack a source version or original file/CSV location.",
+    "Legacy imports may lack original unlabelled VFC classifications.",
     "Feedback dates are unknown; created_at is an import timestamp.",
     "Feedback and aspect IDs resolve SQL read projections, not persisted ontology nodes.",
-    "SQL citations resolve the current import; immutable dataset snapshots are not available.",
+    "Logical SQL citations resolve the current import; legacy imports may lack immutable revisions.",
 ]
 SELECTION_POLICY = "Feedback Explorer ID ascending; parent limit applied before aspects."
 
@@ -114,15 +116,53 @@ def project_feedback(parent: Mapping, aspects: list[Mapping], dataset_key: str) 
     item_id = feedback_id(dataset_key, parent["feedback_explorer_id"])
     source_id = f"source:{dataset_key}"
     context = _context(parent)
+    provenance = (
+        FeedbackProvenance.model_validate(parent["provenance"])
+        if parent.get("provenance")
+        else None
+    )
+    pinned_id = f"feedback_revision:{dataset_key}:{provenance.revision_id}" if provenance else None
+    original = (
+        json.dumps([o.model_dump(mode="json") for o in provenance.origins]) if provenance else None
+    )
+    reference_locator = (
+        _locator("feedback_revisions", provenance.revision_id)
+        if provenance
+        else _locator("feedback_entries", parent["id"])
+    )
+    reference_locator.original_locator = original
     reference = EvidenceReference(
-        evidence_id=item_id,
+        evidence_id=pinned_id or item_id,
         source_id=source_id,
         record_key=parent["feedback_explorer_id"],
-        locator=_locator("feedback_entries", parent["id"]),
+        locator=reference_locator,
+        source_version=next(iter(hashes))
+        if provenance and len(hashes := {o.source_hash for o in provenance.origins}) == 1
+        else None,
     )
     projected, classifications = [], []
+    remaining_classifications = list(provenance.raw_classifications) if provenance else []
     for value in aspects:
-        locator = _locator("feedback_aspects", value["id"])
+        locator = (
+            _locator("feedback_revisions", provenance.revision_id)
+            if provenance
+            else _locator("feedback_aspects", value["id"])
+        )
+        matches = []
+        if provenance:
+            matches = [
+                r
+                for r in remaining_classifications
+                if str(r.get("vfc_level2") or "").replace("\u00a0", " ").strip()
+                == value.get("aspect_term")
+                and (str(r.get("feedback_type") or "").strip() or None)
+                == value.get("feedback_type")
+                and (str(r.get("vfc_level3") or "").replace("\u00a0", " ").strip() or None)
+                == value.get("aspect_label_raw")
+            ]
+            if matches:
+                locator.original_locator = json.dumps(matches[0].get("locator"))
+                remaining_classifications.remove(matches[0])
         quote = value.get("quote_snippet")
         curated = value["extraction_source"] == "vfc_label"
         status = (
@@ -150,7 +190,7 @@ def project_feedback(parent: Mapping, aspects: list[Mapping], dataset_key: str) 
                     # Legacy names carry original Aspect Term/Label, not the coarse SQL buckets.
                     vfc_category=value.get("aspect_term"),
                     vfc_issue=value.get("aspect_label_raw"),
-                    vfc_combined=None,
+                    vfc_combined=matches[0].get("vfc_combined") if matches else None,
                     attribute=None,
                     mapping_status=None,
                     locator=locator,
@@ -186,9 +226,20 @@ def project_feedback(parent: Mapping, aspects: list[Mapping], dataset_key: str) 
         imported_at=parent.get("created_at"),
         references=[reference],
         context=context,
-        limitations=list(DATA_LIMITATIONS),
+        limitations=[
+            note
+            for note in DATA_LIMITATIONS
+            if not provenance
+            or note
+            not in (
+                {DATA_LIMITATIONS[4]}
+                | ({DATA_LIMITATIONS[0], DATA_LIMITATIONS[1]} if provenance.origins else set())
+            )
+        ],
         classifications=classifications,
         aspects=projected,
+        provenance=provenance,
+        revision_citation=pinned_id,
     )
 
 
@@ -292,7 +343,8 @@ class NeonFeedbackRepository:
             ).fetchone()["n"]
             parents = conn.execute(
                 "SELECT id, feedback_explorer_id, source, brand, sales_description, country, "
-                "derivate_code, engine_type, raw_feedback, created_at "
+                "derivate_code, engine_type, raw_feedback, created_at, "
+                "to_jsonb(feedback_entries)->'provenance' AS provenance "
                 f"FROM public.feedback_entries WHERE {predicate} "
                 'ORDER BY feedback_explorer_id COLLATE "C", id LIMIT %s',
                 [*params, limit],
@@ -349,7 +401,8 @@ class NeonFeedbackRepository:
         with self._read() as conn:
             parents = conn.execute(
                 "SELECT id, feedback_explorer_id, source, brand, sales_description, country, "
-                "derivate_code, engine_type, raw_feedback, created_at "
+                "derivate_code, engine_type, raw_feedback, created_at, "
+                "to_jsonb(feedback_entries)->'provenance' AS provenance "
                 "FROM public.feedback_entries WHERE feedback_explorer_id = %s",
                 (feedback_explorer_id,),
             ).fetchall()
@@ -364,14 +417,50 @@ class NeonFeedbackRepository:
         with self._read() as conn:
             parents = conn.execute(
                 "SELECT f.id, f.feedback_explorer_id, f.source, f.brand, f.sales_description, "
-                "f.country, f.derivate_code, f.engine_type, f.raw_feedback, f.created_at "
+                "f.country, f.derivate_code, f.engine_type, f.raw_feedback, f.created_at, "
+                "to_jsonb(f)->'provenance' AS provenance "
                 "FROM public.feedback_entries f JOIN public.feedback_aspects a "
                 "ON a.feedback_entry_id = f.id WHERE a.id = %s::uuid",
                 (aspect_id,),
             ).fetchall()
             items = self._project(conn, parents)
             target = f"aspect:{self._config.dataset_key}:{aspect_id}"
-            return next((a for item in items for a in item.aspects if a.aspect_id == target), None)
+            found = next((a for item in items for a in item.aspects if a.aspect_id == target), None)
+            if found:
+                return found
+            if not conn.execute(
+                "SELECT to_regclass('public.feedback_revisions') AS relation"
+            ).fetchone()["relation"]:
+                return None
+            rows = conn.execute(
+                "SELECT payload FROM public.feedback_revisions WHERE payload->'aspects' "
+                "@> %s::jsonb LIMIT 1",
+                (json.dumps([{"id": aspect_id}]),),
+            ).fetchall()
+            if not rows:
+                return None
+            payload = rows[0]["payload"]
+            item = project_feedback(payload["parent"], payload["aspects"], self._config.dataset_key)
+            return next((a for a in item.aspects if a.aspect_id == target), None)
+
+    def find_revision(self, revision_id: str) -> FeedbackItem | None:
+        try:
+            UUID(revision_id)
+        except ValueError:
+            return None
+        with self._read() as conn:
+            if not conn.execute(
+                "SELECT to_regclass('public.feedback_revisions') AS relation"
+            ).fetchone()["relation"]:
+                return None
+            row = conn.execute(
+                "SELECT payload FROM public.feedback_revisions WHERE id = %s::uuid", (revision_id,)
+            ).fetchone()
+            if not row:
+                return None
+            return project_feedback(
+                row["payload"]["parent"], row["payload"]["aspects"], self._config.dataset_key
+            )
 
 
 def create_neon_feedback_service(

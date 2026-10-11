@@ -1,6 +1,8 @@
 """Explicit application curation; unknown model metadata and mappings are not guessed."""
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+
+from bmwow.ontology.models import Provenance
 
 from .types import MappingStatus
 from .types import SearchLocale as LocaleRecord
@@ -25,6 +27,32 @@ class VfcMapping(Configuration):
     feature_id: str
     status: MappingStatus
     rationale: str = Field(min_length=1)
+    reviewed_by: str | None = None
+    reviewed_at: AwareDatetime | None = None
+    review_provenance: Provenance | None = None
+
+    @model_validator(mode="after")
+    def consistent_review(self) -> "VfcMapping":
+        if self.review_provenance is not None:
+            validate_review_provenance(self.review_provenance, self.reviewed_by, self.reviewed_at)
+        return self
+
+
+def validate_review_provenance(
+    provenance: Provenance, reviewer: str | None, reviewed_at: AwareDatetime | None
+) -> None:
+    """Delegation does not change software authorship into human inspection."""
+    if provenance.actor_id != reviewer or provenance.created_at != reviewed_at:
+        raise ValueError("Review provenance must match the recorded reviewer and time")
+    if provenance.actor_type == "software":
+        if (
+            provenance.method != "llm_extraction"
+            or not provenance.model
+            or not provenance.prompt_version
+        ):
+            raise ValueError("Software review requires extraction model and prompt provenance")
+    elif provenance.method != "manual_interpretation":
+        raise ValueError("Human review requires manual interpretation provenance")
 
 
 class KnowledgeConfig(Configuration):

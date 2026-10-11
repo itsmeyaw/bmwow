@@ -31,4 +31,5 @@ def create_knowledge_service(
         manifest.knowledge,
         feedback_repository,
         manifest.feedback_models,
+        pending_decisions=manifest.pending_decisions,
     )

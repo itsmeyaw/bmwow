@@ -4,6 +4,11 @@
 > explicitly confirmed. Facts marked **(verified)** were measured against the real data,
 > the installed SDKs, or the live Neon branch — not assumed.
 
+The current operational workflow is in [data completion](data-completion.md).
+Feedback XLSX export, immutable revision history, explicit migrations, local
+taxonomy proposals, and `--no-enrichment` extend this original provider-mode design.
+Historical provider pricing/rate observations below are not a current quote.
+
 ## Problem Statement
 
 We have three CSV exports of BMW customer feedback (F70 / G60 / G70) sitting inert in
@@ -212,9 +217,11 @@ the planner at this size — they are kept as free insurance against 100× growt
 Header normalization to `snake_case`: `ID` → `feedback_explorer_id`,
 `Derivate (e-code)` → `derivate_code`, `Sales Description` → `sales_description`, etc.
 
-Value cleaning, in order: trim all strings → strip surrounding `[` `]` from `brand` and
+Value cleaning, in order: trim metadata strings → strip surrounding `[` `]` from `brand` and
 `sales_description` → `BEVE` → `BEV` → whitespace-only → NULL → normalize non-breaking
 spaces in taxonomy join keys (**(verified)** required: `ground\xa0clearance`).
+Preserve the original feedback text exactly after eligibility checks. Versioned
+payloads additionally retain all original rows and classification values.
 
 Verbatim rejection: empty, `< 5` characters, or placeholder (`N/A`, `None`, `NA`,
 `null`, `-`, `.`, case-insensitive). **(verified)** Zero rows in the current data trip
@@ -235,8 +242,9 @@ live on the child.
 
 The 13,771 rows contain only **227 + 85 = 312 distinct label strings**, repeated
 thousands of times. So instead of ~13,771 row-level LLM calls, the pipeline makes **312
-classifications in ~11 batched requests** (~30 labels per request), writes the result to
-a committed JSON file, and thereafter maps rows against that file with zero API calls.
+classifications in ~11 batched requests** (~30 labels per request). New suggestions
+are written to an ignored local proposals file. Review them before adding them to
+the effective taxonomy; unmapped labels remain `Unclassified` meanwhile.
 
 This is 44× cheaper, but cost is the smaller win. The real wins:
 
@@ -365,18 +373,16 @@ requests**.
 **One transaction per feedback. Enrich first, then write parent + all its aspects +
 embedding atomically, or write nothing.**
 
-This corrects an earlier design. The obvious resume marker — "skip feedbacks that
-already have an embedding" — is unsound under a two-phase write: if the parent lands with
-its embedding and enrichment then fails, the next run sees an embedding, skips the
-feedback, and **its aspects never arrive, silently**. The marker would be lying.
+Resume compares the original input hash and processing signature (taxonomy,
+preprocessing, enrichment/prompt version, embedding model/dimensions). An existing
+embedding cannot establish that changed text or mappings have been processed.
+The archive and current projection are written in one transaction under an
+identity lock, with an expected revision check. Changed versions retain historical
+payloads and citations. Compatible embeddings can be reused for mapping-only
+refreshes. Unchanged versions are skipped even with null embeddings.
 
-With a single transaction, "has embedding" becomes truthful, so the resume predicate stays
-a one-column check and the pipeline is self-healing on re-run. Because embeddings are
-batched across feedbacks for efficiency, the script processes in chunks: embed the chunk
-in one request → enrich the chunk concurrently → commit one transaction per feedback.
-
-On permanent failure: log the ID to stderr, increment a counter, continue. The next run
-picks it up. No dead-letter file to reconcile, no `status` column.
+On permanent failure, increment a counter, continue, and write failed identities
+to an ignored private report. Source identities and provider errors are not printed.
 
 ### Concurrency and rate limits
 
@@ -403,9 +409,13 @@ not worth a JSONL upload / polling / result-parsing state machine or an unpredic
   `--limit 20` (~$0.003) to eyeball output before committing to the full spend. Omitting
   a brake on a 10,128-call script is how you pay twice.
 - `--self-check` — run the in-process assertions; no API key, no database.
+- `--no-enrichment` — import original curated evidence without provider calls,
+  embeddings, inferred aspects, or invented intensity scores.
+- `--migrate` — explicitly apply migrations using `DATABASE_URL_UNPOOLED`.
+- `--env-file`, `--csv-dir`, `--taxonomy-file`, and `--proposals-file` — select private inputs/configuration.
 
-Both `OPENAI_API_KEY` and `DATABASE_URL` are validated at startup and the script exits
-immediately if either is absent.
+`DATABASE_URL` is required. Provider mode additionally requires `OPENAI_API_KEY`.
+Migrations are not applied on ordinary import runs.
 
 ### Cost and runtime budget
 
