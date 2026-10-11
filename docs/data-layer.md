@@ -7,7 +7,10 @@ service reads SQL feedback/aspects; the combined service adds snapshot-backed
 sales, studies, documents, and curated capabilities through the same v1 interface.
 Workbook ingestion and local candidate acceptance are implemented. Requirement
 persistence, human review services, and the analysis write hook remain pending.
-The raw SQL schema, generated ontology contracts, and v1 wire field names are unchanged.
+The generated ontology contracts and existing v1 wire field names are unchanged.
+The explicit additive feedback migration adds immutable revisions and optional
+current provenance while retaining existing tables and columns. Legacy records
+remain readable; a refresh archives their previous projection before replacing it.
 
 ## Run without Neon
 
@@ -192,6 +195,10 @@ only reviewed mappings populate the feature key. The ontology does not currently
 carry a distinct feedback event date, so a `since` filter excludes undated records
 instead of borrowing observation or publication dates. `limit=0` returns none.
 For SQL records, exact reviewed VFC mappings are applied by the combined service.
+Optional `mapping_provenance` preserves the recorded human or software reviewer,
+method, model, prompt version and time. Delegated software review does not assert
+human inspection. An immutable legacy archive without original source locators
+remains qualified as such and cannot satisfy selected-case data readiness.
 `get_aspect_mapping(citation_id)` exposes proposed/reviewed mapping metadata
 separately for original or inferred Aspect Terms; it does not rewrite stored labels
 or accept an aspect as a graph Signal. The initial manifest supplies no Feature

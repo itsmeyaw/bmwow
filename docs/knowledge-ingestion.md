@@ -37,8 +37,11 @@ defined in [the project plan](project-plan.md#first-complete-milestone). Read
 Steps 1–5 have code and synthetic tests. The
 [completion runbook](data-completion.md) adds feedback XLSX export, an additive
 SQL revision migration, private mapping/PDF proposals, reviewed catalog staging,
-and provider-free readiness inspection. Human review is still required for
-Feature meanings and catalog table/footnote interpretation. Competitor research
+and provider-free readiness inspection. Feature meanings and catalog table/footnote
+interpretation require explicit review. A human may delegate local software review;
+the actual model, prompt, reviewer and time provenance remain software, and all
+source, scope, visual and graph gates still apply. See the completion runbook for
+the review fields and private decision receipts. Competitor research
 and Neo4j persistence remain subsequent work.
 
 ## Curation and import
