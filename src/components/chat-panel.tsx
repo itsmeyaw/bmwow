@@ -8,11 +8,13 @@ import { Streamdown } from "streamdown";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AiChat02Icon,
+  Cancel01Icon,
   MessageAdd01Icon,
   SentIcon,
   SidebarRightIcon,
   StopIcon,
 } from "@hugeicons/core-free-icons";
+import { type Attachment, useChatContext } from "@/components/chat-context";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +30,7 @@ const TOOL_LABEL: Record<string, [string, string]> = {
   getRanking: ["Comparing rankings…", "Read ranking"],
   getCategoryDetail: ["Reading category detail…", "Read category detail"],
   getEvidence: ["Reading verbatims…", "Read verbatims"],
+  searchWeb: ["Searching the web…", "Searched the web"],
 };
 
 type Cited = {
@@ -51,9 +54,13 @@ type ToolPart = {
 const toolParts = (m: UIMessage) =>
   m.parts.filter((p) => p.type.startsWith("tool-")) as unknown as ToolPart[];
 
-/** Every verbatim a tool returned in this thread, by feedback id; only these can be cited. */
+const attachments = (m: UIMessage) =>
+  (m.metadata as { attached?: Attachment[] } | undefined)?.attached ?? [];
+
+/** Every verbatim a tool returned or the user attached in this thread, by feedback id; only these can be cited. */
 function citedIndex(messages: UIMessage[]) {
   const index = new Map<string, Cited>();
+  for (const m of messages) for (const a of attachments(m)) index.set(a.id, a);
   for (const m of messages)
     for (const p of toolParts(m))
       if (p.state === "output-available" && Array.isArray(p.output))
@@ -62,7 +69,7 @@ function citedIndex(messages: UIMessage[]) {
 }
 
 export function ChatPanel() {
-  const [open, setOpen] = useState(true);
+  const { open, setOpen, attached, setAttached, sendRef } = useChatContext();
   const saved = useSyncExternalStore(
     noSubscribe,
     () => Math.max(Number(localStorage.getItem(WIDTH_KEY)) || 0, MIN_WIDTH),
@@ -84,11 +91,19 @@ export function ChatPanel() {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight });
   }, [messages]);
 
-  const send = (text: string) => {
-    if (!text.trim() || busy) return;
-    sendMessage({ text, metadata: { page } }, { body: { page } });
+  const send = (text: string, cards = attached) => {
+    if (!text.trim() || busy) return false;
+    sendMessage(
+      { text, metadata: { page, ...(cards.length && { attached: cards }) } },
+      { body: { page } },
+    );
     setInput("");
+    setAttached([]);
+    return true;
   };
+  useEffect(() => {
+    sendRef.current = send;
+  });
 
   const startResize = (e: React.PointerEvent) => {
     const startX = e.clientX;
@@ -112,8 +127,13 @@ export function ChatPanel() {
     ? [
         `What is the most pressing issue of the ${derivate}?`,
         `What should be improved from this ${derivate}?`,
+        `What should be added to this ${derivate}?`,
       ]
-    : ["Which car has the most pressing issue?", "What should be improved across all cars?"];
+    : [
+        "Which car has the most pressing issue?",
+        "What should be improved across all cars?",
+        "What should be added to our cars?",
+      ];
   const last = messages.at(-1);
 
   return (
@@ -180,9 +200,18 @@ export function ChatPanel() {
               m.role === "user" ? (
                 <div
                   key={m.id}
-                  className="ml-6 self-end rounded-lg bg-muted px-3 py-2 text-sm whitespace-pre-wrap"
+                  className="ml-6 flex flex-col items-end gap-1 self-end text-sm whitespace-pre-wrap"
                 >
-                  {m.parts.map((p) => (p.type === "text" ? p.text : "")).join("")}
+                  {attachments(m).length > 0 && (
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {attachments(m).map((a) => (
+                        <Citation key={a.id} c={a} />
+                      ))}
+                    </div>
+                  )}
+                  <div className="rounded-lg bg-muted px-3 py-2">
+                    {m.parts.map((p) => (p.type === "text" ? p.text : "")).join("")}
+                  </div>
                 </div>
               ) : (
                 <div key={m.id} className="flex min-w-0 flex-col gap-3 text-sm">
@@ -201,6 +230,27 @@ export function ChatPanel() {
             )}
             {error && <p className="text-xs text-destructive">Something went wrong. Try again.</p>}
           </div>
+          {attached.length > 0 && (
+            <ul aria-label="Attached feedback" className="flex flex-wrap gap-1 px-2">
+              {attached.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex max-w-full items-center gap-1 rounded-md border bg-muted/50 py-0.5 pl-2 text-xs"
+                >
+                  <span className="font-mono">{a.id}</span>
+                  <span className="truncate text-muted-foreground">{a.term}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={`Remove ${a.id}`}
+                    onClick={() => setAttached(attached.filter((x) => x.id !== a.id))}
+                  >
+                    <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
           <form
             className="flex items-end gap-2 p-2"
             onSubmit={(e) => {
@@ -217,7 +267,7 @@ export function ChatPanel() {
                   send(input);
                 }
               }}
-              placeholder="Ask a question…"
+              placeholder={attached.length ? "Ask about the attached feedback…" : "Ask a question…"}
               aria-label="Chat message"
               className="max-h-40 min-h-9 resize-none"
               rows={1}
@@ -256,7 +306,7 @@ function Answer({
           const id = href?.startsWith("#cite-") ? href.slice(6) : null;
           if (!id)
             return (
-              <a href={href} {...rest}>
+              <a href={href} target="_blank" rel="noreferrer" className="underline" {...rest}>
                 {children}
               </a>
             );
@@ -303,12 +353,17 @@ function Citation({ c }: { c: Cited }) {
   );
 }
 
-/** One-line digest of a tool call's arguments: query, category, sentiment, scope. */
+/** One-line digest of a tool call's arguments: query or topic, category, sentiment, scope. */
 function stepArgs(input: Record<string, unknown> = {}) {
-  const { query, category, sentiment, derivate, country, engine } = input;
-  const scope = [derivate ?? "all cars", country, engine].filter(Boolean).join(" ");
-  return [query && `"${query}"`, category, sentiment, scope].filter(Boolean).join(" · ");
+  const { query, topic, category, sentiment, derivate, country, engine } = input;
+  const scope =
+    "derivate" in input ? [derivate ?? "all cars", country, engine].filter(Boolean).join(" ") : "";
+  const q = query ?? topic;
+  return [q && `"${q}"`, category, sentiment, scope].filter(Boolean).join(" · ");
 }
+
+type WebResult = { summary: string; sources: { title: string; url: string }[] };
+const isWeb = (x: unknown): x is WebResult => Array.isArray((x as WebResult | null)?.sources);
 
 /** A tool call, collapsed to a summary line; expand to see what it returned. */
 function Step({ part }: { part: ToolPart }) {
@@ -316,7 +371,11 @@ function Step({ part }: { part: ToolPart }) {
   const { state, output } = part;
   if (state.startsWith("input"))
     return <p className="animate-pulse text-xs text-muted-foreground">{running}</p>;
-  const count = Array.isArray(output) ? ` · ${output.length} results` : "";
+  const count = Array.isArray(output)
+    ? ` · ${output.length} results`
+    : isWeb(output)
+      ? ` · ${output.sources.length} sources`
+      : "";
   return (
     <details className="group rounded-md border text-xs">
       <summary className="cursor-pointer list-none truncate px-2 py-1 text-muted-foreground hover:text-foreground">
@@ -337,6 +396,21 @@ function Step({ part }: { part: ToolPart }) {
                 <span className="line-clamp-2">{c.text}</span>
               </li>
             ))}
+          </ul>
+        ) : isWeb(output) ? (
+          <ul className="flex flex-col gap-1">
+            {output.sources.length ? (
+              output.sources.map((s) => (
+                <li key={s.url} className="truncate">
+                  <a href={s.url} target="_blank" rel="noreferrer" className="underline">
+                    {s.title}
+                  </a>{" "}
+                  <span className="text-muted-foreground">{new URL(s.url).hostname}</span>
+                </li>
+              ))
+            ) : (
+              <li className="text-muted-foreground">{output.summary}</li>
+            )}
           </ul>
         ) : (
           <pre className="font-mono text-[0.7rem] whitespace-pre">

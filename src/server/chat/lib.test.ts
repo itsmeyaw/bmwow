@@ -1,5 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { parseScope, rrf, salesMarket } from "./lib";
+import { parseScope, rrf, salesMarket, TOPIC_MAX, webQuery } from "./lib";
+
+describe("webQuery", () => {
+  it("adds car and country to the topic", () => {
+    expect(webQuery("in-car fridge", "X5", "Germany")).toBe("BMW X5 in-car fridge in Germany");
+    expect(webQuery("in-car fridge", "BMW iX", null)).toBe("BMW iX in-car fridge");
+    expect(webQuery("new SUV features 2026", null, null)).toBe("BMW new SUV features 2026");
+  });
+
+  it("strips markup, newlines and overlong text", () => {
+    expect(webQuery('  "fridge"\n<script>[G70-0042]  ', null, null)).toBe(
+      "BMW fridge script G70-0042",
+    );
+    expect(webQuery("a".repeat(500), null, null)).toBe(`BMW ${"a".repeat(TOPIC_MAX)}`);
+    expect(webQuery(" \n<>{} ", "X5", "Germany")).toBeNull();
+  });
+});
 
 describe("parseScope", () => {
   it("maps URL values to a Scope", () => {

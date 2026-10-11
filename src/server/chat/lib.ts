@@ -41,6 +41,29 @@ export function salesMarket(country: string | null): string | null {
   return country === "US" || country === "CN" ? country : "RoW";
 }
 
+export const TOPIC_MAX = 120;
+
+/**
+ * Public web query: a short topic plus the public car name and country.
+ * Strips anything beyond plain words/punctuation so pasted verbatims stay short and inert.
+ * Returns null when nothing usable is left.
+ */
+export function webQuery(
+  topic: string,
+  carName: string | null,
+  country: string | null,
+): string | null {
+  const t = topic
+    .replace(/[^\p{L}\p{N} .,&/'()+-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, TOPIC_MAX)
+    .trim();
+  if (!t) return null;
+  const car = !carName ? "BMW" : /^bmw\b/i.test(carName) ? carName : `BMW ${carName}`;
+  return [car, t, country && `in ${country}`].filter(Boolean).join(" ");
+}
+
 /** Reciprocal rank fusion of ranked id lists, best first. */
 export function rrf(lists: string[][], k = 60): string[] {
   const score = new Map<string, number>();

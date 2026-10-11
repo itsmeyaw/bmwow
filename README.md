@@ -67,6 +67,12 @@ model). Queries are embedded with `text-embedding-3-large` at 1536 dimensions to
 match the stored vectors. Threads live in the browser only. The chat sends
 verbatims and aggregates to OpenAI, the same provider `pnpm preprocess` uses.
 
+For questions like "What should be added to this car?", the `searchWeb` tool
+looks up feature trends, competitor features and products on the public web via
+OpenAI web search (`LLM_CHEAP`, falling back to `LLM_STRONG`), localised to the
+`region` country. Only a short cleaned topic, the car's sales name and the
+country leave as the query; page text stays in that separate call.
+
 ### Sales CSV import
 
 Place the private CSV exports in `data/sales/`, with filenames ending in
